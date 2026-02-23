@@ -1,0 +1,16 @@
+{
+	"name": "mutils",
+	"version": "0.1.0",
+	"private": true,
+	"description": "Mudae optimization toolkit",
+	"scripts": {
+		"dev": "pnpm -r dev",
+		"build": "pnpm -r build",
+		"lint": "pnpm -r lint",
+		"test": "pnpm -r test"
+	},
+	"engines": {
+		"node": ">=20.0.0",
+		"pnpm": ">=9.0.0"
+	}
+}
