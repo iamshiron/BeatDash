@@ -1,3 +1,4 @@
+name: mutils
 services:
   postgres:
     image: postgres:17-alpine
@@ -59,7 +60,7 @@ services:
       mc anonymous set none myminio/$$BUCKET_USER_DATA;
       echo 'Buckets created and policies set';
       "
-    
+
   adminer:
     image: adminer:latest
     depends_on:
@@ -72,7 +73,3 @@ volumes:
     driver: local
   minio_data:
     driver: local
-
-networks:
-  default:
-    name: mutils-network
