@@ -13,6 +13,7 @@ backend/**/bin/
 backend/**/obj/
 backend/.idea/
 backend/.vs/
+backend/**/appsettings.Development.json
 
 docker/postgres_data/
 docker/minio_data/
