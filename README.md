@@ -1,5 +1,7 @@
 # Mutils
 
+> **Disclaimer:** This project is not affiliated with, endorsed by, or connected to Mudae in any way. Mutils is an independent fan project created for personal use and the community.
+
 A toolkit for managing Mudae collections and tracking kakera earnings.
 
 ## Features
