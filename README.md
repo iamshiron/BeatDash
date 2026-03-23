@@ -90,15 +90,17 @@ Mutils/
 
 1. Clone the repository
 
-2. Copy environment file:
+2. Copy environment files:
    ```bash
    cp .env.example .env
+   cp frontend/.env.example frontend/.env
    ```
 
 3. Configure Discord OAuth:
    - Create a Discord application at https://discord.com/developers/applications
    - Set redirect URI to `http://localhost:5173/auth/callback`
-   - Update `.env` with your client ID and secret
+   - Update `.env` with your client ID and secret (server-side)
+   - Update `frontend/.env` with your client ID and redirect URI (client-side)
 
 4. Start infrastructure:
    ```bash
@@ -149,7 +151,7 @@ dotnet test       # Run tests
 
 ## API Documentation
 
-API documentation is available at `/scalar/v1` when running the backend.
+API documentation is available at `/scalar` when running the backend.
 
 ## License
 
