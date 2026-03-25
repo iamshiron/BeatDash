@@ -23,6 +23,7 @@ public class WebSocketClientService : BackgroundService {
     public event EventHandler<WebSocketMessageReceivedEventArgs>? MessageReceived;
     public event EventHandler<MapData>? NewMapStarted;
     public event EventHandler<MapFinishedEventArgs>? MapFinished;
+    public event EventHandler<MapData>? CoverImageReceived;
 
     public WebSocketClientService(ILogger<WebSocketClientService> logger) {
         _logger = logger;
@@ -115,6 +116,8 @@ public class WebSocketClientService : BackgroundService {
                     _currentMapData = null;
                     LogMapFinished(mapData);
                     MapFinished?.Invoke(this, new MapFinishedEventArgs(mapData, _currentLiveData));
+                } else if (wasInProgress && mapData.Hash == currentHash && !string.IsNullOrEmpty(mapData.CoverImage)) {
+                    CoverImageReceived?.Invoke(this, mapData);
                 }
             }
         } catch (JsonException ex) {

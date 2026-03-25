@@ -29,6 +29,7 @@ public class EventStorageService : IEventStorageService {
         _webSocketService.MessageReceived += OnMessageReceived;
         _webSocketService.NewMapStarted += OnNewMapStarted;
         _webSocketService.MapFinished += OnMapFinished;
+        _webSocketService.CoverImageReceived += OnCoverImageReceived;
 
         _logger.LogInformation("EventStorageService started");
         return Task.CompletedTask;
@@ -38,6 +39,7 @@ public class EventStorageService : IEventStorageService {
         _webSocketService.MessageReceived -= OnMessageReceived;
         _webSocketService.NewMapStarted -= OnNewMapStarted;
         _webSocketService.MapFinished -= OnMapFinished;
+        _webSocketService.CoverImageReceived -= OnCoverImageReceived;
 
         _logger.LogInformation("EventStorageService stopped");
         return Task.CompletedTask;
@@ -93,6 +95,17 @@ public class EventStorageService : IEventStorageService {
             }
         } catch (Exception ex) {
             _logger.LogError(ex, "Failed to update play session final data");
+        }
+    }
+
+    private async void OnCoverImageReceived(object? sender, MapData e) {
+        try {
+            if (string.IsNullOrEmpty(e.Hash)) return;
+            using var scope = _scopeFactory.CreateScope();
+            var sqliteService = scope.ServiceProvider.GetRequiredService<ISqliteService>();
+            await sqliteService.UpdateMapCoverImageAsync(e.Hash, e.CoverImage);
+        } catch (Exception ex) {
+            _logger.LogError(ex, "Failed to update map cover image");
         }
     }
 }

@@ -7,25 +7,15 @@ public class PlaySessionEntity {
 
     public string? EndReason { get; set; }
 
-    public string? Hash { get; set; }
-    public string SongName { get; set; } = "";
-    public string SongSubName { get; set; } = "";
-    public string SongAuthor { get; set; } = "";
-    public string Mapper { get; set; } = "";
-    public string? BSRKey { get; set; }
-    public int Duration { get; set; }
+    public long MapId { get; set; }
+    public MapEntity Map { get; set; } = null!;
 
-    public string MapType { get; set; } = "";
-    public string Difficulty { get; set; } = "";
-    public string? CustomDifficultyLabel { get; set; }
-    public int BPM { get; set; }
-    public double NJS { get; set; }
+    public long DifficultyId { get; set; }
+    public DifficultyEntity Difficulty { get; set; } = null!;
+
     public float ModifiersMultiplier { get; set; } = 1.0f;
     public bool PracticeMode { get; set; }
-    public double PP { get; set; }
-    public double Star { get; set; }
 
-    public string GameVersion { get; set; } = "";
     public string PluginVersion { get; set; } = "";
     public bool IsMultiplayer { get; set; }
     public int PreviousRecord { get; set; }

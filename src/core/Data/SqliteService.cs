@@ -1,4 +1,7 @@
+using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Webp;
 using Shiron.BeatDash.API.Data.Entities;
 using Shiron.BeatDash.API.Models;
 
@@ -8,6 +11,7 @@ public interface ISqliteService {
     Task InitializeAsync();
     Task<PlaySessionEntity> CreatePlaySessionAsync(MapData mapData);
     Task UpdatePlaySessionFinalDataAsync(long playSessionId, MapData mapData, LiveData? liveData);
+    Task UpdateMapCoverImageAsync(string hash, string? coverImage);
     Task<LiveDataSnapshotEntity> AddLiveDataSnapshotAsync(long playSessionId, LiveData liveData);
     Task<RawMessageEntity> AddRawMessageAsync(string connectionName, string message, long? playSessionId = null);
     Task<PlaySessionEntity?> GetCurrentPlaySessionAsync();
@@ -33,25 +37,15 @@ public class SqliteService : ISqliteService {
     }
 
     public async Task<PlaySessionEntity> CreatePlaySessionAsync(MapData mapData) {
+        var map = await GetOrCreateMapAsync(mapData);
+        var difficulty = await GetOrCreateDifficultyAsync(mapData, map.Id);
+
         var session = new PlaySessionEntity {
             StartedAt = DateTimeOffset.UtcNow,
-            Hash = mapData.Hash,
-            SongName = mapData.SongName,
-            SongSubName = mapData.SongSubName,
-            SongAuthor = mapData.SongAuthor,
-            Mapper = mapData.Mapper,
-            BSRKey = mapData.BSRKey,
-            Duration = mapData.Duration,
-            MapType = mapData.MapType,
-            Difficulty = mapData.Difficulty,
-            CustomDifficultyLabel = mapData.CustomDifficultyLabel,
-            BPM = mapData.BPM,
-            NJS = mapData.NJS,
+            MapId = map.Id,
+            DifficultyId = difficulty.Id,
             ModifiersMultiplier = mapData.ModifiersMultiplier,
             PracticeMode = mapData.PracticeMode,
-            PP = mapData.PP,
-            Star = mapData.Star,
-            GameVersion = mapData.GameVersion,
             PluginVersion = mapData.PluginVersion,
             IsMultiplayer = mapData.IsMultiplayer,
             PreviousRecord = mapData.PreviousRecord,
@@ -64,9 +58,84 @@ public class SqliteService : ISqliteService {
         await _context.SaveChangesAsync();
 
         _currentPlaySessionId = session.Id;
-        _logger.LogDebug("Created play session {Id} for {SongName}", session.Id, session.SongName);
+        _logger.LogDebug("Created play session {Id} for {SongName}", session.Id, map.SongName);
 
         return session;
+    }
+
+    private async Task<MapEntity> GetOrCreateMapAsync(MapData mapData) {
+        var hash = mapData.Hash ?? "";
+        var existingMap = await _context.Maps.FirstOrDefaultAsync(m => m.Hash == hash);
+        var coverImage = ConvertCoverImageToWebP(mapData.CoverImage);
+
+        if (existingMap != null) {
+            if (existingMap.CoverImage == null && coverImage != null) {
+                existingMap.CoverImage = coverImage;
+                await _context.SaveChangesAsync();
+            }
+            return existingMap;
+        }
+
+        var map = new MapEntity {
+            Hash = hash,
+            SongName = mapData.SongName,
+            SongSubName = mapData.SongSubName,
+            SongAuthor = mapData.SongAuthor,
+            Mapper = mapData.Mapper,
+            BSRKey = mapData.BSRKey,
+            Duration = mapData.Duration,
+            BPM = mapData.BPM,
+            CoverImage = coverImage,
+            GameVersion = mapData.GameVersion,
+        };
+
+        _context.Maps.Add(map);
+        await _context.SaveChangesAsync();
+        return map;
+    }
+
+    private static readonly Regex DataUriPattern = new(@"^data:image/\w+;base64,(.+)$", RegexOptions.Compiled);
+
+    private static string? ConvertCoverImageToWebP(string? coverImage) {
+        if (string.IsNullOrEmpty(coverImage)) return null;
+
+        var match = DataUriPattern.Match(coverImage);
+        if (!match.Success) return coverImage;
+
+        try {
+            var base64Data = match.Groups[1].Value;
+            var imageBytes = Convert.FromBase64String(base64Data);
+
+            using var image = Image.Load(imageBytes);
+            using var outputStream = new MemoryStream();
+
+            image.Save(outputStream, new WebpEncoder { Quality = 85 });
+            var webpBase64 = Convert.ToBase64String(outputStream.ToArray());
+
+            return $"data:image/webp;base64,{webpBase64}";
+        } catch {
+            return coverImage;
+        }
+    }
+
+    private async Task<DifficultyEntity> GetOrCreateDifficultyAsync(MapData mapData, long mapId) {
+        var existingDifficulty = await _context.Difficulties.FirstOrDefaultAsync(
+            d => d.MapId == mapId && d.MapType == mapData.MapType && d.Difficulty == mapData.Difficulty);
+        if (existingDifficulty != null) return existingDifficulty;
+
+        var difficulty = new DifficultyEntity {
+            MapId = mapId,
+            MapType = mapData.MapType,
+            Difficulty = mapData.Difficulty,
+            CustomDifficultyLabel = mapData.CustomDifficultyLabel,
+            NJS = mapData.NJS,
+            PP = mapData.PP,
+            Star = mapData.Star,
+        };
+
+        _context.Difficulties.Add(difficulty);
+        await _context.SaveChangesAsync();
+        return difficulty;
     }
 
     public async Task UpdatePlaySessionFinalDataAsync(long playSessionId, MapData mapData, LiveData? liveData) {
@@ -98,6 +167,20 @@ public class SqliteService : ISqliteService {
         _logger.LogDebug("Updated play session {Id} with final data", playSessionId);
     }
 
+    public async Task UpdateMapCoverImageAsync(string hash, string? coverImage) {
+        if (string.IsNullOrEmpty(hash) || string.IsNullOrEmpty(coverImage)) return;
+
+        var map = await _context.Maps.FirstOrDefaultAsync(m => m.Hash == hash);
+        if (map == null || map.CoverImage != null) return;
+
+        var webpCoverImage = ConvertCoverImageToWebP(coverImage);
+        if (webpCoverImage == null) return;
+
+        map.CoverImage = webpCoverImage;
+        await _context.SaveChangesAsync();
+        _logger.LogDebug("Updated cover image for map {Hash}", hash);
+    }
+
     public async Task<LiveDataSnapshotEntity> AddLiveDataSnapshotAsync(long playSessionId, LiveData liveData) {
         var snapshot = new LiveDataSnapshotEntity {
             Timestamp = DateTimeOffset.UtcNow,
@@ -114,11 +197,11 @@ public class SqliteService : ISqliteService {
             Accuracy = liveData.Accuracy,
             PlayerHealth = liveData.PlayerHealth,
             TimeElapsed = liveData.TimeElapsed,
-            EventTrigger = (int)liveData.EventTrigger,
+            EventTrigger = (int) liveData.EventTrigger,
             BlockHitPreSwing = liveData.BlockHitScore.PreSwing,
             BlockHitPostSwing = liveData.BlockHitScore.PostSwing,
             BlockHitCenterSwing = liveData.BlockHitScore.CenterSwing,
-            NoteColorType = (int)liveData.ColorType,
+            NoteColorType = (int) liveData.ColorType,
         };
 
         _context.LiveDataSnapshots.Add(snapshot);
