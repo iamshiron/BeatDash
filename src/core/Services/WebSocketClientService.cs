@@ -7,18 +7,18 @@ using Shiron.BeatDash.API.Models;
 namespace Shiron.BeatDash.API.Services;
 
 public class WebSocketClientService : BackgroundService {
-    readonly ILogger<WebSocketClientService> _logger;
-    readonly ConcurrentDictionary<string, WebSocketConnection> _connections = new();
+    private readonly ILogger<WebSocketClientService> _logger;
+    private readonly ConcurrentDictionary<string, WebSocketConnection> _connections = new();
 
-    readonly (string Name, string Uri)[] _endpoints = [
+    private readonly (string Name, string Uri)[] _endpoints = [
         ("MapData", "ws://127.0.0.1:2946/BSDataPuller/MapData"),
         ("LiveData", "ws://127.0.0.1:2946/BSDataPuller/LiveData")
     ];
 
-    MapData? _currentMapData;
-    LiveData? _currentLiveData;
-    bool _mapInProgress;
-    readonly object _stateLock = new();
+    private MapData? _currentMapData;
+    private LiveData? _currentLiveData;
+    private bool _mapInProgress;
+    private readonly object _stateLock = new();
 
     public event EventHandler<WebSocketMessageReceivedEventArgs>? MessageReceived;
     public event EventHandler<MapData>? NewMapStarted;
@@ -28,7 +28,7 @@ public class WebSocketClientService : BackgroundService {
         _logger = logger;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
+    protected async override Task ExecuteAsync(CancellationToken stoppingToken) {
         foreach (var endpoint in _endpoints) {
             var connection = new WebSocketConnection(endpoint.Name, endpoint.Uri);
             _connections[endpoint.Name] = connection;
@@ -39,7 +39,7 @@ public class WebSocketClientService : BackgroundService {
         await Task.Delay(Timeout.Infinite, stoppingToken);
     }
 
-    async Task ConnectAndReceiveAsync(WebSocketConnection connection, CancellationToken stoppingToken) {
+    private async Task ConnectAndReceiveAsync(WebSocketConnection connection, CancellationToken stoppingToken) {
         var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
             connection.CancellationTokenSource.Token,
             stoppingToken
@@ -61,7 +61,7 @@ public class WebSocketClientService : BackgroundService {
         }
     }
 
-    async Task ReceiveMessagesAsync(WebSocketConnection connection, CancellationToken cancellationToken) {
+    private async Task ReceiveMessagesAsync(WebSocketConnection connection, CancellationToken cancellationToken) {
         var buffer = new byte[8192];
         var messageBuilder = new StringBuilder();
 
@@ -95,7 +95,7 @@ public class WebSocketClientService : BackgroundService {
         }
     }
 
-    void ProcessMapData(string message) {
+    private void ProcessMapData(string message) {
         try {
             var mapData = JsonSerializer.Deserialize<MapData>(message);
             if (mapData == null) return;
@@ -122,7 +122,7 @@ public class WebSocketClientService : BackgroundService {
         }
     }
 
-    void ProcessLiveData(string message) {
+    private void ProcessLiveData(string message) {
         try {
             var liveData = JsonSerializer.Deserialize<LiveData>(message);
             if (liveData == null) return;
@@ -135,14 +135,14 @@ public class WebSocketClientService : BackgroundService {
         }
     }
 
-    void LogNewMap(MapData map) {
+    private void LogNewMap(MapData map) {
         _logger.LogInformation(
             "New map started: {SongName} by {SongAuthor} | Mapper: {Mapper} | Difficulty: {Difficulty} | BSR: {BSRKey}",
             map.SongName, map.SongAuthor, map.Mapper, map.Difficulty, map.BSRKey ?? "N/A"
         );
     }
 
-    void LogMapFinished(MapData map) {
+    private void LogMapFinished(MapData map) {
         var live = _currentLiveData;
         var endReason = map.LevelFinished ? "Finished" : map.LevelFailed ? "Failed" : "Quit";
         var duration = TimeSpan.FromSeconds(map.Duration);
@@ -166,7 +166,7 @@ public class WebSocketClientService : BackgroundService {
         }
     }
 
-    public override async Task StopAsync(CancellationToken cancellationToken) {
+    public async override Task StopAsync(CancellationToken cancellationToken) {
         foreach (var connection in _connections.Values) {
             if (connection.Client.State == WebSocketState.Open) {
                 await connection.Client.CloseAsync(WebSocketCloseStatus.NormalClosure, "Service stopping", cancellationToken);

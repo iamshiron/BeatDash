@@ -1,43 +1,37 @@
+using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
+using Shiron.BeatDash.API.Data;
 using Shiron.BeatDash.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
-builder.Services.AddHostedService<WebSocketClientService>();
+
+builder.Services.AddDbContext<BeatDashDbContext>(options =>
+    options.UseSqlite("Data Source=beatdash.db"));
+
+builder.Services.AddScoped<ISqliteService, SqliteService>();
+builder.Services.AddSingleton<IEventStorageService, EventStorageService>();
+
+builder.Services.AddSingleton<WebSocketClientService>();
+builder.Services.AddHostedService<WebSocketClientService>(sp => sp.GetRequiredService<WebSocketClientService>());
+builder.Services.AddHostedService<EventStorageServiceHostedService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment()) {
     app.MapOpenApi();
     app.MapScalarApiReference(options => {
-        options.Title = "Mutils API";
+        options.Title = "BeatDash API";
         options.Theme = ScalarTheme.Purple;
     });
 }
 
 app.UseHttpsRedirection();
 
-var summaries = new[] {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () => {
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-            new WeatherForecast
-            (
-                DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                Random.Shared.Next(-20, 55),
-                summaries[Random.Shared.Next(summaries.Length)]
-            ))
-        .ToArray();
-    return forecast;
-})
-    .WithName("GetWeatherForecast");
+using (var scope = app.Services.CreateScope()) {
+    var sqliteService = scope.ServiceProvider.GetRequiredService<ISqliteService>();
+    await sqliteService.InitializeAsync();
+}
 
 app.Run();
-
-internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary) {
-    public int TemperatureF => 32 + (int) (TemperatureC / 0.5556);
-}
