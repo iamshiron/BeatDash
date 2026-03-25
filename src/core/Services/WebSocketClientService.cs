@@ -18,6 +18,9 @@ public class WebSocketClientService : BackgroundService {
     private MapData? _currentMapData;
     private LiveData? _currentLiveData;
     private bool _mapInProgress;
+    private DateTimeOffset _lastMapDataReceived;
+    private DateTimeOffset _lastLiveDataReceived;
+    private static DateTimeOffset _startTime;
     private readonly object _stateLock = new();
 
     public event EventHandler<WebSocketMessageReceivedEventArgs>? MessageReceived;
@@ -30,6 +33,7 @@ public class WebSocketClientService : BackgroundService {
     }
 
     protected async override Task ExecuteAsync(CancellationToken stoppingToken) {
+        _startTime = DateTimeOffset.UtcNow;
         foreach (var endpoint in _endpoints) {
             var connection = new WebSocketConnection(endpoint.Name, endpoint.Uri);
             _connections[endpoint.Name] = connection;
@@ -102,6 +106,7 @@ public class WebSocketClientService : BackgroundService {
             if (mapData == null) return;
 
             lock (_stateLock) {
+                _lastMapDataReceived = DateTimeOffset.UtcNow;
                 var wasInProgress = _mapInProgress;
                 var currentHash = _currentMapData?.Hash;
                 var isNewMap = mapData.Hash != null && mapData.Hash != currentHash;
@@ -131,6 +136,7 @@ public class WebSocketClientService : BackgroundService {
             if (liveData == null) return;
 
             lock (_stateLock) {
+                _lastLiveDataReceived = DateTimeOffset.UtcNow;
                 _currentLiveData = liveData;
             }
         } catch (JsonException ex) {
@@ -169,6 +175,75 @@ public class WebSocketClientService : BackgroundService {
         }
     }
 
+    public ServerStatusDto GetStatus() {
+        var connections = new List<ConnectionStatusDto>();
+        foreach (var endpoint in _endpoints) {
+            var isConnected = _connections.TryGetValue(endpoint.Name, out var conn) &&
+                conn.Client.State == WebSocketState.Open;
+
+            DateTimeOffset? lastReceived = null;
+            if (endpoint.Name == "MapData") {
+                lock (_stateLock) {
+                    lastReceived = _lastMapDataReceived == default ? null : _lastMapDataReceived;
+                }
+            } else if (endpoint.Name == "LiveData") {
+                lock (_stateLock) {
+                    lastReceived = _lastLiveDataReceived == default ? null : _lastLiveDataReceived;
+                }
+            }
+
+            connections.Add(new ConnectionStatusDto {
+                Name = endpoint.Name,
+                Uri = endpoint.Uri,
+                IsConnected = isConnected,
+                State = _connections.TryGetValue(endpoint.Name, out var c) ? c.Client.State.ToString() : "NotInitialized",
+                LastReceived = lastReceived
+            });
+        }
+
+        CurrentMapStatusDto? currentMap = null;
+        CurrentLiveStatusDto? currentLive = null;
+
+        lock (_stateLock) {
+            if (_currentMapData != null) {
+                currentMap = new CurrentMapStatusDto {
+                    SongName = _currentMapData.SongName,
+                    SongAuthor = _currentMapData.SongAuthor,
+                    Mapper = _currentMapData.Mapper,
+                    Difficulty = _currentMapData.Difficulty,
+                    MapType = _currentMapData.MapType,
+                    BSRKey = _currentMapData.BSRKey,
+                    Duration = _currentMapData.Duration,
+                    BPM = _currentMapData.BPM
+                };
+            }
+
+            if (_currentLiveData != null) {
+                currentLive = new CurrentLiveStatusDto {
+                    Score = _currentLiveData.Score,
+                    MaxScore = _currentLiveData.MaxScore,
+                    Rank = _currentLiveData.Rank,
+                    Accuracy = _currentLiveData.Accuracy,
+                    Combo = _currentLiveData.Combo,
+                    Misses = _currentLiveData.Misses,
+                    FullCombo = _currentLiveData.FullCombo,
+                    PlayerHealth = _currentLiveData.PlayerHealth,
+                    TimeElapsed = _currentLiveData.TimeElapsed
+                };
+            }
+        }
+
+        return new ServerStatusDto {
+            BeatSaberConnected = connections.All(c => c.IsConnected),
+            MapInProgress = _mapInProgress,
+            Connections = connections,
+            CurrentMap = currentMap,
+            CurrentLiveData = currentLive,
+            ServerTime = DateTimeOffset.UtcNow,
+            Uptime = _startTime == default ? null : DateTimeOffset.UtcNow - _startTime
+        };
+    }
+
     public async override Task StopAsync(CancellationToken cancellationToken) {
         foreach (var connection in _connections.Values) {
             if (connection.Client.State == WebSocketState.Open) {
@@ -191,4 +266,45 @@ public class WebSocketMessageReceivedEventArgs(string connectionName, string mes
 public class MapFinishedEventArgs(MapData mapData, LiveData? liveData) : EventArgs {
     public MapData MapData { get; } = mapData;
     public LiveData? LiveData { get; } = liveData;
+}
+
+public record ServerStatusDto {
+    public bool BeatSaberConnected { get; init; }
+    public bool MapInProgress { get; init; }
+    public List<ConnectionStatusDto> Connections { get; init; } = [];
+    public CurrentMapStatusDto? CurrentMap { get; init; }
+    public CurrentLiveStatusDto? CurrentLiveData { get; init; }
+    public DateTimeOffset ServerTime { get; init; }
+    public TimeSpan? Uptime { get; init; }
+}
+
+public record ConnectionStatusDto {
+    public string Name { get; init; } = "";
+    public string Uri { get; init; } = "";
+    public bool IsConnected { get; init; }
+    public string State { get; init; } = "";
+    public DateTimeOffset? LastReceived { get; init; }
+}
+
+public record CurrentMapStatusDto {
+    public string SongName { get; init; } = "";
+    public string SongAuthor { get; init; } = "";
+    public string Mapper { get; init; } = "";
+    public string Difficulty { get; init; } = "";
+    public string MapType { get; init; } = "";
+    public string? BSRKey { get; init; }
+    public int Duration { get; init; }
+    public int BPM { get; init; }
+}
+
+public record CurrentLiveStatusDto {
+    public int Score { get; init; }
+    public int MaxScore { get; init; }
+    public string Rank { get; init; } = "";
+    public double Accuracy { get; init; }
+    public int Combo { get; init; }
+    public int Misses { get; init; }
+    public bool FullCombo { get; init; }
+    public double PlayerHealth { get; init; }
+    public int TimeElapsed { get; init; }
 }
