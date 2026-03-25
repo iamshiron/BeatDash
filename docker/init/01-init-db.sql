@@ -1,0 +1,26 @@
+-- Ensure proper encoding
+SET client_encoding = 'UTF8';
+
+-- Create the dedicated databases
+CREATE DATABASE beatdash;
+CREATE DATABASE mutils;
+
+-- Setup Mutils Database (mutils_default)
+\c mutils
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+GRANT ALL PRIVILEGES ON SCHEMA public TO current_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO current_user;
+
+-- Setup BeatDash Database
+\c beatdash
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+GRANT ALL PRIVILEGES ON SCHEMA public TO current_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO current_user;
+
+-- Log initialization
+DO $$
+BEGIN
+    RAISE NOTICE 'Monorepo databases initialized successfully';
+END $$;

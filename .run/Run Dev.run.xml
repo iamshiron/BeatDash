@@ -1,0 +1,7 @@
+﻿<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Run Dev" type="CompoundRunConfigurationType">
+    <toRun name="Mutils.Api" type="LaunchSettings" />
+    <toRun name="Frontend - Dev" type="js.build_tools.npm" />
+    <method v="2" />
+  </configuration>
+</component>
