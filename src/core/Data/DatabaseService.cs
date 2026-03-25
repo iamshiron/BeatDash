@@ -7,7 +7,7 @@ using Shiron.BeatDash.API.Models;
 
 namespace Shiron.BeatDash.API.Data;
 
-public interface ISqliteService {
+public interface IDatabaseService {
     Task InitializeAsync();
     Task<PlaySessionEntity> CreatePlaySessionAsync(MapData mapData);
     Task UpdatePlaySessionFinalDataAsync(long playSessionId, MapData mapData, LiveData? liveData);
@@ -20,20 +20,22 @@ public interface ISqliteService {
     IQueryable<RawMessageEntity> QueryRawMessages();
 }
 
-public class SqliteService : ISqliteService {
+public class DatabaseService : IDatabaseService {
     private readonly BeatDashDbContext _context;
-    private readonly ILogger<SqliteService> _logger;
+    private readonly ILogger<DatabaseService> _logger;
+    private readonly HttpClient _httpClient;
     private long? _currentPlaySessionId;
 
-    public SqliteService(BeatDashDbContext context, ILogger<SqliteService> logger) {
+    public DatabaseService(BeatDashDbContext context, ILogger<DatabaseService> logger, HttpClient httpClient) {
         _context = context;
         _logger = logger;
+        _httpClient = httpClient;
     }
 
     public async Task InitializeAsync() {
-        _logger.LogInformation("Initializing SQLite database...");
-        await _context.Database.EnsureCreatedAsync();
-        _logger.LogInformation("SQLite database initialized successfully");
+        _logger.LogInformation("Initializing PostgreSQL database...");
+        await _context.Database.MigrateAsync();
+        _logger.LogInformation("PostgreSQL database initialized successfully");
     }
 
     public async Task<PlaySessionEntity> CreatePlaySessionAsync(MapData mapData) {
@@ -66,7 +68,7 @@ public class SqliteService : ISqliteService {
     private async Task<MapEntity> GetOrCreateMapAsync(MapData mapData) {
         var hash = mapData.Hash ?? "";
         var existingMap = await _context.Maps.FirstOrDefaultAsync(m => m.Hash == hash);
-        var coverImage = ConvertCoverImageToWebP(mapData.CoverImage);
+        var coverImage = await ConvertCoverImageToWebPAsync(mapData.CoverImage);
 
         if (existingMap != null) {
             if (existingMap.CoverImage == null && coverImage != null) {
@@ -96,16 +98,31 @@ public class SqliteService : ISqliteService {
 
     private static readonly Regex DataUriPattern = new(@"^data:image/\w+;base64,(.+)$", RegexOptions.Compiled);
 
-    private static string? ConvertCoverImageToWebP(string? coverImage) {
+    private async Task<string?> ConvertCoverImageToWebPAsync(string? coverImage) {
         if (string.IsNullOrEmpty(coverImage)) return null;
 
+        byte[] imageBytes;
+        
         var match = DataUriPattern.Match(coverImage);
-        if (!match.Success) return coverImage;
+        if (match.Success) {
+            try {
+                imageBytes = Convert.FromBase64String(match.Groups[1].Value);
+            } catch {
+                return coverImage;
+            }
+        } else if (Uri.TryCreate(coverImage, UriKind.Absolute, out var uri) && 
+                   (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)) {
+            try {
+                imageBytes = await _httpClient.GetByteArrayAsync(uri);
+            } catch {
+                _logger.LogWarning("Failed to download cover image from URL: {Url}", coverImage);
+                return null;
+            }
+        } else {
+            return coverImage;
+        }
 
         try {
-            var base64Data = match.Groups[1].Value;
-            var imageBytes = Convert.FromBase64String(base64Data);
-
             using var image = Image.Load(imageBytes);
             using var outputStream = new MemoryStream();
 
@@ -173,7 +190,7 @@ public class SqliteService : ISqliteService {
         var map = await _context.Maps.FirstOrDefaultAsync(m => m.Hash == hash);
         if (map == null || map.CoverImage != null) return;
 
-        var webpCoverImage = ConvertCoverImageToWebP(coverImage);
+        var webpCoverImage = await ConvertCoverImageToWebPAsync(coverImage);
         if (webpCoverImage == null) return;
 
         map.CoverImage = webpCoverImage;

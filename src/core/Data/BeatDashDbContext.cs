@@ -9,8 +9,6 @@ public class BeatDashDbContext : DbContext {
     public DbSet<PlaySessionEntity> PlaySessions { get; set; }
     public DbSet<LiveDataSnapshotEntity> LiveDataSnapshots { get; set; }
     public DbSet<RawMessageEntity> RawMessages { get; set; }
-    public DbSet<ModifiersEntity> Modifiers { get; set; }
-    public DbSet<PracticeModeModifiersEntity> PracticeModeModifiers { get; set; }
 
     public BeatDashDbContext(DbContextOptions<BeatDashDbContext> options) : base(options) { }
 
@@ -30,6 +28,17 @@ public class BeatDashDbContext : DbContext {
             entity.Property(e => e.Mapper).HasMaxLength(256);
             entity.Property(e => e.BSRKey).HasMaxLength(64);
             entity.Property(e => e.GameVersion).HasMaxLength(32);
+
+            entity.Property(e => e.SongNameSearchVector)
+                .HasComputedColumnSql("to_tsvector('english', coalesce(\"SongName\", ''))", stored: true);
+            entity.Property(e => e.SongAuthorSearchVector)
+                .HasComputedColumnSql("to_tsvector('english', coalesce(\"SongAuthor\", ''))", stored: true);
+            entity.Property(e => e.MapperSearchVector)
+                .HasComputedColumnSql("to_tsvector('english', coalesce(\"Mapper\", ''))", stored: true);
+
+            entity.HasIndex(e => e.SongNameSearchVector).HasMethod("gin");
+            entity.HasIndex(e => e.SongAuthorSearchVector).HasMethod("gin");
+            entity.HasIndex(e => e.MapperSearchVector).HasMethod("gin");
         });
 
         modelBuilder.Entity<DifficultyEntity>(entity => {
@@ -69,13 +78,13 @@ public class BeatDashDbContext : DbContext {
                 .HasForeignKey(e => e.DifficultyId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasOne(e => e.Modifiers)
-                .WithOne()
-                .HasForeignKey<PlaySessionEntity>("ModifiersId");
+            entity.OwnsOne(e => e.Modifiers, navBuilder => {
+                navBuilder.ToJson();
+            });
 
-            entity.HasOne(e => e.PracticeModeModifiers)
-                .WithOne()
-                .HasForeignKey<PlaySessionEntity>("PracticeModeModifiersId");
+            entity.OwnsOne(e => e.PracticeModeModifiers, navBuilder => {
+                navBuilder.ToJson();
+            });
         });
 
         modelBuilder.Entity<LiveDataSnapshotEntity>(entity => {
@@ -104,14 +113,6 @@ public class BeatDashDbContext : DbContext {
                 .WithMany()
                 .HasForeignKey(e => e.PlaySessionId)
                 .OnDelete(DeleteBehavior.SetNull);
-        });
-
-        modelBuilder.Entity<ModifiersEntity>(entity => {
-            entity.HasKey(e => e.Id);
-        });
-
-        modelBuilder.Entity<PracticeModeModifiersEntity>(entity => {
-            entity.HasKey(e => e.Id);
         });
     }
 }

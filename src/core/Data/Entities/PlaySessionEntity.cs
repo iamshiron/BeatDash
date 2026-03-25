@@ -39,7 +39,6 @@ public class PlaySessionEntity {
 }
 
 public class ModifiersEntity {
-    public long Id { get; set; }
     public bool NoFailOn0Energy { get; set; }
     public bool OneLife { get; set; }
     public bool FourLives { get; set; }
@@ -58,7 +57,6 @@ public class ModifiersEntity {
 }
 
 public class PracticeModeModifiersEntity {
-    public long Id { get; set; }
     public float SongSpeedMul { get; set; } = 1.0f;
     public bool StartInAdvanceAndClearNotes { get; set; }
     public float SongStartTime { get; set; }

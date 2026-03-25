@@ -46,11 +46,11 @@ public class QueryService : IQueryService {
             .AsQueryable();
 
         if (!string.IsNullOrEmpty(filter.Search)) {
-            var search = $"%{filter.Search}%";
+            var searchQuery = EF.Functions.PlainToTsQuery("english", filter.Search);
             query = query.Where(m =>
-                EF.Functions.Like(m.SongName, search) ||
-                EF.Functions.Like(m.SongAuthor, search) ||
-                EF.Functions.Like(m.Mapper, search));
+                m.SongNameSearchVector!.Matches(searchQuery) ||
+                m.SongAuthorSearchVector!.Matches(searchQuery) ||
+                m.MapperSearchVector!.Matches(searchQuery));
         }
 
         if (!string.IsNullOrEmpty(filter.SongAuthor)) {

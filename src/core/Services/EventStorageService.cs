@@ -48,12 +48,12 @@ public class EventStorageService : IEventStorageService {
     private async void OnMessageReceived(object? sender, WebSocketMessageReceivedEventArgs e) {
         try {
             using var scope = _scopeFactory.CreateScope();
-            var sqliteService = scope.ServiceProvider.GetRequiredService<ISqliteService>();
+            var databaseService = scope.ServiceProvider.GetRequiredService<IDatabaseService>();
             long? sessionId;
             lock (_sessionLock) {
                 sessionId = _currentPlaySessionId;
             }
-            await sqliteService.AddRawMessageAsync(e.ConnectionName, e.Message, sessionId);
+            await databaseService.AddRawMessageAsync(e.ConnectionName, e.Message, sessionId);
         } catch (Exception ex) {
             _logger.LogError(ex, "Failed to store raw message");
         }
@@ -62,8 +62,8 @@ public class EventStorageService : IEventStorageService {
     private async void OnNewMapStarted(object? sender, MapData e) {
         try {
             using var scope = _scopeFactory.CreateScope();
-            var sqliteService = scope.ServiceProvider.GetRequiredService<ISqliteService>();
-            var session = await sqliteService.CreatePlaySessionAsync(e);
+            var databaseService = scope.ServiceProvider.GetRequiredService<IDatabaseService>();
+            var session = await databaseService.CreatePlaySessionAsync(e);
             lock (_sessionLock) {
                 _currentPlaySessionId = session.Id;
             }
@@ -82,8 +82,8 @@ public class EventStorageService : IEventStorageService {
 
             if (sessionId.HasValue) {
                 using var scope = _scopeFactory.CreateScope();
-                var sqliteService = scope.ServiceProvider.GetRequiredService<ISqliteService>();
-                await sqliteService.UpdatePlaySessionFinalDataAsync(
+                var databaseService = scope.ServiceProvider.GetRequiredService<IDatabaseService>();
+                await databaseService.UpdatePlaySessionFinalDataAsync(
                     sessionId.Value,
                     e.MapData,
                     e.LiveData
@@ -102,8 +102,8 @@ public class EventStorageService : IEventStorageService {
         try {
             if (string.IsNullOrEmpty(e.Hash)) return;
             using var scope = _scopeFactory.CreateScope();
-            var sqliteService = scope.ServiceProvider.GetRequiredService<ISqliteService>();
-            await sqliteService.UpdateMapCoverImageAsync(e.Hash, e.CoverImage);
+            var databaseService = scope.ServiceProvider.GetRequiredService<IDatabaseService>();
+            await databaseService.UpdateMapCoverImageAsync(e.Hash, e.CoverImage);
         } catch (Exception ex) {
             _logger.LogError(ex, "Failed to update map cover image");
         }

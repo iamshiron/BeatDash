@@ -14,6 +14,10 @@ public class MapEntity {
     public string? CoverImage { get; set; }
     public string GameVersion { get; set; } = "";
 
+    public NpgsqlTypes.NpgsqlTsVector? SongNameSearchVector { get; set; }
+    public NpgsqlTypes.NpgsqlTsVector? SongAuthorSearchVector { get; set; }
+    public NpgsqlTypes.NpgsqlTsVector? MapperSearchVector { get; set; }
+
     public ICollection<DifficultyEntity> Difficulties { get; set; } = [];
     public ICollection<PlaySessionEntity> PlaySessions { get; set; } = [];
 }

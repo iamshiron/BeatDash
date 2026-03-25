@@ -1,0 +1,33 @@
+name: beatdash
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: beat-dash-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-beat-dash}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-beat-dash_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-beat-dash}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init/01-init-db.sql:/docker-entrypoint-initdb.d/01-init-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-beat-dash} -d ${POSTGRES_DB:-beat-dash}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  adminer:
+    image: adminer:latest
+    depends_on:
+      - postgres
+    ports:
+      - 8080:8080
+
+volumes:
+  postgres_data:
+    driver: local
+  minio_data:
+    driver: local

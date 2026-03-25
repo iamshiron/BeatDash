@@ -8,10 +8,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 
-builder.Services.AddDbContext<BeatDashDbContext>(options =>
-    options.UseSqlite("Data Source=beatdash.db"));
+var connectionString = builder.Configuration.GetConnectionString("Default")
+    ?? throw new InvalidOperationException("Connection string 'Default' not found.");
 
-builder.Services.AddScoped<ISqliteService, SqliteService>();
+builder.Services.AddDbContext<BeatDashDbContext>(options => options.UseNpgsql(connectionString));
+
+builder.Services.AddHttpClient<DatabaseService>();
+builder.Services.AddScoped<IDatabaseService, DatabaseService>();
 builder.Services.AddScoped<IQueryService, QueryService>();
 builder.Services.AddSingleton<IEventStorageService, EventStorageService>();
 
@@ -38,8 +41,8 @@ api.MapGroup("/livedata").MapLiveDataApi();
 api.MapGroup("/analytics").MapAnalyticsApi();
 
 using (var scope = app.Services.CreateScope()) {
-    var sqliteService = scope.ServiceProvider.GetRequiredService<ISqliteService>();
-    await sqliteService.InitializeAsync();
+    var databaseService = scope.ServiceProvider.GetRequiredService<IDatabaseService>();
+    await databaseService.InitializeAsync();
 }
 
 app.Run();
