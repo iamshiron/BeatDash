@@ -37,7 +37,6 @@ app.MapScalarApiReference(options => {
 app.UseHttpsRedirection();
 
 var api = app.MapGroup("/api");
-
 api.MapGroup("/status").MapStatusApi();
 api.MapGroup("/maps").MapMapsApi();
 api.MapGroup("/sessions").MapPlaySessionsApi();
