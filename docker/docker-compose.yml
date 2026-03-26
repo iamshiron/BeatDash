@@ -49,15 +49,15 @@ services:
       MINIO_PORT: 9000
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-admin}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-admin_pw}
-      MUTILS_BUCKET_ASSETS: ${MINIO_BUCKET_ASSETS:-mutils/assets}
-      MUTILS_BUCKET_USER_DATA: ${MINIO_BUCKET_USER_DATA:-mutils/user-data}
+      MUTILS_BUCKET_ASSETS: ${MINIO_BUCKET_ASSETS:-mutils-assets}
+      MUTILS_BUCKET_USER_DATA: ${MINIO_BUCKET_USER_DATA:-mutils-user-data}
     entrypoint: >
       /bin/sh -c "
       mc alias set myminio http://$$MINIO_ENDPOINT:$$MINIO_PORT $$MINIO_ACCESS_KEY $$MINIO_SECRET_KEY;
-      mc mb $$MUTILS_BUCKET_ASSETS --ignore-existing;
-      mc mb $$MUTILS_BUCKET_USER_DATA --ignore-existing;
-      mc anonymous set download $$MUTILS_BUCKET_ASSETS;
-      mc anonymous set none $$MUTILS_BUCKET_USER_DATA;
+      mc mb myminio/$$MUTILS_BUCKET_ASSETS --ignore-existing;
+      mc mb myminio/$$MUTILS_BUCKET_USER_DATA --ignore-existing;
+      mc anonymous set download myminio/$$MUTILS_BUCKET_ASSETS;
+      mc anonymous set none myminio/$$MUTILS_BUCKET_USER_DATA;
       echo 'Buckets created and policies set';
       "
 
