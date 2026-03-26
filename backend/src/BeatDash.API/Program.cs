@@ -1,17 +1,21 @@
+using DotNetEnv;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using Shiron.BeatDash.API.Data;
 using Shiron.BeatDash.API.Endpoints;
 using Shiron.BeatDash.API.Services;
 
+Env.TraversePath().Load();
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 
-var connectionString = builder.Configuration.GetConnectionString("Default")
-    ?? throw new InvalidOperationException("Connection string 'Default' not found.");
-
-builder.Services.AddDbContext<BeatDashDbContext>(options => options.UseNpgsql(connectionString));
+builder.Services.AddDbContext<BeatDashDbContext>(options =>
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("Default")
+        ?? builder.Configuration.GetSection("BEATDASH_ConnectionStrings")["Default"]
+        ?? throw new InvalidOperationException("Database connection string not configured")
+    ));
 
 builder.Services.AddHttpClient<DatabaseService>();
 builder.Services.AddScoped<IDatabaseService, DatabaseService>();

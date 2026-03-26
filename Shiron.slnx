@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Beatdash/">
+    <Project Path="backend/src/BeatDash.API/Shiron.BeatDash.API.csproj" />
+  </Folder>
   <Folder Name="/Mutils/">
     <Project Path="backend/src/Mutils.Api/Shiron.Mutils.Api.csproj" />
     <Project Path="backend/src/Mutils.Core/Shiron.Mutils.Core.csproj" />
