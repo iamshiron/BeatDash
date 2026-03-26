@@ -7,7 +7,8 @@ public static class LiveDataEndpoints {
     public static RouteGroupBuilder MapLiveDataApi(this RouteGroupBuilder group) {
         group.MapGet("/", GetLiveDataSnapshots)
             .WithName("GetLiveDataSnapshots")
-            .WithDescription("Get a paginated list of live data snapshots with optional filtering");
+            .WithDescription("Get a paginated list of live data snapshots with optional filtering")
+            .Produces<PaginatedResult<LiveDataSnapshotDto>>();
 
         return group;
     }

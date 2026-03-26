@@ -27,6 +27,7 @@ public class WebSocketClientService : BackgroundService {
     public event EventHandler<MapData>? NewMapStarted;
     public event EventHandler<MapFinishedEventArgs>? MapFinished;
     public event EventHandler<MapData>? CoverImageReceived;
+    public event EventHandler<LiveData>? LiveDataReceived;
 
     public WebSocketClientService(ILogger<WebSocketClientService> logger) {
         _logger = logger;
@@ -138,6 +139,10 @@ public class WebSocketClientService : BackgroundService {
             lock (_stateLock) {
                 _lastLiveDataReceived = DateTimeOffset.UtcNow;
                 _currentLiveData = liveData;
+
+                if (_mapInProgress) {
+                    LiveDataReceived?.Invoke(this, liveData);
+                }
             }
         } catch (JsonException ex) {
             _logger.LogError(ex, "Failed to deserialize LiveData");

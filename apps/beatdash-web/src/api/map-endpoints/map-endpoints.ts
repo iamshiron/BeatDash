@@ -20,7 +20,15 @@ import { useQuery } from "@tanstack/react-query";
 import type { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 import * as axios from "axios";
 
-import type { GetMapSessionsParams, GetMapsParams } from "../model";
+import type {
+	DifficultyDto,
+	GetMapSessionsParams,
+	GetMapsParams,
+	MapDetailDto,
+	MapDto,
+	PaginatedResultOfMapSummaryDto,
+	PlaySessionSummaryDto,
+} from "../model";
 
 /**
  * Get a paginated list of maps with optional filtering
@@ -28,7 +36,7 @@ import type { GetMapSessionsParams, GetMapsParams } from "../model";
 export const getMaps = (
 	params?: GetMapsParams,
 	options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<PaginatedResultOfMapSummaryDto>> => {
 	return axios.default.get(`/api/maps`, {
 		...options,
 		params: { ...params, ...options?.params },
@@ -164,7 +172,7 @@ export function useGetMaps<
 export const getMapById = (
 	id: number,
 	options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<MapDto>> => {
 	return axios.default.get(`/api/maps/${id}`, options);
 };
 
@@ -174,7 +182,7 @@ export const getGetMapByIdQueryKey = (id: number) => {
 
 export const getGetMapByIdQueryOptions = <
 	TData = Awaited<ReturnType<typeof getMapById>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	id: number,
 	options?: {
@@ -207,11 +215,11 @@ export const getGetMapByIdQueryOptions = <
 export type GetMapByIdQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getMapById>>
 >;
-export type GetMapByIdQueryError = AxiosError<unknown>;
+export type GetMapByIdQueryError = AxiosError<void>;
 
 export function useGetMapById<
 	TData = Awaited<ReturnType<typeof getMapById>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	id: number,
 	options: {
@@ -234,7 +242,7 @@ export function useGetMapById<
 };
 export function useGetMapById<
 	TData = Awaited<ReturnType<typeof getMapById>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	id: number,
 	options?: {
@@ -257,7 +265,7 @@ export function useGetMapById<
 };
 export function useGetMapById<
 	TData = Awaited<ReturnType<typeof getMapById>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	id: number,
 	options?: {
@@ -273,7 +281,7 @@ export function useGetMapById<
 
 export function useGetMapById<
 	TData = Awaited<ReturnType<typeof getMapById>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	id: number,
 	options?: {
@@ -302,7 +310,7 @@ export function useGetMapById<
 export const getMapDetail = (
 	id: number,
 	options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<MapDetailDto>> => {
 	return axios.default.get(`/api/maps/${id}/detail`, options);
 };
 
@@ -312,7 +320,7 @@ export const getGetMapDetailQueryKey = (id: number) => {
 
 export const getGetMapDetailQueryOptions = <
 	TData = Awaited<ReturnType<typeof getMapDetail>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	id: number,
 	options?: {
@@ -345,11 +353,11 @@ export const getGetMapDetailQueryOptions = <
 export type GetMapDetailQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getMapDetail>>
 >;
-export type GetMapDetailQueryError = AxiosError<unknown>;
+export type GetMapDetailQueryError = AxiosError<void>;
 
 export function useGetMapDetail<
 	TData = Awaited<ReturnType<typeof getMapDetail>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	id: number,
 	options: {
@@ -372,7 +380,7 @@ export function useGetMapDetail<
 };
 export function useGetMapDetail<
 	TData = Awaited<ReturnType<typeof getMapDetail>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	id: number,
 	options?: {
@@ -395,7 +403,7 @@ export function useGetMapDetail<
 };
 export function useGetMapDetail<
 	TData = Awaited<ReturnType<typeof getMapDetail>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	id: number,
 	options?: {
@@ -411,7 +419,7 @@ export function useGetMapDetail<
 
 export function useGetMapDetail<
 	TData = Awaited<ReturnType<typeof getMapDetail>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	id: number,
 	options?: {
@@ -440,7 +448,7 @@ export function useGetMapDetail<
 export const getMapDifficulties = (
 	id: number,
 	options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<DifficultyDto[]>> => {
 	return axios.default.get(`/api/maps/${id}/difficulties`, options);
 };
 
@@ -599,7 +607,7 @@ export const getMapSessions = (
 	id: number,
 	params?: GetMapSessionsParams,
 	options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<PlaySessionSummaryDto[]>> => {
 	return axios.default.get(`/api/maps/${id}/sessions`, {
 		...options,
 		params: { ...params, ...options?.params },
@@ -749,7 +757,7 @@ export function useGetMapSessions<
 export const getMapCover = (
 	id: number,
 	options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<unknown>> => {
 	return axios.default.get(`/api/maps/${id}/cover`, options);
 };
 
@@ -759,7 +767,7 @@ export const getGetMapCoverQueryKey = (id: number) => {
 
 export const getGetMapCoverQueryOptions = <
 	TData = Awaited<ReturnType<typeof getMapCover>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	id: number,
 	options?: {
@@ -792,11 +800,11 @@ export const getGetMapCoverQueryOptions = <
 export type GetMapCoverQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getMapCover>>
 >;
-export type GetMapCoverQueryError = AxiosError<unknown>;
+export type GetMapCoverQueryError = AxiosError<void>;
 
 export function useGetMapCover<
 	TData = Awaited<ReturnType<typeof getMapCover>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	id: number,
 	options: {
@@ -819,7 +827,7 @@ export function useGetMapCover<
 };
 export function useGetMapCover<
 	TData = Awaited<ReturnType<typeof getMapCover>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	id: number,
 	options?: {
@@ -842,7 +850,7 @@ export function useGetMapCover<
 };
 export function useGetMapCover<
 	TData = Awaited<ReturnType<typeof getMapCover>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	id: number,
 	options?: {
@@ -858,7 +866,7 @@ export function useGetMapCover<
 
 export function useGetMapCover<
 	TData = Awaited<ReturnType<typeof getMapCover>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	id: number,
 	options?: {
@@ -887,7 +895,7 @@ export function useGetMapCover<
 export const getMapByHash = (
 	hash: string,
 	options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<MapDto>> => {
 	return axios.default.get(`/api/maps/hash/${hash}`, options);
 };
 
@@ -897,7 +905,7 @@ export const getGetMapByHashQueryKey = (hash: string) => {
 
 export const getGetMapByHashQueryOptions = <
 	TData = Awaited<ReturnType<typeof getMapByHash>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	hash: string,
 	options?: {
@@ -930,11 +938,11 @@ export const getGetMapByHashQueryOptions = <
 export type GetMapByHashQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getMapByHash>>
 >;
-export type GetMapByHashQueryError = AxiosError<unknown>;
+export type GetMapByHashQueryError = AxiosError<void>;
 
 export function useGetMapByHash<
 	TData = Awaited<ReturnType<typeof getMapByHash>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	hash: string,
 	options: {
@@ -957,7 +965,7 @@ export function useGetMapByHash<
 };
 export function useGetMapByHash<
 	TData = Awaited<ReturnType<typeof getMapByHash>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	hash: string,
 	options?: {
@@ -980,7 +988,7 @@ export function useGetMapByHash<
 };
 export function useGetMapByHash<
 	TData = Awaited<ReturnType<typeof getMapByHash>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	hash: string,
 	options?: {
@@ -996,7 +1004,7 @@ export function useGetMapByHash<
 
 export function useGetMapByHash<
 	TData = Awaited<ReturnType<typeof getMapByHash>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	hash: string,
 	options?: {
@@ -1025,7 +1033,7 @@ export function useGetMapByHash<
 export const getMapCoverByHash = (
 	hash: string,
 	options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<unknown>> => {
 	return axios.default.get(`/api/maps/hash/${hash}/cover`, options);
 };
 
@@ -1035,7 +1043,7 @@ export const getGetMapCoverByHashQueryKey = (hash: string) => {
 
 export const getGetMapCoverByHashQueryOptions = <
 	TData = Awaited<ReturnType<typeof getMapCoverByHash>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	hash: string,
 	options?: {
@@ -1072,11 +1080,11 @@ export const getGetMapCoverByHashQueryOptions = <
 export type GetMapCoverByHashQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getMapCoverByHash>>
 >;
-export type GetMapCoverByHashQueryError = AxiosError<unknown>;
+export type GetMapCoverByHashQueryError = AxiosError<void>;
 
 export function useGetMapCoverByHash<
 	TData = Awaited<ReturnType<typeof getMapCoverByHash>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	hash: string,
 	options: {
@@ -1103,7 +1111,7 @@ export function useGetMapCoverByHash<
 };
 export function useGetMapCoverByHash<
 	TData = Awaited<ReturnType<typeof getMapCoverByHash>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	hash: string,
 	options?: {
@@ -1130,7 +1138,7 @@ export function useGetMapCoverByHash<
 };
 export function useGetMapCoverByHash<
 	TData = Awaited<ReturnType<typeof getMapCoverByHash>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	hash: string,
 	options?: {
@@ -1150,7 +1158,7 @@ export function useGetMapCoverByHash<
 
 export function useGetMapCoverByHash<
 	TData = Awaited<ReturnType<typeof getMapCoverByHash>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	hash: string,
 	options?: {
@@ -1183,7 +1191,7 @@ export function useGetMapCoverByHash<
 export const getMapByBSRKey = (
 	bsrKey: string,
 	options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<MapDto>> => {
 	return axios.default.get(`/api/maps/bsr/${bsrKey}`, options);
 };
 
@@ -1193,7 +1201,7 @@ export const getGetMapByBSRKeyQueryKey = (bsrKey: string) => {
 
 export const getGetMapByBSRKeyQueryOptions = <
 	TData = Awaited<ReturnType<typeof getMapByBSRKey>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	bsrKey: string,
 	options?: {
@@ -1226,11 +1234,11 @@ export const getGetMapByBSRKeyQueryOptions = <
 export type GetMapByBSRKeyQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getMapByBSRKey>>
 >;
-export type GetMapByBSRKeyQueryError = AxiosError<unknown>;
+export type GetMapByBSRKeyQueryError = AxiosError<void>;
 
 export function useGetMapByBSRKey<
 	TData = Awaited<ReturnType<typeof getMapByBSRKey>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	bsrKey: string,
 	options: {
@@ -1253,7 +1261,7 @@ export function useGetMapByBSRKey<
 };
 export function useGetMapByBSRKey<
 	TData = Awaited<ReturnType<typeof getMapByBSRKey>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	bsrKey: string,
 	options?: {
@@ -1276,7 +1284,7 @@ export function useGetMapByBSRKey<
 };
 export function useGetMapByBSRKey<
 	TData = Awaited<ReturnType<typeof getMapByBSRKey>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	bsrKey: string,
 	options?: {
@@ -1292,7 +1300,7 @@ export function useGetMapByBSRKey<
 
 export function useGetMapByBSRKey<
 	TData = Awaited<ReturnType<typeof getMapByBSRKey>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	bsrKey: string,
 	options?: {
@@ -1321,7 +1329,7 @@ export function useGetMapByBSRKey<
 export const getMapCoverByBSRKey = (
 	bsrKey: string,
 	options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<unknown>> => {
 	return axios.default.get(`/api/maps/bsr/${bsrKey}/cover`, options);
 };
 
@@ -1331,7 +1339,7 @@ export const getGetMapCoverByBSRKeyQueryKey = (bsrKey: string) => {
 
 export const getGetMapCoverByBSRKeyQueryOptions = <
 	TData = Awaited<ReturnType<typeof getMapCoverByBSRKey>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	bsrKey: string,
 	options?: {
@@ -1369,11 +1377,11 @@ export const getGetMapCoverByBSRKeyQueryOptions = <
 export type GetMapCoverByBSRKeyQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getMapCoverByBSRKey>>
 >;
-export type GetMapCoverByBSRKeyQueryError = AxiosError<unknown>;
+export type GetMapCoverByBSRKeyQueryError = AxiosError<void>;
 
 export function useGetMapCoverByBSRKey<
 	TData = Awaited<ReturnType<typeof getMapCoverByBSRKey>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	bsrKey: string,
 	options: {
@@ -1400,7 +1408,7 @@ export function useGetMapCoverByBSRKey<
 };
 export function useGetMapCoverByBSRKey<
 	TData = Awaited<ReturnType<typeof getMapCoverByBSRKey>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	bsrKey: string,
 	options?: {
@@ -1427,7 +1435,7 @@ export function useGetMapCoverByBSRKey<
 };
 export function useGetMapCoverByBSRKey<
 	TData = Awaited<ReturnType<typeof getMapCoverByBSRKey>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	bsrKey: string,
 	options?: {
@@ -1447,7 +1455,7 @@ export function useGetMapCoverByBSRKey<
 
 export function useGetMapCoverByBSRKey<
 	TData = Awaited<ReturnType<typeof getMapCoverByBSRKey>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	bsrKey: string,
 	options?: {

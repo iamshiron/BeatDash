@@ -47,3 +47,7 @@ Thumbs.db
 /artifacts/
 
 vite.config.*.timestamp*
+
+
+# env
+.env

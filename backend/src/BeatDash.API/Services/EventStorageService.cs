@@ -16,6 +16,9 @@ public class EventStorageService : IEventStorageService {
     private long? _currentPlaySessionId;
     private readonly object _sessionLock = new();
 
+    private DateTimeOffset _lastSnapshotTime;
+    private static readonly TimeSpan SnapshotThrottleInterval = TimeSpan.FromSeconds(1);
+
     public EventStorageService(
         WebSocketClientService webSocketService,
         IServiceScopeFactory scopeFactory,
@@ -30,6 +33,7 @@ public class EventStorageService : IEventStorageService {
         _webSocketService.NewMapStarted += OnNewMapStarted;
         _webSocketService.MapFinished += OnMapFinished;
         _webSocketService.CoverImageReceived += OnCoverImageReceived;
+        _webSocketService.LiveDataReceived += OnLiveDataReceived;
 
         _logger.LogInformation("EventStorageService started");
         return Task.CompletedTask;
@@ -40,6 +44,7 @@ public class EventStorageService : IEventStorageService {
         _webSocketService.NewMapStarted -= OnNewMapStarted;
         _webSocketService.MapFinished -= OnMapFinished;
         _webSocketService.CoverImageReceived -= OnCoverImageReceived;
+        _webSocketService.LiveDataReceived -= OnLiveDataReceived;
 
         _logger.LogInformation("EventStorageService stopped");
         return Task.CompletedTask;
@@ -106,6 +111,27 @@ public class EventStorageService : IEventStorageService {
             await databaseService.UpdateMapCoverImageAsync(e.Hash, e.CoverImage);
         } catch (Exception ex) {
             _logger.LogError(ex, "Failed to update map cover image");
+        }
+    }
+
+    private async void OnLiveDataReceived(object? sender, LiveData e) {
+        try {
+            var now = DateTimeOffset.UtcNow;
+            if (now - _lastSnapshotTime < SnapshotThrottleInterval) return;
+
+            long? sessionId;
+            lock (_sessionLock) {
+                sessionId = _currentPlaySessionId;
+            }
+
+            if (!sessionId.HasValue) return;
+
+            using var scope = _scopeFactory.CreateScope();
+            var databaseService = scope.ServiceProvider.GetRequiredService<IDatabaseService>();
+            await databaseService.AddLiveDataSnapshotAsync(sessionId.Value, e);
+            _lastSnapshotTime = now;
+        } catch (Exception ex) {
+            _logger.LogError(ex, "Failed to store live data snapshot");
         }
     }
 }

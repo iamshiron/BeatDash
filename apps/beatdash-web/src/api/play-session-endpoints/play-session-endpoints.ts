@@ -20,7 +20,16 @@ import { useQuery } from "@tanstack/react-query";
 import type { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 import * as axios from "axios";
 
-import type { GetPlaySessionsParams, GetRecentSessionsParams } from "../model";
+import type {
+	GetPlaySessionsParams,
+	GetRecentSessionsParams,
+	LiveDataSnapshotDto,
+	PaginatedResultOfPlaySessionSummaryDto,
+	PlaySessionDto,
+	PlaySessionSummaryDto,
+	SessionDetailDto,
+	SessionPerformanceBreakdownDto,
+} from "../model";
 
 /**
  * Get a paginated list of play sessions with optional filtering
@@ -28,7 +37,7 @@ import type { GetPlaySessionsParams, GetRecentSessionsParams } from "../model";
 export const getPlaySessions = (
 	params?: GetPlaySessionsParams,
 	options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<PaginatedResultOfPlaySessionSummaryDto>> => {
 	return axios.default.get(`/api/sessions`, {
 		...options,
 		params: { ...params, ...options?.params },
@@ -184,7 +193,7 @@ export function useGetPlaySessions<
 export const getRecentSessions = (
 	params?: GetRecentSessionsParams,
 	options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<PlaySessionSummaryDto[]>> => {
 	return axios.default.get(`/api/sessions/recent`, {
 		...options,
 		params: { ...params, ...options?.params },
@@ -343,7 +352,7 @@ export function useGetRecentSessions<
 export const getPlaySessionById = (
 	id: number,
 	options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<PlaySessionDto>> => {
 	return axios.default.get(`/api/sessions/${id}`, options);
 };
 
@@ -353,7 +362,7 @@ export const getGetPlaySessionByIdQueryKey = (id: number) => {
 
 export const getGetPlaySessionByIdQueryOptions = <
 	TData = Awaited<ReturnType<typeof getPlaySessionById>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	id: number,
 	options?: {
@@ -390,11 +399,11 @@ export const getGetPlaySessionByIdQueryOptions = <
 export type GetPlaySessionByIdQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getPlaySessionById>>
 >;
-export type GetPlaySessionByIdQueryError = AxiosError<unknown>;
+export type GetPlaySessionByIdQueryError = AxiosError<void>;
 
 export function useGetPlaySessionById<
 	TData = Awaited<ReturnType<typeof getPlaySessionById>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	id: number,
 	options: {
@@ -421,7 +430,7 @@ export function useGetPlaySessionById<
 };
 export function useGetPlaySessionById<
 	TData = Awaited<ReturnType<typeof getPlaySessionById>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	id: number,
 	options?: {
@@ -448,7 +457,7 @@ export function useGetPlaySessionById<
 };
 export function useGetPlaySessionById<
 	TData = Awaited<ReturnType<typeof getPlaySessionById>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	id: number,
 	options?: {
@@ -468,7 +477,7 @@ export function useGetPlaySessionById<
 
 export function useGetPlaySessionById<
 	TData = Awaited<ReturnType<typeof getPlaySessionById>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	id: number,
 	options?: {
@@ -501,7 +510,7 @@ export function useGetPlaySessionById<
 export const getSessionDetail = (
 	id: number,
 	options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<SessionDetailDto>> => {
 	return axios.default.get(`/api/sessions/${id}/detail`, options);
 };
 
@@ -511,7 +520,7 @@ export const getGetSessionDetailQueryKey = (id: number) => {
 
 export const getGetSessionDetailQueryOptions = <
 	TData = Awaited<ReturnType<typeof getSessionDetail>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	id: number,
 	options?: {
@@ -548,11 +557,11 @@ export const getGetSessionDetailQueryOptions = <
 export type GetSessionDetailQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getSessionDetail>>
 >;
-export type GetSessionDetailQueryError = AxiosError<unknown>;
+export type GetSessionDetailQueryError = AxiosError<void>;
 
 export function useGetSessionDetail<
 	TData = Awaited<ReturnType<typeof getSessionDetail>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	id: number,
 	options: {
@@ -579,7 +588,7 @@ export function useGetSessionDetail<
 };
 export function useGetSessionDetail<
 	TData = Awaited<ReturnType<typeof getSessionDetail>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	id: number,
 	options?: {
@@ -606,7 +615,7 @@ export function useGetSessionDetail<
 };
 export function useGetSessionDetail<
 	TData = Awaited<ReturnType<typeof getSessionDetail>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	id: number,
 	options?: {
@@ -626,7 +635,7 @@ export function useGetSessionDetail<
 
 export function useGetSessionDetail<
 	TData = Awaited<ReturnType<typeof getSessionDetail>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	id: number,
 	options?: {
@@ -659,7 +668,7 @@ export function useGetSessionDetail<
 export const getSessionSnapshots = (
 	id: number,
 	options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<LiveDataSnapshotDto[]>> => {
 	return axios.default.get(`/api/sessions/${id}/snapshots`, options);
 };
 
@@ -817,7 +826,7 @@ export function useGetSessionSnapshots<
 export const getSessionPerformance = (
 	id: number,
 	options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<SessionPerformanceBreakdownDto>> => {
 	return axios.default.get(`/api/sessions/${id}/performance`, options);
 };
 
@@ -827,7 +836,7 @@ export const getGetSessionPerformanceQueryKey = (id: number) => {
 
 export const getGetSessionPerformanceQueryOptions = <
 	TData = Awaited<ReturnType<typeof getSessionPerformance>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	id: number,
 	options?: {
@@ -865,11 +874,11 @@ export const getGetSessionPerformanceQueryOptions = <
 export type GetSessionPerformanceQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getSessionPerformance>>
 >;
-export type GetSessionPerformanceQueryError = AxiosError<unknown>;
+export type GetSessionPerformanceQueryError = AxiosError<void>;
 
 export function useGetSessionPerformance<
 	TData = Awaited<ReturnType<typeof getSessionPerformance>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	id: number,
 	options: {
@@ -896,7 +905,7 @@ export function useGetSessionPerformance<
 };
 export function useGetSessionPerformance<
 	TData = Awaited<ReturnType<typeof getSessionPerformance>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	id: number,
 	options?: {
@@ -923,7 +932,7 @@ export function useGetSessionPerformance<
 };
 export function useGetSessionPerformance<
 	TData = Awaited<ReturnType<typeof getSessionPerformance>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	id: number,
 	options?: {
@@ -943,7 +952,7 @@ export function useGetSessionPerformance<
 
 export function useGetSessionPerformance<
 	TData = Awaited<ReturnType<typeof getSessionPerformance>>,
-	TError = AxiosError<unknown>,
+	TError = AxiosError<void>,
 >(
 	id: number,
 	options?: {

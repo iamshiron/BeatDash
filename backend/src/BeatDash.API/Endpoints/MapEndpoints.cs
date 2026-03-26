@@ -7,43 +7,57 @@ public static class MapEndpoints {
     public static RouteGroupBuilder MapMapsApi(this RouteGroupBuilder group) {
         group.MapGet("/", GetMaps)
             .WithName("GetMaps")
-            .WithDescription("Get a paginated list of maps with optional filtering");
+            .WithDescription("Get a paginated list of maps with optional filtering")
+            .Produces<PaginatedResult<MapSummaryDto>>();
 
         group.MapGet("/{id:long}", GetMapById)
             .WithName("GetMapById")
-            .WithDescription("Get a specific map by ID");
+            .WithDescription("Get a specific map by ID")
+            .Produces<MapDto>()
+            .Produces(404);
 
         group.MapGet("/{id:long}/detail", GetMapDetail)
             .WithName("GetMapDetail")
-            .WithDescription("Get detailed map information including stats and play history");
+            .WithDescription("Get detailed map information including stats and play history")
+            .Produces<MapDetailDto>()
+            .Produces(404);
 
         group.MapGet("/{id:long}/difficulties", GetMapDifficulties)
             .WithName("GetMapDifficulties")
-            .WithDescription("Get all difficulties for a specific map");
+            .WithDescription("Get all difficulties for a specific map")
+            .Produces<List<DifficultyDto>>();
 
         group.MapGet("/{id:long}/sessions", GetMapSessions)
             .WithName("GetMapSessions")
-            .WithDescription("Get play sessions for a specific map");
+            .WithDescription("Get play sessions for a specific map")
+            .Produces<List<PlaySessionSummaryDto>>();
 
         group.MapGet("/{id:long}/cover", GetMapCover)
             .WithName("GetMapCover")
-            .WithDescription("Get the cover image for a map by ID");
+            .WithDescription("Get the cover image for a map by ID")
+            .Produces(404);
 
         group.MapGet("/hash/{hash}", GetMapByHash)
             .WithName("GetMapByHash")
-            .WithDescription("Get a specific map by hash");
+            .WithDescription("Get a specific map by hash")
+            .Produces<MapDto>()
+            .Produces(404);
 
         group.MapGet("/hash/{hash}/cover", GetMapCoverByHash)
             .WithName("GetMapCoverByHash")
-            .WithDescription("Get the cover image by map hash");
+            .WithDescription("Get the cover image by map hash")
+            .Produces(404);
 
         group.MapGet("/bsr/{bsrKey}", GetMapByBSRKey)
             .WithName("GetMapByBSRKey")
-            .WithDescription("Get a specific map by BeatSaver key");
+            .WithDescription("Get a specific map by BeatSaver key")
+            .Produces<MapDto>()
+            .Produces(404);
 
         group.MapGet("/bsr/{bsrKey}/cover", GetMapCoverByBSRKey)
             .WithName("GetMapCoverByBSRKey")
-            .WithDescription("Get the cover image by BeatSaver key");
+            .WithDescription("Get the cover image by BeatSaver key")
+            .Produces(404);
 
         return group;
     }

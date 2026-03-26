@@ -7,27 +7,36 @@ public static class PlaySessionEndpoints {
     public static RouteGroupBuilder MapPlaySessionsApi(this RouteGroupBuilder group) {
         group.MapGet("/", GetPlaySessions)
             .WithName("GetPlaySessions")
-            .WithDescription("Get a paginated list of play sessions with optional filtering");
+            .WithDescription("Get a paginated list of play sessions with optional filtering")
+            .Produces<PaginatedResult<PlaySessionSummaryDto>>();
 
         group.MapGet("/recent", GetRecentSessions)
             .WithName("GetRecentSessions")
-            .WithDescription("Get the most recent play sessions");
+            .WithDescription("Get the most recent play sessions")
+            .Produces<List<PlaySessionSummaryDto>>();
 
         group.MapGet("/{id:long}", GetPlaySessionById)
             .WithName("GetPlaySessionById")
-            .WithDescription("Get a specific play session by ID with full details");
+            .WithDescription("Get a specific play session by ID with full details")
+            .Produces<PlaySessionDto>()
+            .Produces(404);
 
         group.MapGet("/{id:long}/detail", GetSessionDetail)
             .WithName("GetSessionDetail")
-            .WithDescription("Get comprehensive session detail with performance breakdown");
+            .WithDescription("Get comprehensive session detail with performance breakdown")
+            .Produces<SessionDetailDto>()
+            .Produces(404);
 
         group.MapGet("/{id:long}/snapshots", GetSessionSnapshots)
             .WithName("GetSessionSnapshots")
-            .WithDescription("Get live data snapshots for a specific play session");
+            .WithDescription("Get live data snapshots for a specific play session")
+            .Produces<List<LiveDataSnapshotDto>>();
 
         group.MapGet("/{id:long}/performance", GetSessionPerformance)
             .WithName("GetSessionPerformance")
-            .WithDescription("Get detailed performance breakdown for a play session");
+            .WithDescription("Get detailed performance breakdown for a play session")
+            .Produces<SessionPerformanceBreakdownDto>()
+            .Produces(404);
 
         return group;
     }

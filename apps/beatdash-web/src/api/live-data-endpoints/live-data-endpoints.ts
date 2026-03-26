@@ -20,7 +20,10 @@ import { useQuery } from "@tanstack/react-query";
 import type { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 import * as axios from "axios";
 
-import type { GetLiveDataSnapshotsParams } from "../model";
+import type {
+	GetLiveDataSnapshotsParams,
+	PaginatedResultOfLiveDataSnapshotDto,
+} from "../model";
 
 /**
  * Get a paginated list of live data snapshots with optional filtering
@@ -28,7 +31,7 @@ import type { GetLiveDataSnapshotsParams } from "../model";
 export const getLiveDataSnapshots = (
 	params?: GetLiveDataSnapshotsParams,
 	options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<PaginatedResultOfLiveDataSnapshotDto>> => {
 	return axios.default.get(`/api/livedata`, {
 		...options,
 		params: { ...params, ...options?.params },

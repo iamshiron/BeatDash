@@ -21,9 +21,19 @@ import type { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 import * as axios from "axios";
 
 import type {
+	AccuracyDistributionDto,
+	AnalyticsOverviewDto,
+	DailyPlayStatsDto,
+	DashboardDto,
+	DifficultyStatsDto,
 	GetBestPerformingMapsParams,
 	GetPerformanceTrendParams,
 	GetTopPlayedMapsParams,
+	HourlyPlayStatsDto,
+	MapPlayStatsDto,
+	MapTypeStatsDto,
+	PerformanceTrendDto,
+	ScoreDistributionDto,
 } from "../model";
 
 /**
@@ -31,7 +41,7 @@ import type {
  */
 export const getDashboard = (
 	options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<DashboardDto>> => {
 	return axios.default.get(`/api/analytics/dashboard`, options);
 };
 
@@ -156,7 +166,7 @@ export function useGetDashboard<
  */
 export const getAnalyticsOverview = (
 	options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<AnalyticsOverviewDto>> => {
 	return axios.default.get(`/api/analytics/overview`, options);
 };
 
@@ -302,7 +312,7 @@ export function useGetAnalyticsOverview<
 export const getPerformanceTrend = (
 	params?: GetPerformanceTrendParams,
 	options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<PerformanceTrendDto[]>> => {
 	return axios.default.get(`/api/analytics/trend`, {
 		...options,
 		params: { ...params, ...options?.params },
@@ -461,7 +471,7 @@ export function useGetPerformanceTrend<
 export const getTopPlayedMaps = (
 	params?: GetTopPlayedMapsParams,
 	options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<MapPlayStatsDto[]>> => {
 	return axios.default.get(`/api/analytics/maps/top-played`, {
 		...options,
 		params: { ...params, ...options?.params },
@@ -623,7 +633,7 @@ export function useGetTopPlayedMaps<
 export const getBestPerformingMaps = (
 	params?: GetBestPerformingMapsParams,
 	options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<MapPlayStatsDto[]>> => {
 	return axios.default.get(`/api/analytics/maps/best-performing`, {
 		...options,
 		params: { ...params, ...options?.params },
@@ -785,7 +795,7 @@ export function useGetBestPerformingMaps<
  */
 export const getDifficultyStats = (
 	options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<DifficultyStatsDto[]>> => {
 	return axios.default.get(`/api/analytics/difficulty-stats`, options);
 };
 
@@ -930,7 +940,7 @@ export function useGetDifficultyStats<
  */
 export const getMapTypeStats = (
 	options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<MapTypeStatsDto[]>> => {
 	return axios.default.get(`/api/analytics/map-type-stats`, options);
 };
 
@@ -1071,7 +1081,7 @@ export function useGetMapTypeStats<
  */
 export const getScoreDistribution = (
 	options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<ScoreDistributionDto[]>> => {
 	return axios.default.get(`/api/analytics/score-distribution`, options);
 };
 
@@ -1216,7 +1226,7 @@ export function useGetScoreDistribution<
  */
 export const getHourlyPlayStats = (
 	options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<HourlyPlayStatsDto[]>> => {
 	return axios.default.get(`/api/analytics/hourly-stats`, options);
 };
 
@@ -1361,7 +1371,7 @@ export function useGetHourlyPlayStats<
  */
 export const getDailyPlayStats = (
 	options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<DailyPlayStatsDto[]>> => {
 	return axios.default.get(`/api/analytics/daily-stats`, options);
 };
 
@@ -1506,7 +1516,7 @@ export function useGetDailyPlayStats<
  */
 export const getAccuracyDistribution = (
 	options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<AccuracyDistributionDto[]>> => {
 	return axios.default.get(`/api/analytics/accuracy-distribution`, options);
 };
 

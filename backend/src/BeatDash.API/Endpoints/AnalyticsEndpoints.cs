@@ -7,47 +7,58 @@ public static class AnalyticsEndpoints {
     public static RouteGroupBuilder MapAnalyticsApi(this RouteGroupBuilder group) {
         group.MapGet("/dashboard", GetDashboard)
             .WithName("GetDashboard")
-            .WithDescription("Get comprehensive dashboard data in a single request");
+            .WithDescription("Get comprehensive dashboard data in a single request")
+            .Produces<DashboardDto>();
 
         group.MapGet("/overview", GetOverview)
             .WithName("GetAnalyticsOverview")
-            .WithDescription("Get overall analytics and statistics summary");
+            .WithDescription("Get overall analytics and statistics summary")
+            .Produces<AnalyticsOverviewDto>();
 
         group.MapGet("/trend", GetPerformanceTrend)
             .WithName("GetPerformanceTrend")
-            .WithDescription("Get performance trends over time");
+            .WithDescription("Get performance trends over time")
+            .Produces<List<PerformanceTrendDto>>();
 
         group.MapGet("/maps/top-played", GetTopPlayedMaps)
             .WithName("GetTopPlayedMaps")
-            .WithDescription("Get the most played maps");
+            .WithDescription("Get the most played maps")
+            .Produces<List<MapPlayStatsDto>>();
 
         group.MapGet("/maps/best-performing", GetBestPerformingMaps)
             .WithName("GetBestPerformingMaps")
-            .WithDescription("Get maps with the best average performance");
+            .WithDescription("Get maps with the best average performance")
+            .Produces<List<MapPlayStatsDto>>();
 
         group.MapGet("/difficulty-stats", GetDifficultyStats)
             .WithName("GetDifficultyStats")
-            .WithDescription("Get statistics grouped by difficulty level");
+            .WithDescription("Get statistics grouped by difficulty level")
+            .Produces<List<DifficultyStatsDto>>();
 
         group.MapGet("/map-type-stats", GetMapTypeStats)
             .WithName("GetMapTypeStats")
-            .WithDescription("Get statistics grouped by map type");
+            .WithDescription("Get statistics grouped by map type")
+            .Produces<List<MapTypeStatsDto>>();
 
         group.MapGet("/score-distribution", GetScoreDistribution)
             .WithName("GetScoreDistribution")
-            .WithDescription("Get distribution of score ranks (SSS, S, A, etc.)");
+            .WithDescription("Get distribution of score ranks (SSS, S, A, etc.)")
+            .Produces<List<ScoreDistributionDto>>();
 
         group.MapGet("/hourly-stats", GetHourlyPlayStats)
             .WithName("GetHourlyPlayStats")
-            .WithDescription("Get play statistics grouped by hour of day");
+            .WithDescription("Get play statistics grouped by hour of day")
+            .Produces<List<HourlyPlayStatsDto>>();
 
         group.MapGet("/daily-stats", GetDailyPlayStats)
             .WithName("GetDailyPlayStats")
-            .WithDescription("Get play statistics grouped by day of week");
+            .WithDescription("Get play statistics grouped by day of week")
+            .Produces<List<DailyPlayStatsDto>>();
 
         group.MapGet("/accuracy-distribution", GetAccuracyDistribution)
             .WithName("GetAccuracyDistribution")
-            .WithDescription("Get distribution of accuracy percentages");
+            .WithDescription("Get distribution of accuracy percentages")
+            .Produces<List<AccuracyDistributionDto>>();
 
         return group;
     }

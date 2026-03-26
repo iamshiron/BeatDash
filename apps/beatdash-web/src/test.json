@@ -1,0 +1,23 @@
+﻿{
+    "Score": 0,
+    "ScoreWithMultipliers": 0,
+    "MaxScore": 0,
+    "MaxScoreWithMultipliers": 0,
+    "Rank": "SSS",
+    "FullCombo": true,
+    "NotesSpawned": 0,
+    "Combo": 0,
+    "Misses": 0,
+    "Accuracy": 100.0,
+    "BlockHitScore": {
+        "PreSwing": 0,
+        "PostSwing": 0,
+        "CenterSwing": 0
+    },
+    "PlayerHealth": 50.0,
+    "ColorType": -1,
+    "CutDirection": 9,
+    "TimeElapsed": 4,
+    "EventTrigger": 1,
+    "UnixTimestamp": 1774549811334
+}
