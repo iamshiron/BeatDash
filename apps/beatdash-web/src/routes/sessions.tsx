@@ -803,9 +803,50 @@ function SessionsPage() {
                         sortedDates.map((date) => (
                             <div key={date}>
                                 <div className="sticky top-0 bg-background/95 backdrop-blur-sm z-10 py-2 mb-2 border-b">
-                                    <h2 className="text-sm font-medium text-muted-foreground">
-                                        {formatRelativeDate(date)}
-                                    </h2>
+                                    <div className="flex items-center justify-between">
+                                        <h2 className="text-sm font-medium text-muted-foreground">
+                                            {formatRelativeDate(date)}
+                                        </h2>
+                                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                                            <span>
+                                                {groupedSessions.get(date)
+                                                    ?.length ?? 0}{' '}
+                                                plays
+                                            </span>
+                                            <span>
+                                                Avg:{' '}
+                                                {(
+                                                    (groupedSessions
+                                                        .get(date)
+                                                        ?.reduce(
+                                                            (sum, s) =>
+                                                                sum +
+                                                                (Number(
+                                                                    s.finalAccuracy
+                                                                ) || 0),
+                                                            0
+                                                        ) ?? 0) /
+                                                    (groupedSessions.get(date)
+                                                        ?.length ?? 1)
+                                                ).toFixed(1)}
+                                                %
+                                            </span>
+                                            <span>
+                                                {formatDuration(
+                                                    groupedSessions
+                                                        .get(date)
+                                                        ?.reduce(
+                                                            (sum, s) =>
+                                                                sum +
+                                                                (Number(
+                                                                    s.durationSeconds
+                                                                ) || 0),
+                                                            0
+                                                        ) ?? 0
+                                                )}
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div className="space-y-2">
                                     {groupedSessions
