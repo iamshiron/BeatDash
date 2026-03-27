@@ -3,6 +3,10 @@
     "version": "0.0.1",
     "private": true,
     "type": "module",
+    "scripts": {
+        "format": "biome format --write",
+        "lint": "biome lint --fix"
+    },
     "exports": {
         "./*": "./src/*",
         "./styles/globals.css": "./src/styles/globals.css",
@@ -40,6 +44,7 @@
         }
     },
     "devDependencies": {
+        "@biomejs/biome": "^2.4.9",
         "@types/react": "^19.0.2",
         "@types/react-dom": "^19.0.2",
         "@hugeicons/react": "^1.1.6",
