@@ -1,22 +1,18 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using NpgsqlTypes;
 
 #nullable disable
 
-namespace Shiron.BeatDash.API.Migrations
-{
+namespace Shiron.BeatDash.API.Migrations {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
-    {
+    public partial class InitialCreate : Migration {
         /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
+        protected override void Up(MigrationBuilder migrationBuilder) {
             migrationBuilder.CreateTable(
                 name: "Maps",
-                columns: table => new
-                {
+                columns: table => new {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Hash = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
@@ -33,15 +29,13 @@ namespace Shiron.BeatDash.API.Migrations
                     SongAuthorSearchVector = table.Column<NpgsqlTsVector>(type: "tsvector", nullable: true, computedColumnSql: "to_tsvector('english', coalesce(\"SongAuthor\", ''))", stored: true),
                     MapperSearchVector = table.Column<NpgsqlTsVector>(type: "tsvector", nullable: true, computedColumnSql: "to_tsvector('english', coalesce(\"Mapper\", ''))", stored: true)
                 },
-                constraints: table =>
-                {
+                constraints: table => {
                     table.PrimaryKey("PK_Maps", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Difficulties",
-                columns: table => new
-                {
+                columns: table => new {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     MapId = table.Column<long>(type: "bigint", nullable: false),
@@ -52,8 +46,7 @@ namespace Shiron.BeatDash.API.Migrations
                     PP = table.Column<double>(type: "double precision", nullable: false),
                     Star = table.Column<double>(type: "double precision", nullable: false)
                 },
-                constraints: table =>
-                {
+                constraints: table => {
                     table.PrimaryKey("PK_Difficulties", x => x.Id);
                     table.ForeignKey(
                         name: "FK_Difficulties_Maps_MapId",
@@ -65,8 +58,7 @@ namespace Shiron.BeatDash.API.Migrations
 
             migrationBuilder.CreateTable(
                 name: "PlaySessions",
-                columns: table => new
-                {
+                columns: table => new {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     StartedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
@@ -93,8 +85,7 @@ namespace Shiron.BeatDash.API.Migrations
                     Modifiers = table.Column<string>(type: "jsonb", nullable: false),
                     PracticeModeModifiers = table.Column<string>(type: "jsonb", nullable: false)
                 },
-                constraints: table =>
-                {
+                constraints: table => {
                     table.PrimaryKey("PK_PlaySessions", x => x.Id);
                     table.ForeignKey(
                         name: "FK_PlaySessions_Difficulties_DifficultyId",
@@ -112,8 +103,7 @@ namespace Shiron.BeatDash.API.Migrations
 
             migrationBuilder.CreateTable(
                 name: "LiveDataSnapshots",
-                columns: table => new
-                {
+                columns: table => new {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
@@ -136,8 +126,7 @@ namespace Shiron.BeatDash.API.Migrations
                     BlockHitCenterSwing = table.Column<int>(type: "integer", nullable: false),
                     NoteColorType = table.Column<int>(type: "integer", nullable: false)
                 },
-                constraints: table =>
-                {
+                constraints: table => {
                     table.PrimaryKey("PK_LiveDataSnapshots", x => x.Id);
                     table.ForeignKey(
                         name: "FK_LiveDataSnapshots_PlaySessions_PlaySessionId",
@@ -149,8 +138,7 @@ namespace Shiron.BeatDash.API.Migrations
 
             migrationBuilder.CreateTable(
                 name: "RawMessages",
-                columns: table => new
-                {
+                columns: table => new {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
@@ -158,8 +146,7 @@ namespace Shiron.BeatDash.API.Migrations
                     Message = table.Column<string>(type: "text", nullable: false),
                     PlaySessionId = table.Column<long>(type: "bigint", nullable: true)
                 },
-                constraints: table =>
-                {
+                constraints: table => {
                     table.PrimaryKey("PK_RawMessages", x => x.Id);
                     table.ForeignKey(
                         name: "FK_RawMessages_PlaySessions_PlaySessionId",
@@ -276,8 +263,7 @@ namespace Shiron.BeatDash.API.Migrations
         }
 
         /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
+        protected override void Down(MigrationBuilder migrationBuilder) {
             migrationBuilder.DropTable(
                 name: "LiveDataSnapshots");
 

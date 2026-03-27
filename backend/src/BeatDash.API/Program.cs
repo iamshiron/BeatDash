@@ -27,6 +27,11 @@ builder.Services.AddHostedService<WebSocketClientService>(sp => sp.GetRequiredSe
 builder.Services.AddHostedService<EventStorageServiceHostedService>();
 
 var app = builder.Build();
+using (var scope = app.Services.CreateAsyncScope()) {
+    var context = scope.ServiceProvider.GetRequiredService<BeatDashDbContext>();
+    await context.Database.MigrateAsync();
+    context.SeedMockData();
+}
 
 app.MapOpenApi();
 app.MapScalarApiReference(options => {

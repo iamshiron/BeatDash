@@ -102,7 +102,7 @@ public class DatabaseService : IDatabaseService {
         if (string.IsNullOrEmpty(coverImage)) return null;
 
         byte[] imageBytes;
-        
+
         var match = DataUriPattern.Match(coverImage);
         if (match.Success) {
             try {
@@ -110,7 +110,7 @@ public class DatabaseService : IDatabaseService {
             } catch {
                 return coverImage;
             }
-        } else if (Uri.TryCreate(coverImage, UriKind.Absolute, out var uri) && 
+        } else if (Uri.TryCreate(coverImage, UriKind.Absolute, out var uri) &&
                    (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)) {
             try {
                 imageBytes = await _httpClient.GetByteArrayAsync(uri);
