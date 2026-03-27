@@ -26,20 +26,25 @@ import {
     Collapsible,
     CollapsibleContent,
     CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
+} from '@shiron/ui/components/ui/collapsible';
+import { ScrollArea } from '@shiron/ui/components/ui/scroll-area';
+import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+} from '@shiron/ui/components/ui/card';
+import { Badge } from '@shiron/ui/components/ui/badge';
+import { Separator } from '@shiron/ui/components/ui/separator';
+import { Button } from '@shiron/ui/components/ui/button';
+import { Skeleton } from '@shiron/ui/components/ui/skeleton';
 import {
     ChartContainer,
     ChartTooltip,
     ChartTooltipContent,
     type ChartConfig,
-} from '@/components/ui/chart';
-import { cn } from '@/lib/utils';
+} from '@shiron/ui/components/ui/chart';
+import { cn } from '@shiron/ui/lib/utils';
 import {
     useGetPlaySessions,
     useGetSessionDetail,
