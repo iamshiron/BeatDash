@@ -15,7 +15,17 @@ public static class StatusEndpoints {
         return group;
     }
 
-    private static IResult GetStatus(WebSocketClientService webSocketService) {
+    private static IResult GetStatus(HttpContext context) {
+        var webSocketService = context.RequestServices.GetService<WebSocketClientService>();
+        if (webSocketService == null) {
+            return Results.Ok(new {
+                NoGameMode = true,
+                BeatSaberConnected = false,
+                MapInProgress = false,
+                Connections = Array.Empty<object>(),
+                ServerTime = DateTimeOffset.UtcNow
+            });
+        }
         var status = webSocketService.GetStatus();
         return Results.Ok(status);
     }

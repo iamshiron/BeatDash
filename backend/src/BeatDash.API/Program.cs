@@ -8,6 +8,8 @@ using Shiron.BeatDash.API.Services;
 Env.TraversePath().Load();
 var builder = WebApplication.CreateBuilder(args);
 
+var noGameMode = args.Contains("--no-game");
+
 builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<BeatDashDbContext>(options =>
@@ -20,11 +22,13 @@ builder.Services.AddDbContext<BeatDashDbContext>(options =>
 builder.Services.AddHttpClient<DatabaseService>();
 builder.Services.AddScoped<IDatabaseService, DatabaseService>();
 builder.Services.AddScoped<IQueryService, QueryService>();
-builder.Services.AddSingleton<IEventStorageService, EventStorageService>();
 
-builder.Services.AddSingleton<WebSocketClientService>();
-builder.Services.AddHostedService<WebSocketClientService>(sp => sp.GetRequiredService<WebSocketClientService>());
-builder.Services.AddHostedService<EventStorageServiceHostedService>();
+if (!noGameMode) {
+    builder.Services.AddSingleton<IEventStorageService, EventStorageService>();
+    builder.Services.AddSingleton<WebSocketClientService>();
+    builder.Services.AddHostedService<WebSocketClientService>(sp => sp.GetRequiredService<WebSocketClientService>());
+    builder.Services.AddHostedService<EventStorageServiceHostedService>();
+}
 
 var app = builder.Build();
 using (var scope = app.Services.CreateAsyncScope()) {
