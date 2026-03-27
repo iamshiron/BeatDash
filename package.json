@@ -2,7 +2,10 @@
     "name": "@shiron/monorepo",
     "version": "0.0.0",
     "license": "MIT",
-    "scripts": {},
+    "scripts": {
+        "lint": "nx run-many --target=lint --all",
+        "format": "nx run-many --target=format --all"
+    },
     "private": true,
     "devDependencies": {
         "@nx/dotnet": "22.6.1",

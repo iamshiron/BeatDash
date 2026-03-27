@@ -10,23 +10,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 					<Link to="/" className="flex items-center gap-2">
 						<span className="text-xl font-bold text-primary">BeatDash</span>
 					</Link>
-                    <div className="flex gap-2">
-                        <nav className="flex items-center gap-1">
-                            <Button asChild variant="ghost">
-                                <Link to="/dashboard">Dashboard</Link>
-                            </Button>
-                        </nav>
-                        <nav className="flex items-center gap-1">
-                            <Button asChild variant="ghost">
-                                <Link to="/sessions">Sessions</Link>
-                            </Button>
-                        </nav>
-                        <nav className="flex items-center gap-1">
-                            <Button asChild variant="ghost">
-                                <Link to="/maps">Maps</Link>
-                            </Button>
-                        </nav>
-                    </div>
+					<div className="flex gap-2">
+						<nav className="flex items-center gap-1">
+							<Button asChild variant="ghost">
+								<Link to="/dashboard">Dashboard</Link>
+							</Button>
+						</nav>
+						<nav className="flex items-center gap-1">
+							<Button asChild variant="ghost">
+								<Link to="/sessions">Sessions</Link>
+							</Button>
+						</nav>
+						<nav className="flex items-center gap-1">
+							<Button asChild variant="ghost">
+								<Link to="/maps">Maps</Link>
+							</Button>
+						</nav>
+					</div>
 					<div className="flex items-center gap-2">
 						<ModeToggle />
 					</div>
