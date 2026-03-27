@@ -1,42 +1,42 @@
-import { MoonIcon, SunIcon } from '@phosphor-icons/react';
-import { useTheme } from 'next-themes';
-import { Button } from '@shiron/ui/components/ui/button';
+import { MoonIcon, SunIcon } from "@phosphor-icons/react";
+import { useTheme } from "next-themes";
+import { Button } from "@shiron/ui/components/ui/button";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@shiron/ui/components/ui/dropdown-menu';
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@shiron/ui/components/ui/dropdown-menu";
 
 export function ModeToggle() {
-    const { setTheme } = useTheme();
+	const { setTheme } = useTheme();
 
-    return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                    <SunIcon
-                        size={18}
-                        className="scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90"
-                    />
-                    <MoonIcon
-                        size={18}
-                        className="absolute scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0"
-                    />
-                    <span className="sr-only">Toggle theme</span>
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setTheme('light')}>
-                    Light
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTheme('dark')}>
-                    Dark
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTheme('system')}>
-                    System
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
-    );
+	return (
+		<DropdownMenu>
+			<DropdownMenuTrigger asChild>
+				<Button variant="ghost" size="icon">
+					<SunIcon
+						size={18}
+						className="scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90"
+					/>
+					<MoonIcon
+						size={18}
+						className="absolute scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0"
+					/>
+					<span className="sr-only">Toggle theme</span>
+				</Button>
+			</DropdownMenuTrigger>
+			<DropdownMenuContent align="end">
+				<DropdownMenuItem onClick={() => setTheme("light")}>
+					Light
+				</DropdownMenuItem>
+				<DropdownMenuItem onClick={() => setTheme("dark")}>
+					Dark
+				</DropdownMenuItem>
+				<DropdownMenuItem onClick={() => setTheme("system")}>
+					System
+				</DropdownMenuItem>
+			</DropdownMenuContent>
+		</DropdownMenu>
+	);
 }
