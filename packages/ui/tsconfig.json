@@ -15,11 +15,9 @@
         "noUnusedLocals": true,
         "noUnusedParameters": true,
         "noFallthroughCasesInSwitch": true,
-        "noUncheckedSideEffectImports": true,
         "baseUrl": ".",
         "paths": {
-            "@/*": ["./src/*"],
-            "@shiron/ui/*": ["../../packages/ui/src/*"]
+            "@shiron/ui/*": ["./src/*"]
         }
     },
     "include": ["src"]
