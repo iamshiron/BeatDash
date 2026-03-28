@@ -9,1636 +9,1636 @@ import type { RequestHandlerOptions } from "msw";
 import { HttpResponse, http } from "msw";
 
 import type {
-	AccuracyDistributionDto,
-	AnalyticsOverviewDto,
-	DailyPlayStatsDto,
-	DashboardDto,
-	DifficultyStatsDto,
-	HourlyPlayStatsDto,
-	MapPlayStatsDto,
-	MapTypeStatsDto,
-	PerformanceTrendDto,
-	PlaySessionSummaryDto,
-	ScoreDistributionDto,
+    AccuracyDistributionDto,
+    AnalyticsOverviewDto,
+    DailyPlayStatsDto,
+    DashboardDto,
+    DifficultyStatsDto,
+    HourlyPlayStatsDto,
+    MapPlayStatsDto,
+    MapTypeStatsDto,
+    PerformanceTrendDto,
+    PlaySessionSummaryDto,
+    ScoreDistributionDto,
 } from "../model";
 
 export const getGetDashboardResponsePlaySessionSummaryDtoMock = (
-	overrideResponse: Partial<PlaySessionSummaryDto> = {},
+    overrideResponse: Partial<PlaySessionSummaryDto> = {}
 ): PlaySessionSummaryDto => ({
-	...{
-		id: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		startedAt: faker.helpers.arrayElement([
-			faker.date.past().toISOString().slice(0, 19) + "Z",
-			undefined,
-		]),
-		finishedAt: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.date.past().toISOString().slice(0, 19) + "Z",
-				null,
-			]),
-			undefined,
-		]),
-		endReason: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				null,
-			]),
-			undefined,
-		]),
-		durationSeconds: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		mapId: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		songName: faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			undefined,
-		]),
-		songAuthor: faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			undefined,
-		]),
-		mapper: faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			undefined,
-		]),
-		hasCoverImage: faker.helpers.arrayElement([
-			faker.datatype.boolean(),
-			undefined,
-		]),
-		difficulty: faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			undefined,
-		]),
-		mapType: faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			undefined,
-		]),
-		finalScore: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		finalMaxScore: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		finalRank: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				null,
-			]),
-			undefined,
-		]),
-		finalAccuracy: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		finalFullCombo: faker.helpers.arrayElement([
-			faker.datatype.boolean(),
-			undefined,
-		]),
-		finalMisses: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		scorePercentage: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-	},
-	...overrideResponse,
+    ...{
+        id: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        startedAt: faker.helpers.arrayElement([
+            `${faker.date.past().toISOString().slice(0, 19)}Z`,
+            undefined,
+        ]),
+        finishedAt: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                `${faker.date.past().toISOString().slice(0, 19)}Z`,
+                null,
+            ]),
+            undefined,
+        ]),
+        endReason: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                null,
+            ]),
+            undefined,
+        ]),
+        durationSeconds: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        mapId: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        songName: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+        ]),
+        songAuthor: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+        ]),
+        mapper: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+        ]),
+        hasCoverImage: faker.helpers.arrayElement([
+            faker.datatype.boolean(),
+            undefined,
+        ]),
+        difficulty: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+        ]),
+        mapType: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+        ]),
+        finalScore: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        finalMaxScore: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        finalRank: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                null,
+            ]),
+            undefined,
+        ]),
+        finalAccuracy: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        finalFullCombo: faker.helpers.arrayElement([
+            faker.datatype.boolean(),
+            undefined,
+        ]),
+        finalMisses: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        scorePercentage: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+    },
+    ...overrideResponse,
 });
 
 export const getGetDashboardResponseMock = (
-	overrideResponse: Partial<Extract<DashboardDto, object>> = {},
+    overrideResponse: Partial<Extract<DashboardDto, object>> = {}
 ): DashboardDto => ({
-	overview: faker.helpers.arrayElement([
-		{
-			totalPlaySessions: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			totalMapsPlayed: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			uniqueMaps: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			totalPlayTimeSeconds: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			totalPlayTimeHours: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			averageAccuracy: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			averageScorePercentage: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			fullComboCount: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			fullComboRate: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			finishedCount: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			failedCount: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			quitCount: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			sssCount: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			sCount: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			aCount: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			bCount: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			cCount: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			dCount: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			eCount: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			bestSession: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					null,
-					{ ...getGetDashboardResponsePlaySessionSummaryDtoMock() },
-				]),
-				undefined,
-			]),
-			mostRecentSession: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					null,
-					{ ...getGetDashboardResponsePlaySessionSummaryDtoMock() },
-				]),
-				undefined,
-			]),
-			firstPlayDate: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.date.past().toISOString().slice(0, 19) + "Z",
-					null,
-				]),
-				undefined,
-			]),
-			lastPlayDate: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.date.past().toISOString().slice(0, 19) + "Z",
-					null,
-				]),
-				undefined,
-			]),
-		},
-		undefined,
-	]),
-	recentSessions: faker.helpers.arrayElement([
-		Array.from(
-			{ length: faker.number.int({ min: 1, max: 10 }) },
-			(_, i) => i + 1,
-		).map(() => ({
-			id: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			startedAt: faker.helpers.arrayElement([
-				faker.date.past().toISOString().slice(0, 19) + "Z",
-				undefined,
-			]),
-			finishedAt: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.date.past().toISOString().slice(0, 19) + "Z",
-					null,
-				]),
-				undefined,
-			]),
-			endReason: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-					null,
-				]),
-				undefined,
-			]),
-			durationSeconds: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			mapId: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			songName: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			songAuthor: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			mapper: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			hasCoverImage: faker.helpers.arrayElement([
-				faker.datatype.boolean(),
-				undefined,
-			]),
-			difficulty: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			mapType: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			finalScore: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			finalMaxScore: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			finalRank: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-					null,
-				]),
-				undefined,
-			]),
-			finalAccuracy: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			finalFullCombo: faker.helpers.arrayElement([
-				faker.datatype.boolean(),
-				undefined,
-			]),
-			finalMisses: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			scorePercentage: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-		})),
-		undefined,
-	]),
-	topPlayedMaps: faker.helpers.arrayElement([
-		Array.from(
-			{ length: faker.number.int({ min: 1, max: 10 }) },
-			(_, i) => i + 1,
-		).map(() => ({
-			mapId: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			songName: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			songAuthor: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			mapper: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			hasCoverImage: faker.helpers.arrayElement([
-				faker.datatype.boolean(),
-				undefined,
-			]),
-			bsrKey: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-					null,
-				]),
-				undefined,
-			]),
-			playCount: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			averageAccuracy: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			averageScorePercentage: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			fullComboCount: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			bestScore: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			bestScorePercentage: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			bestRank: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-					null,
-				]),
-				undefined,
-			]),
-			lastPlayedAt: faker.helpers.arrayElement([
-				faker.date.past().toISOString().slice(0, 19) + "Z",
-				undefined,
-			]),
-		})),
-		undefined,
-	]),
-	recentTrend: faker.helpers.arrayElement([
-		Array.from(
-			{ length: faker.number.int({ min: 1, max: 10 }) },
-			(_, i) => i + 1,
-		).map(() => ({
-			date: faker.helpers.arrayElement([
-				faker.date.past().toISOString().slice(0, 19) + "Z",
-				undefined,
-			]),
-			playCount: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			averageAccuracy: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			averageScorePercentage: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			totalPlayTimeSeconds: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			fullComboCount: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			finishedCount: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			failedCount: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-		})),
-		undefined,
-	]),
-	scoreDistribution: faker.helpers.arrayElement([
-		Array.from(
-			{ length: faker.number.int({ min: 1, max: 10 }) },
-			(_, i) => i + 1,
-		).map(() => ({
-			rank: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			count: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			percentage: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-		})),
-		undefined,
-	]),
-	dailyStats: faker.helpers.arrayElement([
-		Array.from(
-			{ length: faker.number.int({ min: 1, max: 10 }) },
-			(_, i) => i + 1,
-		).map(() => ({
-			dayOfWeek: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			dayName: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			playCount: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			averageAccuracy: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-		})),
-		undefined,
-	]),
-	...overrideResponse,
+    overview: faker.helpers.arrayElement([
+        {
+            totalPlaySessions: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            totalMapsPlayed: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            uniqueMaps: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            totalPlayTimeSeconds: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            totalPlayTimeHours: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            averageAccuracy: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            averageScorePercentage: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            fullComboCount: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            fullComboRate: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            finishedCount: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            failedCount: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            quitCount: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            sssCount: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            sCount: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            aCount: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            bCount: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            cCount: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            dCount: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            eCount: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            bestSession: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    null,
+                    { ...getGetDashboardResponsePlaySessionSummaryDtoMock() },
+                ]),
+                undefined,
+            ]),
+            mostRecentSession: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    null,
+                    { ...getGetDashboardResponsePlaySessionSummaryDtoMock() },
+                ]),
+                undefined,
+            ]),
+            firstPlayDate: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    `${faker.date.past().toISOString().slice(0, 19)}Z`,
+                    null,
+                ]),
+                undefined,
+            ]),
+            lastPlayDate: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    `${faker.date.past().toISOString().slice(0, 19)}Z`,
+                    null,
+                ]),
+                undefined,
+            ]),
+        },
+        undefined,
+    ]),
+    recentSessions: faker.helpers.arrayElement([
+        Array.from(
+            { length: faker.number.int({ min: 1, max: 10 }) },
+            (_, i) => i + 1
+        ).map(() => ({
+            id: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            startedAt: faker.helpers.arrayElement([
+                `${faker.date.past().toISOString().slice(0, 19)}Z`,
+                undefined,
+            ]),
+            finishedAt: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    `${faker.date.past().toISOString().slice(0, 19)}Z`,
+                    null,
+                ]),
+                undefined,
+            ]),
+            endReason: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                    null,
+                ]),
+                undefined,
+            ]),
+            durationSeconds: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            mapId: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            songName: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            songAuthor: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            mapper: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            hasCoverImage: faker.helpers.arrayElement([
+                faker.datatype.boolean(),
+                undefined,
+            ]),
+            difficulty: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            mapType: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            finalScore: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            finalMaxScore: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            finalRank: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                    null,
+                ]),
+                undefined,
+            ]),
+            finalAccuracy: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            finalFullCombo: faker.helpers.arrayElement([
+                faker.datatype.boolean(),
+                undefined,
+            ]),
+            finalMisses: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            scorePercentage: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+        })),
+        undefined,
+    ]),
+    topPlayedMaps: faker.helpers.arrayElement([
+        Array.from(
+            { length: faker.number.int({ min: 1, max: 10 }) },
+            (_, i) => i + 1
+        ).map(() => ({
+            mapId: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            songName: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            songAuthor: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            mapper: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            hasCoverImage: faker.helpers.arrayElement([
+                faker.datatype.boolean(),
+                undefined,
+            ]),
+            bsrKey: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                    null,
+                ]),
+                undefined,
+            ]),
+            playCount: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            averageAccuracy: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            averageScorePercentage: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            fullComboCount: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            bestScore: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            bestScorePercentage: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            bestRank: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                    null,
+                ]),
+                undefined,
+            ]),
+            lastPlayedAt: faker.helpers.arrayElement([
+                `${faker.date.past().toISOString().slice(0, 19)}Z`,
+                undefined,
+            ]),
+        })),
+        undefined,
+    ]),
+    recentTrend: faker.helpers.arrayElement([
+        Array.from(
+            { length: faker.number.int({ min: 1, max: 10 }) },
+            (_, i) => i + 1
+        ).map(() => ({
+            date: faker.helpers.arrayElement([
+                `${faker.date.past().toISOString().slice(0, 19)}Z`,
+                undefined,
+            ]),
+            playCount: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            averageAccuracy: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            averageScorePercentage: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            totalPlayTimeSeconds: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            fullComboCount: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            finishedCount: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            failedCount: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+        })),
+        undefined,
+    ]),
+    scoreDistribution: faker.helpers.arrayElement([
+        Array.from(
+            { length: faker.number.int({ min: 1, max: 10 }) },
+            (_, i) => i + 1
+        ).map(() => ({
+            rank: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            count: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            percentage: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+        })),
+        undefined,
+    ]),
+    dailyStats: faker.helpers.arrayElement([
+        Array.from(
+            { length: faker.number.int({ min: 1, max: 10 }) },
+            (_, i) => i + 1
+        ).map(() => ({
+            dayOfWeek: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            dayName: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            playCount: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            averageAccuracy: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+        })),
+        undefined,
+    ]),
+    ...overrideResponse,
 });
 
 export const getGetAnalyticsOverviewResponsePlaySessionSummaryDtoMock = (
-	overrideResponse: Partial<PlaySessionSummaryDto> = {},
+    overrideResponse: Partial<PlaySessionSummaryDto> = {}
 ): PlaySessionSummaryDto => ({
-	...{
-		id: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		startedAt: faker.helpers.arrayElement([
-			faker.date.past().toISOString().slice(0, 19) + "Z",
-			undefined,
-		]),
-		finishedAt: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.date.past().toISOString().slice(0, 19) + "Z",
-				null,
-			]),
-			undefined,
-		]),
-		endReason: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				null,
-			]),
-			undefined,
-		]),
-		durationSeconds: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		mapId: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		songName: faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			undefined,
-		]),
-		songAuthor: faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			undefined,
-		]),
-		mapper: faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			undefined,
-		]),
-		hasCoverImage: faker.helpers.arrayElement([
-			faker.datatype.boolean(),
-			undefined,
-		]),
-		difficulty: faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			undefined,
-		]),
-		mapType: faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			undefined,
-		]),
-		finalScore: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		finalMaxScore: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		finalRank: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				null,
-			]),
-			undefined,
-		]),
-		finalAccuracy: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		finalFullCombo: faker.helpers.arrayElement([
-			faker.datatype.boolean(),
-			undefined,
-		]),
-		finalMisses: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		scorePercentage: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-	},
-	...overrideResponse,
+    ...{
+        id: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        startedAt: faker.helpers.arrayElement([
+            `${faker.date.past().toISOString().slice(0, 19)}Z`,
+            undefined,
+        ]),
+        finishedAt: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                `${faker.date.past().toISOString().slice(0, 19)}Z`,
+                null,
+            ]),
+            undefined,
+        ]),
+        endReason: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                null,
+            ]),
+            undefined,
+        ]),
+        durationSeconds: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        mapId: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        songName: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+        ]),
+        songAuthor: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+        ]),
+        mapper: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+        ]),
+        hasCoverImage: faker.helpers.arrayElement([
+            faker.datatype.boolean(),
+            undefined,
+        ]),
+        difficulty: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+        ]),
+        mapType: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+        ]),
+        finalScore: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        finalMaxScore: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        finalRank: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                null,
+            ]),
+            undefined,
+        ]),
+        finalAccuracy: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        finalFullCombo: faker.helpers.arrayElement([
+            faker.datatype.boolean(),
+            undefined,
+        ]),
+        finalMisses: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        scorePercentage: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+    },
+    ...overrideResponse,
 });
 
 export const getGetAnalyticsOverviewResponseMock = (
-	overrideResponse: Partial<Extract<AnalyticsOverviewDto, object>> = {},
+    overrideResponse: Partial<Extract<AnalyticsOverviewDto, object>> = {}
 ): AnalyticsOverviewDto => ({
-	totalPlaySessions: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	totalMapsPlayed: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	uniqueMaps: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	totalPlayTimeSeconds: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	totalPlayTimeHours: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.float({ fractionDigits: 2 }),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	averageAccuracy: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.float({ fractionDigits: 2 }),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	averageScorePercentage: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.float({ fractionDigits: 2 }),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	fullComboCount: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	fullComboRate: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.float({ fractionDigits: 2 }),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	finishedCount: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	failedCount: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	quitCount: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	sssCount: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	sCount: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	aCount: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	bCount: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	cCount: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	dCount: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	eCount: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	bestSession: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			null,
-			{ ...getGetAnalyticsOverviewResponsePlaySessionSummaryDtoMock() },
-		]),
-		undefined,
-	]),
-	mostRecentSession: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			null,
-			{ ...getGetAnalyticsOverviewResponsePlaySessionSummaryDtoMock() },
-		]),
-		undefined,
-	]),
-	firstPlayDate: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.date.past().toISOString().slice(0, 19) + "Z",
-			null,
-		]),
-		undefined,
-	]),
-	lastPlayDate: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.date.past().toISOString().slice(0, 19) + "Z",
-			null,
-		]),
-		undefined,
-	]),
-	...overrideResponse,
+    totalPlaySessions: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    totalMapsPlayed: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    uniqueMaps: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    totalPlayTimeSeconds: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    totalPlayTimeHours: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.float({ fractionDigits: 2 }),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    averageAccuracy: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.float({ fractionDigits: 2 }),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    averageScorePercentage: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.float({ fractionDigits: 2 }),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    fullComboCount: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    fullComboRate: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.float({ fractionDigits: 2 }),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    finishedCount: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    failedCount: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    quitCount: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    sssCount: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    sCount: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    aCount: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    bCount: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    cCount: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    dCount: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    eCount: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    bestSession: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            null,
+            { ...getGetAnalyticsOverviewResponsePlaySessionSummaryDtoMock() },
+        ]),
+        undefined,
+    ]),
+    mostRecentSession: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            null,
+            { ...getGetAnalyticsOverviewResponsePlaySessionSummaryDtoMock() },
+        ]),
+        undefined,
+    ]),
+    firstPlayDate: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            `${faker.date.past().toISOString().slice(0, 19)}Z`,
+            null,
+        ]),
+        undefined,
+    ]),
+    lastPlayDate: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            `${faker.date.past().toISOString().slice(0, 19)}Z`,
+            null,
+        ]),
+        undefined,
+    ]),
+    ...overrideResponse,
 });
 
 export const getGetPerformanceTrendResponseMock = (): PerformanceTrendDto[] =>
-	Array.from(
-		{ length: faker.number.int({ min: 1, max: 10 }) },
-		(_, i) => i + 1,
-	).map(() => ({
-		date: faker.helpers.arrayElement([
-			faker.date.past().toISOString().slice(0, 19) + "Z",
-			undefined,
-		]),
-		playCount: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		averageAccuracy: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		averageScorePercentage: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		totalPlayTimeSeconds: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		fullComboCount: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		finishedCount: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		failedCount: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-	}));
+    Array.from(
+        { length: faker.number.int({ min: 1, max: 10 }) },
+        (_, i) => i + 1
+    ).map(() => ({
+        date: faker.helpers.arrayElement([
+            `${faker.date.past().toISOString().slice(0, 19)}Z`,
+            undefined,
+        ]),
+        playCount: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        averageAccuracy: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        averageScorePercentage: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        totalPlayTimeSeconds: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        fullComboCount: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        finishedCount: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        failedCount: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+    }));
 
 export const getGetTopPlayedMapsResponseMock = (): MapPlayStatsDto[] =>
-	Array.from(
-		{ length: faker.number.int({ min: 1, max: 10 }) },
-		(_, i) => i + 1,
-	).map(() => ({
-		mapId: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		songName: faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			undefined,
-		]),
-		songAuthor: faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			undefined,
-		]),
-		mapper: faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			undefined,
-		]),
-		hasCoverImage: faker.helpers.arrayElement([
-			faker.datatype.boolean(),
-			undefined,
-		]),
-		bsrKey: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				null,
-			]),
-			undefined,
-		]),
-		playCount: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		averageAccuracy: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		averageScorePercentage: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		fullComboCount: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		bestScore: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		bestScorePercentage: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		bestRank: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				null,
-			]),
-			undefined,
-		]),
-		lastPlayedAt: faker.helpers.arrayElement([
-			faker.date.past().toISOString().slice(0, 19) + "Z",
-			undefined,
-		]),
-	}));
+    Array.from(
+        { length: faker.number.int({ min: 1, max: 10 }) },
+        (_, i) => i + 1
+    ).map(() => ({
+        mapId: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        songName: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+        ]),
+        songAuthor: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+        ]),
+        mapper: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+        ]),
+        hasCoverImage: faker.helpers.arrayElement([
+            faker.datatype.boolean(),
+            undefined,
+        ]),
+        bsrKey: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                null,
+            ]),
+            undefined,
+        ]),
+        playCount: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        averageAccuracy: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        averageScorePercentage: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        fullComboCount: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        bestScore: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        bestScorePercentage: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        bestRank: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                null,
+            ]),
+            undefined,
+        ]),
+        lastPlayedAt: faker.helpers.arrayElement([
+            `${faker.date.past().toISOString().slice(0, 19)}Z`,
+            undefined,
+        ]),
+    }));
 
 export const getGetBestPerformingMapsResponseMock = (): MapPlayStatsDto[] =>
-	Array.from(
-		{ length: faker.number.int({ min: 1, max: 10 }) },
-		(_, i) => i + 1,
-	).map(() => ({
-		mapId: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		songName: faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			undefined,
-		]),
-		songAuthor: faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			undefined,
-		]),
-		mapper: faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			undefined,
-		]),
-		hasCoverImage: faker.helpers.arrayElement([
-			faker.datatype.boolean(),
-			undefined,
-		]),
-		bsrKey: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				null,
-			]),
-			undefined,
-		]),
-		playCount: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		averageAccuracy: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		averageScorePercentage: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		fullComboCount: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		bestScore: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		bestScorePercentage: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		bestRank: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				null,
-			]),
-			undefined,
-		]),
-		lastPlayedAt: faker.helpers.arrayElement([
-			faker.date.past().toISOString().slice(0, 19) + "Z",
-			undefined,
-		]),
-	}));
+    Array.from(
+        { length: faker.number.int({ min: 1, max: 10 }) },
+        (_, i) => i + 1
+    ).map(() => ({
+        mapId: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        songName: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+        ]),
+        songAuthor: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+        ]),
+        mapper: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+        ]),
+        hasCoverImage: faker.helpers.arrayElement([
+            faker.datatype.boolean(),
+            undefined,
+        ]),
+        bsrKey: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                null,
+            ]),
+            undefined,
+        ]),
+        playCount: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        averageAccuracy: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        averageScorePercentage: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        fullComboCount: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        bestScore: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        bestScorePercentage: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        bestRank: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                null,
+            ]),
+            undefined,
+        ]),
+        lastPlayedAt: faker.helpers.arrayElement([
+            `${faker.date.past().toISOString().slice(0, 19)}Z`,
+            undefined,
+        ]),
+    }));
 
 export const getGetDifficultyStatsResponseMock = (): DifficultyStatsDto[] =>
-	Array.from(
-		{ length: faker.number.int({ min: 1, max: 10 }) },
-		(_, i) => i + 1,
-	).map(() => ({
-		difficulty: faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			undefined,
-		]),
-		playCount: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		averageAccuracy: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		averageScorePercentage: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		fullComboCount: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		finishedCount: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		failedCount: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-	}));
+    Array.from(
+        { length: faker.number.int({ min: 1, max: 10 }) },
+        (_, i) => i + 1
+    ).map(() => ({
+        difficulty: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+        ]),
+        playCount: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        averageAccuracy: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        averageScorePercentage: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        fullComboCount: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        finishedCount: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        failedCount: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+    }));
 
 export const getGetMapTypeStatsResponseMock = (): MapTypeStatsDto[] =>
-	Array.from(
-		{ length: faker.number.int({ min: 1, max: 10 }) },
-		(_, i) => i + 1,
-	).map(() => ({
-		mapType: faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			undefined,
-		]),
-		playCount: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		averageAccuracy: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		averageScorePercentage: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		fullComboCount: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-	}));
+    Array.from(
+        { length: faker.number.int({ min: 1, max: 10 }) },
+        (_, i) => i + 1
+    ).map(() => ({
+        mapType: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+        ]),
+        playCount: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        averageAccuracy: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        averageScorePercentage: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        fullComboCount: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+    }));
 
 export const getGetScoreDistributionResponseMock = (): ScoreDistributionDto[] =>
-	Array.from(
-		{ length: faker.number.int({ min: 1, max: 10 }) },
-		(_, i) => i + 1,
-	).map(() => ({
-		rank: faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			undefined,
-		]),
-		count: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		percentage: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-	}));
+    Array.from(
+        { length: faker.number.int({ min: 1, max: 10 }) },
+        (_, i) => i + 1
+    ).map(() => ({
+        rank: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+        ]),
+        count: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        percentage: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+    }));
 
 export const getGetHourlyPlayStatsResponseMock = (): HourlyPlayStatsDto[] =>
-	Array.from(
-		{ length: faker.number.int({ min: 1, max: 10 }) },
-		(_, i) => i + 1,
-	).map(() => ({
-		hour: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		playCount: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		averageAccuracy: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-	}));
+    Array.from(
+        { length: faker.number.int({ min: 1, max: 10 }) },
+        (_, i) => i + 1
+    ).map(() => ({
+        hour: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        playCount: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        averageAccuracy: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+    }));
 
 export const getGetDailyPlayStatsResponseMock = (): DailyPlayStatsDto[] =>
-	Array.from(
-		{ length: faker.number.int({ min: 1, max: 10 }) },
-		(_, i) => i + 1,
-	).map(() => ({
-		dayOfWeek: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		dayName: faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			undefined,
-		]),
-		playCount: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		averageAccuracy: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-	}));
+    Array.from(
+        { length: faker.number.int({ min: 1, max: 10 }) },
+        (_, i) => i + 1
+    ).map(() => ({
+        dayOfWeek: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        dayName: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+        ]),
+        playCount: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        averageAccuracy: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+    }));
 
 export const getGetAccuracyDistributionResponseMock =
-	(): AccuracyDistributionDto[] =>
-		Array.from(
-			{ length: faker.number.int({ min: 1, max: 10 }) },
-			(_, i) => i + 1,
-		).map(() => ({
-			range: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			count: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			percentage: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-		}));
+    (): AccuracyDistributionDto[] =>
+        Array.from(
+            { length: faker.number.int({ min: 1, max: 10 }) },
+            (_, i) => i + 1
+        ).map(() => ({
+            range: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            count: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            percentage: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+        }));
 
 export const getGetDashboardMockHandler = (
-	overrideResponse?:
-		| DashboardDto
-		| ((
-				info: Parameters<Parameters<typeof http.get>[1]>[0],
-		  ) => Promise<DashboardDto> | DashboardDto),
-	options?: RequestHandlerOptions,
+    overrideResponse?:
+        | DashboardDto
+        | ((
+              info: Parameters<Parameters<typeof http.get>[1]>[0]
+          ) => Promise<DashboardDto> | DashboardDto),
+    options?: RequestHandlerOptions
 ) => {
-	return http.get(
-		"*/api/analytics/dashboard",
-		async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-			return HttpResponse.json(
-				overrideResponse !== undefined
-					? typeof overrideResponse === "function"
-						? await overrideResponse(info)
-						: overrideResponse
-					: getGetDashboardResponseMock(),
-				{ status: 200 },
-			);
-		},
-		options,
-	);
+    return http.get(
+        "*/api/analytics/dashboard",
+        async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+            return HttpResponse.json(
+                overrideResponse !== undefined
+                    ? typeof overrideResponse === "function"
+                        ? await overrideResponse(info)
+                        : overrideResponse
+                    : getGetDashboardResponseMock(),
+                { status: 200 }
+            );
+        },
+        options
+    );
 };
 
 export const getGetAnalyticsOverviewMockHandler = (
-	overrideResponse?:
-		| AnalyticsOverviewDto
-		| ((
-				info: Parameters<Parameters<typeof http.get>[1]>[0],
-		  ) => Promise<AnalyticsOverviewDto> | AnalyticsOverviewDto),
-	options?: RequestHandlerOptions,
+    overrideResponse?:
+        | AnalyticsOverviewDto
+        | ((
+              info: Parameters<Parameters<typeof http.get>[1]>[0]
+          ) => Promise<AnalyticsOverviewDto> | AnalyticsOverviewDto),
+    options?: RequestHandlerOptions
 ) => {
-	return http.get(
-		"*/api/analytics/overview",
-		async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-			return HttpResponse.json(
-				overrideResponse !== undefined
-					? typeof overrideResponse === "function"
-						? await overrideResponse(info)
-						: overrideResponse
-					: getGetAnalyticsOverviewResponseMock(),
-				{ status: 200 },
-			);
-		},
-		options,
-	);
+    return http.get(
+        "*/api/analytics/overview",
+        async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+            return HttpResponse.json(
+                overrideResponse !== undefined
+                    ? typeof overrideResponse === "function"
+                        ? await overrideResponse(info)
+                        : overrideResponse
+                    : getGetAnalyticsOverviewResponseMock(),
+                { status: 200 }
+            );
+        },
+        options
+    );
 };
 
 export const getGetPerformanceTrendMockHandler = (
-	overrideResponse?:
-		| PerformanceTrendDto[]
-		| ((
-				info: Parameters<Parameters<typeof http.get>[1]>[0],
-		  ) => Promise<PerformanceTrendDto[]> | PerformanceTrendDto[]),
-	options?: RequestHandlerOptions,
+    overrideResponse?:
+        | PerformanceTrendDto[]
+        | ((
+              info: Parameters<Parameters<typeof http.get>[1]>[0]
+          ) => Promise<PerformanceTrendDto[]> | PerformanceTrendDto[]),
+    options?: RequestHandlerOptions
 ) => {
-	return http.get(
-		"*/api/analytics/trend",
-		async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-			return HttpResponse.json(
-				overrideResponse !== undefined
-					? typeof overrideResponse === "function"
-						? await overrideResponse(info)
-						: overrideResponse
-					: getGetPerformanceTrendResponseMock(),
-				{ status: 200 },
-			);
-		},
-		options,
-	);
+    return http.get(
+        "*/api/analytics/trend",
+        async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+            return HttpResponse.json(
+                overrideResponse !== undefined
+                    ? typeof overrideResponse === "function"
+                        ? await overrideResponse(info)
+                        : overrideResponse
+                    : getGetPerformanceTrendResponseMock(),
+                { status: 200 }
+            );
+        },
+        options
+    );
 };
 
 export const getGetTopPlayedMapsMockHandler = (
-	overrideResponse?:
-		| MapPlayStatsDto[]
-		| ((
-				info: Parameters<Parameters<typeof http.get>[1]>[0],
-		  ) => Promise<MapPlayStatsDto[]> | MapPlayStatsDto[]),
-	options?: RequestHandlerOptions,
+    overrideResponse?:
+        | MapPlayStatsDto[]
+        | ((
+              info: Parameters<Parameters<typeof http.get>[1]>[0]
+          ) => Promise<MapPlayStatsDto[]> | MapPlayStatsDto[]),
+    options?: RequestHandlerOptions
 ) => {
-	return http.get(
-		"*/api/analytics/maps/top-played",
-		async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-			return HttpResponse.json(
-				overrideResponse !== undefined
-					? typeof overrideResponse === "function"
-						? await overrideResponse(info)
-						: overrideResponse
-					: getGetTopPlayedMapsResponseMock(),
-				{ status: 200 },
-			);
-		},
-		options,
-	);
+    return http.get(
+        "*/api/analytics/maps/top-played",
+        async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+            return HttpResponse.json(
+                overrideResponse !== undefined
+                    ? typeof overrideResponse === "function"
+                        ? await overrideResponse(info)
+                        : overrideResponse
+                    : getGetTopPlayedMapsResponseMock(),
+                { status: 200 }
+            );
+        },
+        options
+    );
 };
 
 export const getGetBestPerformingMapsMockHandler = (
-	overrideResponse?:
-		| MapPlayStatsDto[]
-		| ((
-				info: Parameters<Parameters<typeof http.get>[1]>[0],
-		  ) => Promise<MapPlayStatsDto[]> | MapPlayStatsDto[]),
-	options?: RequestHandlerOptions,
+    overrideResponse?:
+        | MapPlayStatsDto[]
+        | ((
+              info: Parameters<Parameters<typeof http.get>[1]>[0]
+          ) => Promise<MapPlayStatsDto[]> | MapPlayStatsDto[]),
+    options?: RequestHandlerOptions
 ) => {
-	return http.get(
-		"*/api/analytics/maps/best-performing",
-		async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-			return HttpResponse.json(
-				overrideResponse !== undefined
-					? typeof overrideResponse === "function"
-						? await overrideResponse(info)
-						: overrideResponse
-					: getGetBestPerformingMapsResponseMock(),
-				{ status: 200 },
-			);
-		},
-		options,
-	);
+    return http.get(
+        "*/api/analytics/maps/best-performing",
+        async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+            return HttpResponse.json(
+                overrideResponse !== undefined
+                    ? typeof overrideResponse === "function"
+                        ? await overrideResponse(info)
+                        : overrideResponse
+                    : getGetBestPerformingMapsResponseMock(),
+                { status: 200 }
+            );
+        },
+        options
+    );
 };
 
 export const getGetDifficultyStatsMockHandler = (
-	overrideResponse?:
-		| DifficultyStatsDto[]
-		| ((
-				info: Parameters<Parameters<typeof http.get>[1]>[0],
-		  ) => Promise<DifficultyStatsDto[]> | DifficultyStatsDto[]),
-	options?: RequestHandlerOptions,
+    overrideResponse?:
+        | DifficultyStatsDto[]
+        | ((
+              info: Parameters<Parameters<typeof http.get>[1]>[0]
+          ) => Promise<DifficultyStatsDto[]> | DifficultyStatsDto[]),
+    options?: RequestHandlerOptions
 ) => {
-	return http.get(
-		"*/api/analytics/difficulty-stats",
-		async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-			return HttpResponse.json(
-				overrideResponse !== undefined
-					? typeof overrideResponse === "function"
-						? await overrideResponse(info)
-						: overrideResponse
-					: getGetDifficultyStatsResponseMock(),
-				{ status: 200 },
-			);
-		},
-		options,
-	);
+    return http.get(
+        "*/api/analytics/difficulty-stats",
+        async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+            return HttpResponse.json(
+                overrideResponse !== undefined
+                    ? typeof overrideResponse === "function"
+                        ? await overrideResponse(info)
+                        : overrideResponse
+                    : getGetDifficultyStatsResponseMock(),
+                { status: 200 }
+            );
+        },
+        options
+    );
 };
 
 export const getGetMapTypeStatsMockHandler = (
-	overrideResponse?:
-		| MapTypeStatsDto[]
-		| ((
-				info: Parameters<Parameters<typeof http.get>[1]>[0],
-		  ) => Promise<MapTypeStatsDto[]> | MapTypeStatsDto[]),
-	options?: RequestHandlerOptions,
+    overrideResponse?:
+        | MapTypeStatsDto[]
+        | ((
+              info: Parameters<Parameters<typeof http.get>[1]>[0]
+          ) => Promise<MapTypeStatsDto[]> | MapTypeStatsDto[]),
+    options?: RequestHandlerOptions
 ) => {
-	return http.get(
-		"*/api/analytics/map-type-stats",
-		async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-			return HttpResponse.json(
-				overrideResponse !== undefined
-					? typeof overrideResponse === "function"
-						? await overrideResponse(info)
-						: overrideResponse
-					: getGetMapTypeStatsResponseMock(),
-				{ status: 200 },
-			);
-		},
-		options,
-	);
+    return http.get(
+        "*/api/analytics/map-type-stats",
+        async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+            return HttpResponse.json(
+                overrideResponse !== undefined
+                    ? typeof overrideResponse === "function"
+                        ? await overrideResponse(info)
+                        : overrideResponse
+                    : getGetMapTypeStatsResponseMock(),
+                { status: 200 }
+            );
+        },
+        options
+    );
 };
 
 export const getGetScoreDistributionMockHandler = (
-	overrideResponse?:
-		| ScoreDistributionDto[]
-		| ((
-				info: Parameters<Parameters<typeof http.get>[1]>[0],
-		  ) => Promise<ScoreDistributionDto[]> | ScoreDistributionDto[]),
-	options?: RequestHandlerOptions,
+    overrideResponse?:
+        | ScoreDistributionDto[]
+        | ((
+              info: Parameters<Parameters<typeof http.get>[1]>[0]
+          ) => Promise<ScoreDistributionDto[]> | ScoreDistributionDto[]),
+    options?: RequestHandlerOptions
 ) => {
-	return http.get(
-		"*/api/analytics/score-distribution",
-		async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-			return HttpResponse.json(
-				overrideResponse !== undefined
-					? typeof overrideResponse === "function"
-						? await overrideResponse(info)
-						: overrideResponse
-					: getGetScoreDistributionResponseMock(),
-				{ status: 200 },
-			);
-		},
-		options,
-	);
+    return http.get(
+        "*/api/analytics/score-distribution",
+        async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+            return HttpResponse.json(
+                overrideResponse !== undefined
+                    ? typeof overrideResponse === "function"
+                        ? await overrideResponse(info)
+                        : overrideResponse
+                    : getGetScoreDistributionResponseMock(),
+                { status: 200 }
+            );
+        },
+        options
+    );
 };
 
 export const getGetHourlyPlayStatsMockHandler = (
-	overrideResponse?:
-		| HourlyPlayStatsDto[]
-		| ((
-				info: Parameters<Parameters<typeof http.get>[1]>[0],
-		  ) => Promise<HourlyPlayStatsDto[]> | HourlyPlayStatsDto[]),
-	options?: RequestHandlerOptions,
+    overrideResponse?:
+        | HourlyPlayStatsDto[]
+        | ((
+              info: Parameters<Parameters<typeof http.get>[1]>[0]
+          ) => Promise<HourlyPlayStatsDto[]> | HourlyPlayStatsDto[]),
+    options?: RequestHandlerOptions
 ) => {
-	return http.get(
-		"*/api/analytics/hourly-stats",
-		async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-			return HttpResponse.json(
-				overrideResponse !== undefined
-					? typeof overrideResponse === "function"
-						? await overrideResponse(info)
-						: overrideResponse
-					: getGetHourlyPlayStatsResponseMock(),
-				{ status: 200 },
-			);
-		},
-		options,
-	);
+    return http.get(
+        "*/api/analytics/hourly-stats",
+        async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+            return HttpResponse.json(
+                overrideResponse !== undefined
+                    ? typeof overrideResponse === "function"
+                        ? await overrideResponse(info)
+                        : overrideResponse
+                    : getGetHourlyPlayStatsResponseMock(),
+                { status: 200 }
+            );
+        },
+        options
+    );
 };
 
 export const getGetDailyPlayStatsMockHandler = (
-	overrideResponse?:
-		| DailyPlayStatsDto[]
-		| ((
-				info: Parameters<Parameters<typeof http.get>[1]>[0],
-		  ) => Promise<DailyPlayStatsDto[]> | DailyPlayStatsDto[]),
-	options?: RequestHandlerOptions,
+    overrideResponse?:
+        | DailyPlayStatsDto[]
+        | ((
+              info: Parameters<Parameters<typeof http.get>[1]>[0]
+          ) => Promise<DailyPlayStatsDto[]> | DailyPlayStatsDto[]),
+    options?: RequestHandlerOptions
 ) => {
-	return http.get(
-		"*/api/analytics/daily-stats",
-		async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-			return HttpResponse.json(
-				overrideResponse !== undefined
-					? typeof overrideResponse === "function"
-						? await overrideResponse(info)
-						: overrideResponse
-					: getGetDailyPlayStatsResponseMock(),
-				{ status: 200 },
-			);
-		},
-		options,
-	);
+    return http.get(
+        "*/api/analytics/daily-stats",
+        async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+            return HttpResponse.json(
+                overrideResponse !== undefined
+                    ? typeof overrideResponse === "function"
+                        ? await overrideResponse(info)
+                        : overrideResponse
+                    : getGetDailyPlayStatsResponseMock(),
+                { status: 200 }
+            );
+        },
+        options
+    );
 };
 
 export const getGetAccuracyDistributionMockHandler = (
-	overrideResponse?:
-		| AccuracyDistributionDto[]
-		| ((
-				info: Parameters<Parameters<typeof http.get>[1]>[0],
-		  ) => Promise<AccuracyDistributionDto[]> | AccuracyDistributionDto[]),
-	options?: RequestHandlerOptions,
+    overrideResponse?:
+        | AccuracyDistributionDto[]
+        | ((
+              info: Parameters<Parameters<typeof http.get>[1]>[0]
+          ) => Promise<AccuracyDistributionDto[]> | AccuracyDistributionDto[]),
+    options?: RequestHandlerOptions
 ) => {
-	return http.get(
-		"*/api/analytics/accuracy-distribution",
-		async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-			return HttpResponse.json(
-				overrideResponse !== undefined
-					? typeof overrideResponse === "function"
-						? await overrideResponse(info)
-						: overrideResponse
-					: getGetAccuracyDistributionResponseMock(),
-				{ status: 200 },
-			);
-		},
-		options,
-	);
+    return http.get(
+        "*/api/analytics/accuracy-distribution",
+        async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+            return HttpResponse.json(
+                overrideResponse !== undefined
+                    ? typeof overrideResponse === "function"
+                        ? await overrideResponse(info)
+                        : overrideResponse
+                    : getGetAccuracyDistributionResponseMock(),
+                { status: 200 }
+            );
+        },
+        options
+    );
 };
 export const getAnalyticsEndpointsMock = () => [
-	getGetDashboardMockHandler(),
-	getGetAnalyticsOverviewMockHandler(),
-	getGetPerformanceTrendMockHandler(),
-	getGetTopPlayedMapsMockHandler(),
-	getGetBestPerformingMapsMockHandler(),
-	getGetDifficultyStatsMockHandler(),
-	getGetMapTypeStatsMockHandler(),
-	getGetScoreDistributionMockHandler(),
-	getGetHourlyPlayStatsMockHandler(),
-	getGetDailyPlayStatsMockHandler(),
-	getGetAccuracyDistributionMockHandler(),
+    getGetDashboardMockHandler(),
+    getGetAnalyticsOverviewMockHandler(),
+    getGetPerformanceTrendMockHandler(),
+    getGetTopPlayedMapsMockHandler(),
+    getGetBestPerformingMapsMockHandler(),
+    getGetDifficultyStatsMockHandler(),
+    getGetMapTypeStatsMockHandler(),
+    getGetScoreDistributionMockHandler(),
+    getGetHourlyPlayStatsMockHandler(),
+    getGetDailyPlayStatsMockHandler(),
+    getGetAccuracyDistributionMockHandler(),
 ];

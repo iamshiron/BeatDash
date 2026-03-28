@@ -9,1429 +9,1443 @@ import type { RequestHandlerOptions } from "msw";
 import { HttpResponse, http } from "msw";
 
 import type {
-	DifficultyDto,
-	MapDetailDto,
-	MapDto,
-	MapPlayStatsDto,
-	PaginatedResultOfMapSummaryDto,
-	PerformanceTrendDto,
-	PlaySessionSummaryDto,
+    DifficultyDto,
+    MapDetailDto,
+    MapDto,
+    MapPlayStatsDto,
+    PaginatedResultOfMapSummaryDto,
+    PerformanceTrendDto,
+    PlaySessionSummaryDto,
 } from "../model";
 
 export const getGetMapsResponseMock = (
-	overrideResponse: Partial<
-		Extract<PaginatedResultOfMapSummaryDto, object>
-	> = {},
+    overrideResponse: Partial<
+        Extract<PaginatedResultOfMapSummaryDto, object>
+    > = {}
 ): PaginatedResultOfMapSummaryDto => ({
-	items: faker.helpers.arrayElement([
-		Array.from(
-			{ length: faker.number.int({ min: 1, max: 10 }) },
-			(_, i) => i + 1,
-		).map(() => ({
-			id: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			hash: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			songName: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			songSubName: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			songAuthor: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			mapper: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			bsrKey: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-					null,
-				]),
-				undefined,
-			]),
-			duration: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			bpm: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			hasCoverImage: faker.helpers.arrayElement([
-				faker.datatype.boolean(),
-				undefined,
-			]),
-			playCount: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			difficultyCount: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-		})),
-		undefined,
-	]),
-	totalCount: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	page: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	pageSize: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	totalPages: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	hasPrevious: faker.helpers.arrayElement([
-		faker.datatype.boolean(),
-		undefined,
-	]),
-	hasNext: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
-	...overrideResponse,
+    items: faker.helpers.arrayElement([
+        Array.from(
+            { length: faker.number.int({ min: 1, max: 10 }) },
+            (_, i) => i + 1
+        ).map(() => ({
+            id: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            hash: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            songName: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            songSubName: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            songAuthor: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            mapper: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            bsrKey: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                    null,
+                ]),
+                undefined,
+            ]),
+            duration: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            bpm: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            hasCoverImage: faker.helpers.arrayElement([
+                faker.datatype.boolean(),
+                undefined,
+            ]),
+            playCount: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            difficultyCount: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+        })),
+        undefined,
+    ]),
+    totalCount: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    page: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    pageSize: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    totalPages: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    hasPrevious: faker.helpers.arrayElement([
+        faker.datatype.boolean(),
+        undefined,
+    ]),
+    hasNext: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    ...overrideResponse,
 });
 
 export const getGetMapByIdResponseMock = (
-	overrideResponse: Partial<Extract<MapDto, object>> = {},
+    overrideResponse: Partial<Extract<MapDto, object>> = {}
 ): MapDto => ({
-	id: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	hash: faker.helpers.arrayElement([
-		faker.string.alpha({ length: { min: 10, max: 20 } }),
-		undefined,
-	]),
-	songName: faker.helpers.arrayElement([
-		faker.string.alpha({ length: { min: 10, max: 20 } }),
-		undefined,
-	]),
-	songSubName: faker.helpers.arrayElement([
-		faker.string.alpha({ length: { min: 10, max: 20 } }),
-		undefined,
-	]),
-	songAuthor: faker.helpers.arrayElement([
-		faker.string.alpha({ length: { min: 10, max: 20 } }),
-		undefined,
-	]),
-	mapper: faker.helpers.arrayElement([
-		faker.string.alpha({ length: { min: 10, max: 20 } }),
-		undefined,
-	]),
-	bsrKey: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			null,
-		]),
-		undefined,
-	]),
-	duration: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	bpm: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	hasCoverImage: faker.helpers.arrayElement([
-		faker.datatype.boolean(),
-		undefined,
-	]),
-	gameVersion: faker.helpers.arrayElement([
-		faker.string.alpha({ length: { min: 10, max: 20 } }),
-		undefined,
-	]),
-	playCount: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	difficulties: faker.helpers.arrayElement([
-		Array.from(
-			{ length: faker.number.int({ min: 1, max: 10 }) },
-			(_, i) => i + 1,
-		).map(() => ({
-			id: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			mapId: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			mapType: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			difficulty: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			customDifficultyLabel: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-					null,
-				]),
-				undefined,
-			]),
-			njs: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			pp: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			star: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			playCount: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-		})),
-		undefined,
-	]),
-	...overrideResponse,
+    id: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    hash: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+    ]),
+    songName: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+    ]),
+    songSubName: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+    ]),
+    songAuthor: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+    ]),
+    mapper: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+    ]),
+    bsrKey: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            null,
+        ]),
+        undefined,
+    ]),
+    duration: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    bpm: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    hasCoverImage: faker.helpers.arrayElement([
+        faker.datatype.boolean(),
+        undefined,
+    ]),
+    gameVersion: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+    ]),
+    playCount: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    difficulties: faker.helpers.arrayElement([
+        Array.from(
+            { length: faker.number.int({ min: 1, max: 10 }) },
+            (_, i) => i + 1
+        ).map(() => ({
+            id: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            mapId: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            mapType: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            difficulty: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            customDifficultyLabel: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                    null,
+                ]),
+                undefined,
+            ]),
+            njs: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            pp: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            star: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            playCount: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+        })),
+        undefined,
+    ]),
+    ...overrideResponse,
 });
 
 export const getGetMapDetailResponseMapPlayStatsDtoMock = (
-	overrideResponse: Partial<MapPlayStatsDto> = {},
+    overrideResponse: Partial<MapPlayStatsDto> = {}
 ): MapPlayStatsDto => ({
-	...{
-		mapId: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		songName: faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			undefined,
-		]),
-		songAuthor: faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			undefined,
-		]),
-		mapper: faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			undefined,
-		]),
-		hasCoverImage: faker.helpers.arrayElement([
-			faker.datatype.boolean(),
-			undefined,
-		]),
-		bsrKey: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				null,
-			]),
-			undefined,
-		]),
-		playCount: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		averageAccuracy: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		averageScorePercentage: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		fullComboCount: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		bestScore: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		bestScorePercentage: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		bestRank: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				null,
-			]),
-			undefined,
-		]),
-		lastPlayedAt: faker.helpers.arrayElement([
-			faker.date.past().toISOString().slice(0, 19) + "Z",
-			undefined,
-		]),
-	},
-	...overrideResponse,
+    ...{
+        mapId: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        songName: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+        ]),
+        songAuthor: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+        ]),
+        mapper: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+        ]),
+        hasCoverImage: faker.helpers.arrayElement([
+            faker.datatype.boolean(),
+            undefined,
+        ]),
+        bsrKey: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                null,
+            ]),
+            undefined,
+        ]),
+        playCount: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        averageAccuracy: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        averageScorePercentage: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        fullComboCount: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        bestScore: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        bestScorePercentage: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        bestRank: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                null,
+            ]),
+            undefined,
+        ]),
+        lastPlayedAt: faker.helpers.arrayElement([
+            `${faker.date.past().toISOString().slice(0, 19)}Z`,
+            undefined,
+        ]),
+    },
+    ...overrideResponse,
 });
 
 export const getGetMapDetailResponsePerformanceTrendDtoMock = (
-	overrideResponse: Partial<PerformanceTrendDto> = {},
+    overrideResponse: Partial<PerformanceTrendDto> = {}
 ): PerformanceTrendDto => ({
-	...{
-		date: faker.helpers.arrayElement([
-			faker.date.past().toISOString().slice(0, 19) + "Z",
-			undefined,
-		]),
-		playCount: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		averageAccuracy: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		averageScorePercentage: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		totalPlayTimeSeconds: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		fullComboCount: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		finishedCount: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		failedCount: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-	},
-	...overrideResponse,
+    ...{
+        date: faker.helpers.arrayElement([
+            `${faker.date.past().toISOString().slice(0, 19)}Z`,
+            undefined,
+        ]),
+        playCount: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        averageAccuracy: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        averageScorePercentage: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        totalPlayTimeSeconds: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        fullComboCount: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        finishedCount: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        failedCount: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+    },
+    ...overrideResponse,
 });
 
 export const getGetMapDetailResponseMock = (
-	overrideResponse: Partial<Extract<MapDetailDto, object>> = {},
+    overrideResponse: Partial<Extract<MapDetailDto, object>> = {}
 ): MapDetailDto => ({
-	map: faker.helpers.arrayElement([
-		{
-			id: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			hash: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			songName: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			songSubName: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			songAuthor: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			mapper: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			bsrKey: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-					null,
-				]),
-				undefined,
-			]),
-			duration: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			bpm: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			hasCoverImage: faker.helpers.arrayElement([
-				faker.datatype.boolean(),
-				undefined,
-			]),
-			gameVersion: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			playCount: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			difficulties: faker.helpers.arrayElement([
-				Array.from(
-					{ length: faker.number.int({ min: 1, max: 10 }) },
-					(_, i) => i + 1,
-				).map(() => ({
-					id: faker.helpers.arrayElement([
-						faker.helpers.arrayElement([
-							faker.number.int(),
-							faker.string.alpha({ length: { min: 10, max: 20 } }),
-						]),
-						undefined,
-					]),
-					mapId: faker.helpers.arrayElement([
-						faker.helpers.arrayElement([
-							faker.number.int(),
-							faker.string.alpha({ length: { min: 10, max: 20 } }),
-						]),
-						undefined,
-					]),
-					mapType: faker.helpers.arrayElement([
-						faker.string.alpha({ length: { min: 10, max: 20 } }),
-						undefined,
-					]),
-					difficulty: faker.helpers.arrayElement([
-						faker.string.alpha({ length: { min: 10, max: 20 } }),
-						undefined,
-					]),
-					customDifficultyLabel: faker.helpers.arrayElement([
-						faker.helpers.arrayElement([
-							faker.string.alpha({ length: { min: 10, max: 20 } }),
-							null,
-						]),
-						undefined,
-					]),
-					njs: faker.helpers.arrayElement([
-						faker.helpers.arrayElement([
-							faker.number.float({ fractionDigits: 2 }),
-							faker.string.alpha({ length: { min: 10, max: 20 } }),
-						]),
-						undefined,
-					]),
-					pp: faker.helpers.arrayElement([
-						faker.helpers.arrayElement([
-							faker.number.float({ fractionDigits: 2 }),
-							faker.string.alpha({ length: { min: 10, max: 20 } }),
-						]),
-						undefined,
-					]),
-					star: faker.helpers.arrayElement([
-						faker.helpers.arrayElement([
-							faker.number.float({ fractionDigits: 2 }),
-							faker.string.alpha({ length: { min: 10, max: 20 } }),
-						]),
-						undefined,
-					]),
-					playCount: faker.helpers.arrayElement([
-						faker.helpers.arrayElement([
-							faker.number.int(),
-							faker.string.alpha({ length: { min: 10, max: 20 } }),
-						]),
-						undefined,
-					]),
-				})),
-				undefined,
-			]),
-		},
-		undefined,
-	]),
-	stats: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			null,
-			{ ...getGetMapDetailResponseMapPlayStatsDtoMock() },
-		]),
-		undefined,
-	]),
-	recentSessions: faker.helpers.arrayElement([
-		Array.from(
-			{ length: faker.number.int({ min: 1, max: 10 }) },
-			(_, i) => i + 1,
-		).map(() => ({
-			id: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			startedAt: faker.helpers.arrayElement([
-				faker.date.past().toISOString().slice(0, 19) + "Z",
-				undefined,
-			]),
-			finishedAt: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.date.past().toISOString().slice(0, 19) + "Z",
-					null,
-				]),
-				undefined,
-			]),
-			endReason: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-					null,
-				]),
-				undefined,
-			]),
-			durationSeconds: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			mapId: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			songName: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			songAuthor: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			mapper: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			hasCoverImage: faker.helpers.arrayElement([
-				faker.datatype.boolean(),
-				undefined,
-			]),
-			difficulty: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			mapType: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			finalScore: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			finalMaxScore: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			finalRank: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-					null,
-				]),
-				undefined,
-			]),
-			finalAccuracy: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			finalFullCombo: faker.helpers.arrayElement([
-				faker.datatype.boolean(),
-				undefined,
-			]),
-			finalMisses: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			scorePercentage: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-		})),
-		undefined,
-	]),
-	difficultyStats: faker.helpers.arrayElement([
-		Array.from(
-			{ length: faker.number.int({ min: 1, max: 10 }) },
-			(_, i) => i + 1,
-		).map(() => ({
-			difficulty: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			playCount: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			averageAccuracy: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			averageScorePercentage: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			fullComboCount: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			finishedCount: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			failedCount: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-		})),
-		undefined,
-	]),
-	bestPerformance: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			null,
-			{ ...getGetMapDetailResponsePerformanceTrendDtoMock() },
-		]),
-		undefined,
-	]),
-	...overrideResponse,
+    map: faker.helpers.arrayElement([
+        {
+            id: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            hash: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            songName: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            songSubName: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            songAuthor: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            mapper: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            bsrKey: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                    null,
+                ]),
+                undefined,
+            ]),
+            duration: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            bpm: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            hasCoverImage: faker.helpers.arrayElement([
+                faker.datatype.boolean(),
+                undefined,
+            ]),
+            gameVersion: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            playCount: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            difficulties: faker.helpers.arrayElement([
+                Array.from(
+                    { length: faker.number.int({ min: 1, max: 10 }) },
+                    (_, i) => i + 1
+                ).map(() => ({
+                    id: faker.helpers.arrayElement([
+                        faker.helpers.arrayElement([
+                            faker.number.int(),
+                            faker.string.alpha({
+                                length: { min: 10, max: 20 },
+                            }),
+                        ]),
+                        undefined,
+                    ]),
+                    mapId: faker.helpers.arrayElement([
+                        faker.helpers.arrayElement([
+                            faker.number.int(),
+                            faker.string.alpha({
+                                length: { min: 10, max: 20 },
+                            }),
+                        ]),
+                        undefined,
+                    ]),
+                    mapType: faker.helpers.arrayElement([
+                        faker.string.alpha({ length: { min: 10, max: 20 } }),
+                        undefined,
+                    ]),
+                    difficulty: faker.helpers.arrayElement([
+                        faker.string.alpha({ length: { min: 10, max: 20 } }),
+                        undefined,
+                    ]),
+                    customDifficultyLabel: faker.helpers.arrayElement([
+                        faker.helpers.arrayElement([
+                            faker.string.alpha({
+                                length: { min: 10, max: 20 },
+                            }),
+                            null,
+                        ]),
+                        undefined,
+                    ]),
+                    njs: faker.helpers.arrayElement([
+                        faker.helpers.arrayElement([
+                            faker.number.float({ fractionDigits: 2 }),
+                            faker.string.alpha({
+                                length: { min: 10, max: 20 },
+                            }),
+                        ]),
+                        undefined,
+                    ]),
+                    pp: faker.helpers.arrayElement([
+                        faker.helpers.arrayElement([
+                            faker.number.float({ fractionDigits: 2 }),
+                            faker.string.alpha({
+                                length: { min: 10, max: 20 },
+                            }),
+                        ]),
+                        undefined,
+                    ]),
+                    star: faker.helpers.arrayElement([
+                        faker.helpers.arrayElement([
+                            faker.number.float({ fractionDigits: 2 }),
+                            faker.string.alpha({
+                                length: { min: 10, max: 20 },
+                            }),
+                        ]),
+                        undefined,
+                    ]),
+                    playCount: faker.helpers.arrayElement([
+                        faker.helpers.arrayElement([
+                            faker.number.int(),
+                            faker.string.alpha({
+                                length: { min: 10, max: 20 },
+                            }),
+                        ]),
+                        undefined,
+                    ]),
+                })),
+                undefined,
+            ]),
+        },
+        undefined,
+    ]),
+    stats: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            null,
+            { ...getGetMapDetailResponseMapPlayStatsDtoMock() },
+        ]),
+        undefined,
+    ]),
+    recentSessions: faker.helpers.arrayElement([
+        Array.from(
+            { length: faker.number.int({ min: 1, max: 10 }) },
+            (_, i) => i + 1
+        ).map(() => ({
+            id: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            startedAt: faker.helpers.arrayElement([
+                `${faker.date.past().toISOString().slice(0, 19)}Z`,
+                undefined,
+            ]),
+            finishedAt: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    `${faker.date.past().toISOString().slice(0, 19)}Z`,
+                    null,
+                ]),
+                undefined,
+            ]),
+            endReason: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                    null,
+                ]),
+                undefined,
+            ]),
+            durationSeconds: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            mapId: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            songName: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            songAuthor: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            mapper: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            hasCoverImage: faker.helpers.arrayElement([
+                faker.datatype.boolean(),
+                undefined,
+            ]),
+            difficulty: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            mapType: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            finalScore: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            finalMaxScore: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            finalRank: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                    null,
+                ]),
+                undefined,
+            ]),
+            finalAccuracy: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            finalFullCombo: faker.helpers.arrayElement([
+                faker.datatype.boolean(),
+                undefined,
+            ]),
+            finalMisses: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            scorePercentage: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+        })),
+        undefined,
+    ]),
+    difficultyStats: faker.helpers.arrayElement([
+        Array.from(
+            { length: faker.number.int({ min: 1, max: 10 }) },
+            (_, i) => i + 1
+        ).map(() => ({
+            difficulty: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            playCount: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            averageAccuracy: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            averageScorePercentage: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            fullComboCount: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            finishedCount: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            failedCount: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+        })),
+        undefined,
+    ]),
+    bestPerformance: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            null,
+            { ...getGetMapDetailResponsePerformanceTrendDtoMock() },
+        ]),
+        undefined,
+    ]),
+    ...overrideResponse,
 });
 
 export const getGetMapDifficultiesResponseMock = (): DifficultyDto[] =>
-	Array.from(
-		{ length: faker.number.int({ min: 1, max: 10 }) },
-		(_, i) => i + 1,
-	).map(() => ({
-		id: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		mapId: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		mapType: faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			undefined,
-		]),
-		difficulty: faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			undefined,
-		]),
-		customDifficultyLabel: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				null,
-			]),
-			undefined,
-		]),
-		njs: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		pp: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		star: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		playCount: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-	}));
+    Array.from(
+        { length: faker.number.int({ min: 1, max: 10 }) },
+        (_, i) => i + 1
+    ).map(() => ({
+        id: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        mapId: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        mapType: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+        ]),
+        difficulty: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+        ]),
+        customDifficultyLabel: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                null,
+            ]),
+            undefined,
+        ]),
+        njs: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        pp: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        star: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        playCount: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+    }));
 
 export const getGetMapSessionsResponseMock = (): PlaySessionSummaryDto[] =>
-	Array.from(
-		{ length: faker.number.int({ min: 1, max: 10 }) },
-		(_, i) => i + 1,
-	).map(() => ({
-		id: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		startedAt: faker.helpers.arrayElement([
-			faker.date.past().toISOString().slice(0, 19) + "Z",
-			undefined,
-		]),
-		finishedAt: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.date.past().toISOString().slice(0, 19) + "Z",
-				null,
-			]),
-			undefined,
-		]),
-		endReason: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				null,
-			]),
-			undefined,
-		]),
-		durationSeconds: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		mapId: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		songName: faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			undefined,
-		]),
-		songAuthor: faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			undefined,
-		]),
-		mapper: faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			undefined,
-		]),
-		hasCoverImage: faker.helpers.arrayElement([
-			faker.datatype.boolean(),
-			undefined,
-		]),
-		difficulty: faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			undefined,
-		]),
-		mapType: faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			undefined,
-		]),
-		finalScore: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		finalMaxScore: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		finalRank: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				null,
-			]),
-			undefined,
-		]),
-		finalAccuracy: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		finalFullCombo: faker.helpers.arrayElement([
-			faker.datatype.boolean(),
-			undefined,
-		]),
-		finalMisses: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.int(),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-		scorePercentage: faker.helpers.arrayElement([
-			faker.helpers.arrayElement([
-				faker.number.float({ fractionDigits: 2 }),
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-			]),
-			undefined,
-		]),
-	}));
+    Array.from(
+        { length: faker.number.int({ min: 1, max: 10 }) },
+        (_, i) => i + 1
+    ).map(() => ({
+        id: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        startedAt: faker.helpers.arrayElement([
+            `${faker.date.past().toISOString().slice(0, 19)}Z`,
+            undefined,
+        ]),
+        finishedAt: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                `${faker.date.past().toISOString().slice(0, 19)}Z`,
+                null,
+            ]),
+            undefined,
+        ]),
+        endReason: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                null,
+            ]),
+            undefined,
+        ]),
+        durationSeconds: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        mapId: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        songName: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+        ]),
+        songAuthor: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+        ]),
+        mapper: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+        ]),
+        hasCoverImage: faker.helpers.arrayElement([
+            faker.datatype.boolean(),
+            undefined,
+        ]),
+        difficulty: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+        ]),
+        mapType: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+        ]),
+        finalScore: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        finalMaxScore: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        finalRank: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                null,
+            ]),
+            undefined,
+        ]),
+        finalAccuracy: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        finalFullCombo: faker.helpers.arrayElement([
+            faker.datatype.boolean(),
+            undefined,
+        ]),
+        finalMisses: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.int(),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+        scorePercentage: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+                faker.number.float({ fractionDigits: 2 }),
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ]),
+            undefined,
+        ]),
+    }));
 
 export const getGetMapByHashResponseMock = (
-	overrideResponse: Partial<Extract<MapDto, object>> = {},
+    overrideResponse: Partial<Extract<MapDto, object>> = {}
 ): MapDto => ({
-	id: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	hash: faker.helpers.arrayElement([
-		faker.string.alpha({ length: { min: 10, max: 20 } }),
-		undefined,
-	]),
-	songName: faker.helpers.arrayElement([
-		faker.string.alpha({ length: { min: 10, max: 20 } }),
-		undefined,
-	]),
-	songSubName: faker.helpers.arrayElement([
-		faker.string.alpha({ length: { min: 10, max: 20 } }),
-		undefined,
-	]),
-	songAuthor: faker.helpers.arrayElement([
-		faker.string.alpha({ length: { min: 10, max: 20 } }),
-		undefined,
-	]),
-	mapper: faker.helpers.arrayElement([
-		faker.string.alpha({ length: { min: 10, max: 20 } }),
-		undefined,
-	]),
-	bsrKey: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			null,
-		]),
-		undefined,
-	]),
-	duration: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	bpm: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	hasCoverImage: faker.helpers.arrayElement([
-		faker.datatype.boolean(),
-		undefined,
-	]),
-	gameVersion: faker.helpers.arrayElement([
-		faker.string.alpha({ length: { min: 10, max: 20 } }),
-		undefined,
-	]),
-	playCount: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	difficulties: faker.helpers.arrayElement([
-		Array.from(
-			{ length: faker.number.int({ min: 1, max: 10 }) },
-			(_, i) => i + 1,
-		).map(() => ({
-			id: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			mapId: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			mapType: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			difficulty: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			customDifficultyLabel: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-					null,
-				]),
-				undefined,
-			]),
-			njs: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			pp: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			star: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			playCount: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-		})),
-		undefined,
-	]),
-	...overrideResponse,
+    id: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    hash: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+    ]),
+    songName: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+    ]),
+    songSubName: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+    ]),
+    songAuthor: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+    ]),
+    mapper: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+    ]),
+    bsrKey: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            null,
+        ]),
+        undefined,
+    ]),
+    duration: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    bpm: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    hasCoverImage: faker.helpers.arrayElement([
+        faker.datatype.boolean(),
+        undefined,
+    ]),
+    gameVersion: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+    ]),
+    playCount: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    difficulties: faker.helpers.arrayElement([
+        Array.from(
+            { length: faker.number.int({ min: 1, max: 10 }) },
+            (_, i) => i + 1
+        ).map(() => ({
+            id: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            mapId: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            mapType: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            difficulty: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            customDifficultyLabel: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                    null,
+                ]),
+                undefined,
+            ]),
+            njs: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            pp: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            star: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            playCount: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+        })),
+        undefined,
+    ]),
+    ...overrideResponse,
 });
 
 export const getGetMapByBSRKeyResponseMock = (
-	overrideResponse: Partial<Extract<MapDto, object>> = {},
+    overrideResponse: Partial<Extract<MapDto, object>> = {}
 ): MapDto => ({
-	id: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	hash: faker.helpers.arrayElement([
-		faker.string.alpha({ length: { min: 10, max: 20 } }),
-		undefined,
-	]),
-	songName: faker.helpers.arrayElement([
-		faker.string.alpha({ length: { min: 10, max: 20 } }),
-		undefined,
-	]),
-	songSubName: faker.helpers.arrayElement([
-		faker.string.alpha({ length: { min: 10, max: 20 } }),
-		undefined,
-	]),
-	songAuthor: faker.helpers.arrayElement([
-		faker.string.alpha({ length: { min: 10, max: 20 } }),
-		undefined,
-	]),
-	mapper: faker.helpers.arrayElement([
-		faker.string.alpha({ length: { min: 10, max: 20 } }),
-		undefined,
-	]),
-	bsrKey: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-			null,
-		]),
-		undefined,
-	]),
-	duration: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	bpm: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	hasCoverImage: faker.helpers.arrayElement([
-		faker.datatype.boolean(),
-		undefined,
-	]),
-	gameVersion: faker.helpers.arrayElement([
-		faker.string.alpha({ length: { min: 10, max: 20 } }),
-		undefined,
-	]),
-	playCount: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	difficulties: faker.helpers.arrayElement([
-		Array.from(
-			{ length: faker.number.int({ min: 1, max: 10 }) },
-			(_, i) => i + 1,
-		).map(() => ({
-			id: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			mapId: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			mapType: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			difficulty: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			customDifficultyLabel: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-					null,
-				]),
-				undefined,
-			]),
-			njs: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			pp: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			star: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			playCount: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-		})),
-		undefined,
-	]),
-	...overrideResponse,
+    id: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    hash: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+    ]),
+    songName: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+    ]),
+    songSubName: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+    ]),
+    songAuthor: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+    ]),
+    mapper: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+    ]),
+    bsrKey: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            null,
+        ]),
+        undefined,
+    ]),
+    duration: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    bpm: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    hasCoverImage: faker.helpers.arrayElement([
+        faker.datatype.boolean(),
+        undefined,
+    ]),
+    gameVersion: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+    ]),
+    playCount: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    difficulties: faker.helpers.arrayElement([
+        Array.from(
+            { length: faker.number.int({ min: 1, max: 10 }) },
+            (_, i) => i + 1
+        ).map(() => ({
+            id: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            mapId: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            mapType: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            difficulty: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            customDifficultyLabel: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                    null,
+                ]),
+                undefined,
+            ]),
+            njs: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            pp: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            star: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            playCount: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+        })),
+        undefined,
+    ]),
+    ...overrideResponse,
 });
 
 export const getGetMapsMockHandler = (
-	overrideResponse?:
-		| PaginatedResultOfMapSummaryDto
-		| ((
-				info: Parameters<Parameters<typeof http.get>[1]>[0],
-		  ) =>
-				| Promise<PaginatedResultOfMapSummaryDto>
-				| PaginatedResultOfMapSummaryDto),
-	options?: RequestHandlerOptions,
+    overrideResponse?:
+        | PaginatedResultOfMapSummaryDto
+        | ((
+              info: Parameters<Parameters<typeof http.get>[1]>[0]
+          ) =>
+              | Promise<PaginatedResultOfMapSummaryDto>
+              | PaginatedResultOfMapSummaryDto),
+    options?: RequestHandlerOptions
 ) => {
-	return http.get(
-		"*/api/maps",
-		async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-			return HttpResponse.json(
-				overrideResponse !== undefined
-					? typeof overrideResponse === "function"
-						? await overrideResponse(info)
-						: overrideResponse
-					: getGetMapsResponseMock(),
-				{ status: 200 },
-			);
-		},
-		options,
-	);
+    return http.get(
+        "*/api/maps",
+        async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+            return HttpResponse.json(
+                overrideResponse !== undefined
+                    ? typeof overrideResponse === "function"
+                        ? await overrideResponse(info)
+                        : overrideResponse
+                    : getGetMapsResponseMock(),
+                { status: 200 }
+            );
+        },
+        options
+    );
 };
 
 export const getGetMapByIdMockHandler = (
-	overrideResponse?:
-		| MapDto
-		| ((
-				info: Parameters<Parameters<typeof http.get>[1]>[0],
-		  ) => Promise<MapDto> | MapDto),
-	options?: RequestHandlerOptions,
+    overrideResponse?:
+        | MapDto
+        | ((
+              info: Parameters<Parameters<typeof http.get>[1]>[0]
+          ) => Promise<MapDto> | MapDto),
+    options?: RequestHandlerOptions
 ) => {
-	return http.get(
-		"*/api/maps/:id",
-		async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-			return HttpResponse.json(
-				overrideResponse !== undefined
-					? typeof overrideResponse === "function"
-						? await overrideResponse(info)
-						: overrideResponse
-					: getGetMapByIdResponseMock(),
-				{ status: 200 },
-			);
-		},
-		options,
-	);
+    return http.get(
+        "*/api/maps/:id",
+        async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+            return HttpResponse.json(
+                overrideResponse !== undefined
+                    ? typeof overrideResponse === "function"
+                        ? await overrideResponse(info)
+                        : overrideResponse
+                    : getGetMapByIdResponseMock(),
+                { status: 200 }
+            );
+        },
+        options
+    );
 };
 
 export const getGetMapDetailMockHandler = (
-	overrideResponse?:
-		| MapDetailDto
-		| ((
-				info: Parameters<Parameters<typeof http.get>[1]>[0],
-		  ) => Promise<MapDetailDto> | MapDetailDto),
-	options?: RequestHandlerOptions,
+    overrideResponse?:
+        | MapDetailDto
+        | ((
+              info: Parameters<Parameters<typeof http.get>[1]>[0]
+          ) => Promise<MapDetailDto> | MapDetailDto),
+    options?: RequestHandlerOptions
 ) => {
-	return http.get(
-		"*/api/maps/:id/detail",
-		async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-			return HttpResponse.json(
-				overrideResponse !== undefined
-					? typeof overrideResponse === "function"
-						? await overrideResponse(info)
-						: overrideResponse
-					: getGetMapDetailResponseMock(),
-				{ status: 200 },
-			);
-		},
-		options,
-	);
+    return http.get(
+        "*/api/maps/:id/detail",
+        async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+            return HttpResponse.json(
+                overrideResponse !== undefined
+                    ? typeof overrideResponse === "function"
+                        ? await overrideResponse(info)
+                        : overrideResponse
+                    : getGetMapDetailResponseMock(),
+                { status: 200 }
+            );
+        },
+        options
+    );
 };
 
 export const getGetMapDifficultiesMockHandler = (
-	overrideResponse?:
-		| DifficultyDto[]
-		| ((
-				info: Parameters<Parameters<typeof http.get>[1]>[0],
-		  ) => Promise<DifficultyDto[]> | DifficultyDto[]),
-	options?: RequestHandlerOptions,
+    overrideResponse?:
+        | DifficultyDto[]
+        | ((
+              info: Parameters<Parameters<typeof http.get>[1]>[0]
+          ) => Promise<DifficultyDto[]> | DifficultyDto[]),
+    options?: RequestHandlerOptions
 ) => {
-	return http.get(
-		"*/api/maps/:id/difficulties",
-		async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-			return HttpResponse.json(
-				overrideResponse !== undefined
-					? typeof overrideResponse === "function"
-						? await overrideResponse(info)
-						: overrideResponse
-					: getGetMapDifficultiesResponseMock(),
-				{ status: 200 },
-			);
-		},
-		options,
-	);
+    return http.get(
+        "*/api/maps/:id/difficulties",
+        async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+            return HttpResponse.json(
+                overrideResponse !== undefined
+                    ? typeof overrideResponse === "function"
+                        ? await overrideResponse(info)
+                        : overrideResponse
+                    : getGetMapDifficultiesResponseMock(),
+                { status: 200 }
+            );
+        },
+        options
+    );
 };
 
 export const getGetMapSessionsMockHandler = (
-	overrideResponse?:
-		| PlaySessionSummaryDto[]
-		| ((
-				info: Parameters<Parameters<typeof http.get>[1]>[0],
-		  ) => Promise<PlaySessionSummaryDto[]> | PlaySessionSummaryDto[]),
-	options?: RequestHandlerOptions,
+    overrideResponse?:
+        | PlaySessionSummaryDto[]
+        | ((
+              info: Parameters<Parameters<typeof http.get>[1]>[0]
+          ) => Promise<PlaySessionSummaryDto[]> | PlaySessionSummaryDto[]),
+    options?: RequestHandlerOptions
 ) => {
-	return http.get(
-		"*/api/maps/:id/sessions",
-		async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-			return HttpResponse.json(
-				overrideResponse !== undefined
-					? typeof overrideResponse === "function"
-						? await overrideResponse(info)
-						: overrideResponse
-					: getGetMapSessionsResponseMock(),
-				{ status: 200 },
-			);
-		},
-		options,
-	);
+    return http.get(
+        "*/api/maps/:id/sessions",
+        async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+            return HttpResponse.json(
+                overrideResponse !== undefined
+                    ? typeof overrideResponse === "function"
+                        ? await overrideResponse(info)
+                        : overrideResponse
+                    : getGetMapSessionsResponseMock(),
+                { status: 200 }
+            );
+        },
+        options
+    );
 };
 
 export const getGetMapCoverMockHandler = (
-	overrideResponse?:
-		| unknown
-		| ((
-				info: Parameters<Parameters<typeof http.get>[1]>[0],
-		  ) => Promise<unknown> | unknown),
-	options?: RequestHandlerOptions,
+    overrideResponse?:
+        | unknown
+        | ((
+              info: Parameters<Parameters<typeof http.get>[1]>[0]
+          ) => Promise<unknown> | unknown),
+    options?: RequestHandlerOptions
 ) => {
-	return http.get(
-		"*/api/maps/:id/cover",
-		async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-			if (typeof overrideResponse === "function") {
-				await overrideResponse(info);
-			}
+    return http.get(
+        "*/api/maps/:id/cover",
+        async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+            if (typeof overrideResponse === "function") {
+                await overrideResponse(info);
+            }
 
-			return new HttpResponse(null, { status: 200 });
-		},
-		options,
-	);
+            return new HttpResponse(null, { status: 200 });
+        },
+        options
+    );
 };
 
 export const getGetMapByHashMockHandler = (
-	overrideResponse?:
-		| MapDto
-		| ((
-				info: Parameters<Parameters<typeof http.get>[1]>[0],
-		  ) => Promise<MapDto> | MapDto),
-	options?: RequestHandlerOptions,
+    overrideResponse?:
+        | MapDto
+        | ((
+              info: Parameters<Parameters<typeof http.get>[1]>[0]
+          ) => Promise<MapDto> | MapDto),
+    options?: RequestHandlerOptions
 ) => {
-	return http.get(
-		"*/api/maps/hash/:hash",
-		async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-			return HttpResponse.json(
-				overrideResponse !== undefined
-					? typeof overrideResponse === "function"
-						? await overrideResponse(info)
-						: overrideResponse
-					: getGetMapByHashResponseMock(),
-				{ status: 200 },
-			);
-		},
-		options,
-	);
+    return http.get(
+        "*/api/maps/hash/:hash",
+        async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+            return HttpResponse.json(
+                overrideResponse !== undefined
+                    ? typeof overrideResponse === "function"
+                        ? await overrideResponse(info)
+                        : overrideResponse
+                    : getGetMapByHashResponseMock(),
+                { status: 200 }
+            );
+        },
+        options
+    );
 };
 
 export const getGetMapCoverByHashMockHandler = (
-	overrideResponse?:
-		| unknown
-		| ((
-				info: Parameters<Parameters<typeof http.get>[1]>[0],
-		  ) => Promise<unknown> | unknown),
-	options?: RequestHandlerOptions,
+    overrideResponse?:
+        | unknown
+        | ((
+              info: Parameters<Parameters<typeof http.get>[1]>[0]
+          ) => Promise<unknown> | unknown),
+    options?: RequestHandlerOptions
 ) => {
-	return http.get(
-		"*/api/maps/hash/:hash/cover",
-		async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-			if (typeof overrideResponse === "function") {
-				await overrideResponse(info);
-			}
+    return http.get(
+        "*/api/maps/hash/:hash/cover",
+        async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+            if (typeof overrideResponse === "function") {
+                await overrideResponse(info);
+            }
 
-			return new HttpResponse(null, { status: 200 });
-		},
-		options,
-	);
+            return new HttpResponse(null, { status: 200 });
+        },
+        options
+    );
 };
 
 export const getGetMapByBSRKeyMockHandler = (
-	overrideResponse?:
-		| MapDto
-		| ((
-				info: Parameters<Parameters<typeof http.get>[1]>[0],
-		  ) => Promise<MapDto> | MapDto),
-	options?: RequestHandlerOptions,
+    overrideResponse?:
+        | MapDto
+        | ((
+              info: Parameters<Parameters<typeof http.get>[1]>[0]
+          ) => Promise<MapDto> | MapDto),
+    options?: RequestHandlerOptions
 ) => {
-	return http.get(
-		"*/api/maps/bsr/:bsrKey",
-		async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-			return HttpResponse.json(
-				overrideResponse !== undefined
-					? typeof overrideResponse === "function"
-						? await overrideResponse(info)
-						: overrideResponse
-					: getGetMapByBSRKeyResponseMock(),
-				{ status: 200 },
-			);
-		},
-		options,
-	);
+    return http.get(
+        "*/api/maps/bsr/:bsrKey",
+        async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+            return HttpResponse.json(
+                overrideResponse !== undefined
+                    ? typeof overrideResponse === "function"
+                        ? await overrideResponse(info)
+                        : overrideResponse
+                    : getGetMapByBSRKeyResponseMock(),
+                { status: 200 }
+            );
+        },
+        options
+    );
 };
 
 export const getGetMapCoverByBSRKeyMockHandler = (
-	overrideResponse?:
-		| unknown
-		| ((
-				info: Parameters<Parameters<typeof http.get>[1]>[0],
-		  ) => Promise<unknown> | unknown),
-	options?: RequestHandlerOptions,
+    overrideResponse?:
+        | unknown
+        | ((
+              info: Parameters<Parameters<typeof http.get>[1]>[0]
+          ) => Promise<unknown> | unknown),
+    options?: RequestHandlerOptions
 ) => {
-	return http.get(
-		"*/api/maps/bsr/:bsrKey/cover",
-		async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-			if (typeof overrideResponse === "function") {
-				await overrideResponse(info);
-			}
+    return http.get(
+        "*/api/maps/bsr/:bsrKey/cover",
+        async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+            if (typeof overrideResponse === "function") {
+                await overrideResponse(info);
+            }
 
-			return new HttpResponse(null, { status: 200 });
-		},
-		options,
-	);
+            return new HttpResponse(null, { status: 200 });
+        },
+        options
+    );
 };
 export const getMapEndpointsMock = () => [
-	getGetMapsMockHandler(),
-	getGetMapByIdMockHandler(),
-	getGetMapDetailMockHandler(),
-	getGetMapDifficultiesMockHandler(),
-	getGetMapSessionsMockHandler(),
-	getGetMapCoverMockHandler(),
-	getGetMapByHashMockHandler(),
-	getGetMapCoverByHashMockHandler(),
-	getGetMapByBSRKeyMockHandler(),
-	getGetMapCoverByBSRKeyMockHandler(),
+    getGetMapsMockHandler(),
+    getGetMapByIdMockHandler(),
+    getGetMapDetailMockHandler(),
+    getGetMapDifficultiesMockHandler(),
+    getGetMapSessionsMockHandler(),
+    getGetMapCoverMockHandler(),
+    getGetMapByHashMockHandler(),
+    getGetMapCoverByHashMockHandler(),
+    getGetMapByBSRKeyMockHandler(),
+    getGetMapCoverByBSRKeyMockHandler(),
 ];

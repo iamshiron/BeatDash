@@ -8,34 +8,35 @@ import "@/styles/globals.css";
 import { routeTree } from "./routeTree.gen";
 
 const queryClient = new QueryClient({
-	defaultOptions: {
-		queries: {
-			staleTime: 1000 * 60 * 5,
-			refetchOnWindowFocus: false,
-		},
-	},
+    defaultOptions: {
+        queries: {
+            staleTime: 1000 * 60 * 5,
+            refetchOnWindowFocus: false,
+        },
+    },
 });
 
 const router = createRouter({ routeTree });
 
 declare module "@tanstack/react-router" {
-	interface Register {
-		router: typeof router;
-	}
+    interface Register {
+        router: typeof router;
+    }
 }
 
+// biome-ignore lint/style/noNonNullAssertion: standard React entry point
 createRoot(document.getElementById("root")!).render(
-	<StrictMode>
-		<ThemeProvider
-			attribute="class"
-			defaultTheme="dark"
-			enableSystem
-			disableTransitionOnChange
-		>
-			<QueryClientProvider client={queryClient}>
-				<RouterProvider router={router} />
-				<ReactQueryDevtools buttonPosition="bottom-right" />
-			</QueryClientProvider>
-		</ThemeProvider>
-	</StrictMode>,
+    <StrictMode>
+        <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+        >
+            <QueryClientProvider client={queryClient}>
+                <RouterProvider router={router} />
+                <ReactQueryDevtools buttonPosition="bottom-right" />
+            </QueryClientProvider>
+        </ThemeProvider>
+    </StrictMode>
 );

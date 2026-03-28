@@ -11,231 +11,231 @@ import { HttpResponse, http } from "msw";
 import type { PaginatedResultOfLiveDataSnapshotDto } from "../model";
 
 export const getGetLiveDataSnapshotsResponseMock = (
-	overrideResponse: Partial<
-		Extract<PaginatedResultOfLiveDataSnapshotDto, object>
-	> = {},
+    overrideResponse: Partial<
+        Extract<PaginatedResultOfLiveDataSnapshotDto, object>
+    > = {}
 ): PaginatedResultOfLiveDataSnapshotDto => ({
-	items: faker.helpers.arrayElement([
-		Array.from(
-			{ length: faker.number.int({ min: 1, max: 10 }) },
-			(_, i) => i + 1,
-		).map(() => ({
-			id: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			timestamp: faker.helpers.arrayElement([
-				faker.date.past().toISOString().slice(0, 19) + "Z",
-				undefined,
-			]),
-			playSessionId: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			score: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			scoreWithMultipliers: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			maxScore: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			maxScoreWithMultipliers: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			rank: faker.helpers.arrayElement([
-				faker.string.alpha({ length: { min: 10, max: 20 } }),
-				undefined,
-			]),
-			fullCombo: faker.helpers.arrayElement([
-				faker.datatype.boolean(),
-				undefined,
-			]),
-			notesSpawned: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			combo: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			misses: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			accuracy: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			playerHealth: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			timeElapsed: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			eventTrigger: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			eventTriggerName: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-					null,
-				]),
-				undefined,
-			]),
-			blockHitPreSwing: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			blockHitPostSwing: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			blockHitCenterSwing: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			noteColorType: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.int(),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-			noteColorName: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-					null,
-				]),
-				undefined,
-			]),
-			scorePercentage: faker.helpers.arrayElement([
-				faker.helpers.arrayElement([
-					faker.number.float({ fractionDigits: 2 }),
-					faker.string.alpha({ length: { min: 10, max: 20 } }),
-				]),
-				undefined,
-			]),
-		})),
-		undefined,
-	]),
-	totalCount: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	page: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	pageSize: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	totalPages: faker.helpers.arrayElement([
-		faker.helpers.arrayElement([
-			faker.number.int(),
-			faker.string.alpha({ length: { min: 10, max: 20 } }),
-		]),
-		undefined,
-	]),
-	hasPrevious: faker.helpers.arrayElement([
-		faker.datatype.boolean(),
-		undefined,
-	]),
-	hasNext: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
-	...overrideResponse,
+    items: faker.helpers.arrayElement([
+        Array.from(
+            { length: faker.number.int({ min: 1, max: 10 }) },
+            (_, i) => i + 1
+        ).map(() => ({
+            id: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            timestamp: faker.helpers.arrayElement([
+                `${faker.date.past().toISOString().slice(0, 19)}Z`,
+                undefined,
+            ]),
+            playSessionId: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            score: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            scoreWithMultipliers: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            maxScore: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            maxScoreWithMultipliers: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            rank: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+            ]),
+            fullCombo: faker.helpers.arrayElement([
+                faker.datatype.boolean(),
+                undefined,
+            ]),
+            notesSpawned: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            combo: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            misses: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            accuracy: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            playerHealth: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            timeElapsed: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            eventTrigger: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            eventTriggerName: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                    null,
+                ]),
+                undefined,
+            ]),
+            blockHitPreSwing: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            blockHitPostSwing: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            blockHitCenterSwing: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            noteColorType: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.int(),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+            noteColorName: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                    null,
+                ]),
+                undefined,
+            ]),
+            scorePercentage: faker.helpers.arrayElement([
+                faker.helpers.arrayElement([
+                    faker.number.float({ fractionDigits: 2 }),
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ]),
+                undefined,
+            ]),
+        })),
+        undefined,
+    ]),
+    totalCount: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    page: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    pageSize: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    totalPages: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+            faker.number.int(),
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ]),
+        undefined,
+    ]),
+    hasPrevious: faker.helpers.arrayElement([
+        faker.datatype.boolean(),
+        undefined,
+    ]),
+    hasNext: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    ...overrideResponse,
 });
 
 export const getGetLiveDataSnapshotsMockHandler = (
-	overrideResponse?:
-		| PaginatedResultOfLiveDataSnapshotDto
-		| ((
-				info: Parameters<Parameters<typeof http.get>[1]>[0],
-		  ) =>
-				| Promise<PaginatedResultOfLiveDataSnapshotDto>
-				| PaginatedResultOfLiveDataSnapshotDto),
-	options?: RequestHandlerOptions,
+    overrideResponse?:
+        | PaginatedResultOfLiveDataSnapshotDto
+        | ((
+              info: Parameters<Parameters<typeof http.get>[1]>[0]
+          ) =>
+              | Promise<PaginatedResultOfLiveDataSnapshotDto>
+              | PaginatedResultOfLiveDataSnapshotDto),
+    options?: RequestHandlerOptions
 ) => {
-	return http.get(
-		"*/api/livedata",
-		async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-			return HttpResponse.json(
-				overrideResponse !== undefined
-					? typeof overrideResponse === "function"
-						? await overrideResponse(info)
-						: overrideResponse
-					: getGetLiveDataSnapshotsResponseMock(),
-				{ status: 200 },
-			);
-		},
-		options,
-	);
+    return http.get(
+        "*/api/livedata",
+        async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+            return HttpResponse.json(
+                overrideResponse !== undefined
+                    ? typeof overrideResponse === "function"
+                        ? await overrideResponse(info)
+                        : overrideResponse
+                    : getGetLiveDataSnapshotsResponseMock(),
+                { status: 200 }
+            );
+        },
+        options
+    );
 };
 export const getLiveDataEndpointsMock = () => [
-	getGetLiveDataSnapshotsMockHandler(),
+    getGetLiveDataSnapshotsMockHandler(),
 ];
