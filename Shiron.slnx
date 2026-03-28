@@ -5,7 +5,6 @@
   <Folder Name="/Mutils/">
     <Project Path="backend/src/Mutils.Api/Shiron.Mutils.Api.csproj" />
     <Project Path="backend/src/Mutils.Core/Shiron.Mutils.Core.csproj" />
-    <Project Path="backend/src/Mutils.Desktop/Shiron.Mutils.Desktop.csproj" />
     <Project Path="backend/src/Mutils.Infrastructure/Shiron.Mutils.Infrastructure.csproj" />
   </Folder>
 </Solution>

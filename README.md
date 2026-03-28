@@ -1,4 +1,5 @@
 # Shiron Monorepo
+
 [![CI](https://github.com/iamshiron/monorepo/actions/workflows/ci.yml/badge.svg)](https://github.com/iamshiron/monorepo/actions/workflows/ci.yml)
 
 My personal monorepo for side projects, all living under the `@shiron` scope. Managed with [Nx](https://nx.dev), pnpm, and a .NET solution file (`Shiron.slnx`).
@@ -17,7 +18,6 @@ backend/               # .NET 10 backend services
     Mutils.Api/        # Mutils API (ASP.NET Core, EF Core, PostgreSQL, Discord OAuth)
     Mutils.Core/       # Mutils domain layer
     Mutils.Infrastructure/ # Mutils data access / infrastructure
-    Mutils.Desktop/    # Mutils desktop client
   tests/               # .NET test projects
 docker/                # Docker Compose configs for local infrastructure
 ```
@@ -30,7 +30,7 @@ Web app with a React frontend (`apps/beatdash-web`) and an ASP.NET Core API back
 
 ### Mutils
 
-Multi-interface project - React web client (`apps/mutils-web`), ASP.NET Core API (`backend/src/Mutils.Api`), and a .NET desktop client (`backend/src/Mutils.Desktop`). Auth via Discord OAuth + JWT. PostgreSQL for persistence, MinIO for object storage. Backend uses a clean architecture split across `Mutils.Core` and `Mutils.Infrastructure`.
+React web client (`apps/mutils-web`) with an ASP.NET Core API backend (`backend/src/Mutils.Api`). Auth via Discord OAuth + JWT. PostgreSQL for persistence, MinIO for object storage. Backend uses a clean architecture split across `Mutils.Core` and `Mutils.Infrastructure`.
 
 ### Shared UI (`@shiron/ui`)
 
