@@ -1,4 +1,5 @@
 # Shiron Monorepo
+[![CI](https://github.com/iamshiron/monorepo/actions/workflows/ci.yml/badge.svg)](https://github.com/iamshiron/monorepo/actions/workflows/ci.yml)
 
 My personal monorepo for side projects, all living under the `@shiron` scope. Managed with [Nx](https://nx.dev), pnpm, and a .NET solution file (`Shiron.slnx`).
 
@@ -36,10 +37,11 @@ Multi-interface project - React web client (`apps/mutils-web`), ASP.NET Core API
 My shared React component library, used across both web apps. Tailwind CSS, Radix UI, shadcn.
 
 ## Prerequisites
-- [.NET 10 SDK](https://dotnet.microsoft.com/)
-- [Node.js](https://nodejs.org/) (version managed via project config)
-- [pnpm](https://pnpm.io/)
-- [Docker](https://www.docker.com/) (for local infrastructure)
+
+-   [.NET 10 SDK](https://dotnet.microsoft.com/)
+-   [Node.js](https://nodejs.org/) (version managed via project config)
+-   [pnpm](https://pnpm.io/)
+-   [Docker](https://www.docker.com/) (for local infrastructure)
 
 ## Getting Started
 

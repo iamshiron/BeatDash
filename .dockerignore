@@ -1,0 +1,13 @@
+.git
+.github
+node_modules
+apps
+**/bin
+**/obj
+**/.nx
+.nx
+docker
+docker-compose.yml
+.env
+.env.*
+*.md
