@@ -1,107 +1,101 @@
-# New Nx Repository
+# Shiron Monorepo
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+My personal monorepo for side projects, all living under the `@shiron` scope. Managed with [Nx](https://nx.dev), pnpm, and a .NET solution file (`Shiron.slnx`).
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+## Structure
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/js?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+```
+apps/                  # Frontend applications
+  beatdash-web/        # BeatDash web client (React + Vite + TanStack Router/Query)
+  mutils-web/          # Mutils web client (React + Vite + TanStack Router/Query)
+packages/              # Shared packages
+  ui/                  # @shiron/ui - shared React component library (Tailwind, Radix, shadcn-based)
+backend/               # .NET 10 backend services
+  src/
+    BeatDash.API/      # BeatDash API (ASP.NET Core, EF Core, PostgreSQL, MinIO)
+    Mutils.Api/        # Mutils API (ASP.NET Core, EF Core, PostgreSQL, Discord OAuth)
+    Mutils.Core/       # Mutils domain layer
+    Mutils.Infrastructure/ # Mutils data access / infrastructure
+    Mutils.Desktop/    # Mutils desktop client
+  tests/               # .NET test projects
+docker/                # Docker Compose configs for local infrastructure
+```
 
-## Try the full Nx platform
-🚀 If you haven't connected to Nx Cloud yet, [complete your setup here](https://cloud.nx.app/setup/connect-workspace/guide). Get faster builds with remote caching, distributed task execution, and self-healing CI. [See how your workspace can benefit](#nx-cloud).
+## Projects
 
-## Generate a library
+### BeatDash
+
+Web app with a React frontend (`apps/beatdash-web`) and an ASP.NET Core API backend (`backend/src/BeatDash.API`). Backed by PostgreSQL.
+
+### Mutils
+
+Multi-interface project - React web client (`apps/mutils-web`), ASP.NET Core API (`backend/src/Mutils.Api`), and a .NET desktop client (`backend/src/Mutils.Desktop`). Auth via Discord OAuth + JWT. PostgreSQL for persistence, MinIO for object storage. Backend uses a clean architecture split across `Mutils.Core` and `Mutils.Infrastructure`.
+
+### Shared UI (`@shiron/ui`)
+
+My shared React component library, used across both web apps. Tailwind CSS, Radix UI, shadcn.
+
+## Prerequisites
+- [.NET 10 SDK](https://dotnet.microsoft.com/)
+- [Node.js](https://nodejs.org/) (version managed via project config)
+- [pnpm](https://pnpm.io/)
+- [Docker](https://www.docker.com/) (for local infrastructure)
+
+## Getting Started
+
+1. Install dependencies:
+
+    ```sh
+    pnpm install
+    ```
+
+2. Copy `.env.example` to `.env` and fill in the values:
+
+    ```sh
+    cp .env.example .env
+    ```
+
+3. Start infrastructure (PostgreSQL, Adminer) via Docker:
+
+    ```sh
+    docker compose up -d
+    ```
+
+4. Run all projects in dev mode:
+    ```sh
+    pnpm dev
+    ```
+
+## Common Commands
+
+All commands are run from the repository root.
+
+| Command                     | Description                                     |
+| --------------------------- | ----------------------------------------------- |
+| `pnpm dev`                  | Start all apps and backend services in dev mode |
+| `pnpm build`                | Build all projects                              |
+| `pnpm lint`                 | Lint all projects                               |
+| `pnpm format`               | Format all projects                             |
+| `npx nx <target> <project>` | Run a specific target on a specific Nx project  |
+
+### .NET
 
 ```sh
-npx nx g @nx/js:lib packages/pkg1 --publishable --importPath=@my-org/pkg1
+dotnet build Shiron.slnx
+dotnet test Shiron.slnx
+dotnet run --project backend/src/Mutils.Api
+dotnet run --project backend/src/BeatDash.API
 ```
 
-## Run tasks
+## Tooling
 
-To build the library use:
-
-```sh
-npx nx build pkg1
-```
-
-To run any task with Nx use:
-
-```sh
-npx nx <target> <project-name>
-```
-
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
-
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Versioning and releasing
-
-To version and release the library use
-
-```
-npx nx release
-```
-
-Pass `--dry-run` to see what would happen without actually releasing the library.
-
-[Learn more about Nx release &raquo;](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Keep TypeScript project references up to date
-
-Nx automatically updates TypeScript [project references](https://www.typescriptlang.org/docs/handbook/project-references.html) in `tsconfig.json` files to ensure they remain accurate based on your project dependencies (`import` or `require` statements). This sync is automatically done when running tasks such as `build` or `typecheck`, which require updated references to function correctly.
-
-To manually trigger the process to sync the project graph dependencies information to the TypeScript project references, run the following command:
-
-```sh
-npx nx sync
-```
-
-You can enforce that the TypeScript project references are always in the correct state when running in CI by adding a step to your CI job configuration that runs the following command:
-
-```sh
-npx nx sync:check
-```
-
-[Learn more about nx sync](https://nx.dev/reference/nx-commands#sync)
-
-## Nx Cloud
-
-Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
-
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-### Set up CI (non-Github Actions CI)
-
-**Note:** This is only required if your CI provider is not GitHub Actions.
-
-Use the following command to configure a CI workflow for your workspace:
-
-```sh
-npx nx g ci-workflow
-```
-
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Install Nx Console
-
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
-
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Useful links
-
-Learn more:
-
-- [Learn more about this workspace setup](https://nx.dev/nx-api/js?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-And join the Nx community:
-
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+-   **Nx** - task orchestration, dependency graph, caching
+-   **pnpm** - JavaScript/TypeScript package management with workspaces
+-   **Biome** - linting and formatting for frontend code
+-   **Vite** - frontend build tool
+-   **Vitest** - frontend unit tests
+-   **TypeScript** - type checking
+-   **Tailwind CSS v4** - utility-first CSS
+-   **Orval** - OpenAPI client generation from backend specs
+-   **Docker Compose** - local infrastructure (PostgreSQL, MinIO, Adminer)
+-   **Central Package Management** - .NET NuGet versions managed via `Directory.Packages.props`
