@@ -1,4 +1,4 @@
-﻿import { defineConfig } from 'orval';
+﻿import {defineConfig} from 'orval';
 
 export default defineConfig({
     beatdash: {
@@ -7,7 +7,7 @@ export default defineConfig({
             target: 'src/api/beatdash.ts',
             schemas: 'src/api/model',
             client: 'react-query',
-            mock: true,
+            mock: false,
             httpClient: 'axios',
             biome: true
         },
