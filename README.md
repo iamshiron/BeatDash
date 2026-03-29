@@ -5,7 +5,7 @@
 My personal monorepo for side projects, all living under the `@shiron` scope. Managed with [Nx](https://nx.dev), pnpm, and a .NET solution file (`Shiron.slnx`).
 
 ## Structure
-
+    
 ```
 apps/                  # Frontend applications
   beatdash-web/        # BeatDash web client (React + Vite + TanStack Router/Query)
