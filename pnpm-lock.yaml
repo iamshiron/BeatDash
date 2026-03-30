@@ -72,9 +72,12 @@ importers:
       '@biomejs/biome':
         specifier: ^2.4.9
         version: 2.4.9
-      '@fontsource-variable/ibm-plex-sans':
-        specifier: ^5.2.8
-        version: 5.2.8
+      '@fontsource-variable/azeret-mono':
+        specifier: ^5.2.11
+        version: 5.2.11
+      '@fontsource-variable/fredoka':
+        specifier: ^5.2.10
+        version: 5.2.10
       '@hugeicons/core-free-icons':
         specifier: ^4.0.0
         version: 4.0.0
@@ -214,9 +217,12 @@ importers:
       '@biomejs/biome':
         specifier: ^2.4.9
         version: 2.4.9
-      '@fontsource-variable/ibm-plex-sans':
-        specifier: ^5.2.8
-        version: 5.2.8
+      '@fontsource-variable/azeret-mono':
+        specifier: ^5.2.11
+        version: 5.2.11
+      '@fontsource-variable/fredoka':
+        specifier: ^5.2.10
+        version: 5.2.10
       '@hugeicons/core-free-icons':
         specifier: ^4.0.0
         version: 4.0.0
@@ -1494,8 +1500,11 @@ packages:
   '@floating-ui/utils@0.2.11':
     resolution: {integrity: sha512-RiB/yIh78pcIxl6lLMG0CgBXAZ2Y0eVHqMPYugu+9U0AeT6YBeiJpf7lbdJNIugFP5SIjwNRgo4DhR1Qxi26Gg==}
 
-  '@fontsource-variable/ibm-plex-sans@5.2.8':
-    resolution: {integrity: sha512-n5PF2iFa0CZT0QYTPzxvZ39opC9LnU0zdoRccoADbs+Dtsd+lbXOZF7RNuIPHcQX1dKjF63sxnRImQIB5eD0Ag==}
+  '@fontsource-variable/azeret-mono@5.2.11':
+    resolution: {integrity: sha512-C2lkE7Pg0yg46ze3+AaJkolyldWBxluGiRG4pB5vHSdQRApOdQME6WbdsfYyy6wFDn/zPNx+1mwRJPnMRnovpA==}
+
+  '@fontsource-variable/fredoka@5.2.10':
+    resolution: {integrity: sha512-W25a41EivYh8111C9x34ShRg+2kKGXnefg1Z9Zax5E0jOgOtGXn7UhoqVBvNLrJnWGv3hy8New0UiKDc/cYzPg==}
 
   '@gerrit0/mini-shiki@3.23.0':
     resolution: {integrity: sha512-bEMORlG0cqdjVyCEuU0cDQbORWX+kYCeo0kV1lbxF5bt4r7SID2l9bqsxJEM0zndaxpOUT7riCyIVEuqq/Ynxg==}
@@ -7985,7 +7994,9 @@ snapshots:
 
   '@floating-ui/utils@0.2.11': {}
 
-  '@fontsource-variable/ibm-plex-sans@5.2.8': {}
+  '@fontsource-variable/azeret-mono@5.2.11': {}
+
+  '@fontsource-variable/fredoka@5.2.10': {}
 
   '@gerrit0/mini-shiki@3.23.0':
     dependencies:

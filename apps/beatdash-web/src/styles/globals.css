@@ -1,7 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/ibm-plex-sans";
+@import "@fontsource-variable/fredoka";
+@import "@fontsource-variable/azeret-mono";
 @import "@shiron/ui/styles/globals.css";
 
 @source "../../../../packages/ui/src/components";

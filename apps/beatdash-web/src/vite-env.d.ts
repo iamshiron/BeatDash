@@ -3,5 +3,5 @@
 type ImportMetaEnv = Record<string, never>;
 
 interface ImportMeta {
-    readonly env: ImportMetaEnv;
+	readonly env: ImportMetaEnv;
 }
