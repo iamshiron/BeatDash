@@ -1,4 +1,9 @@
 <Solution>
+  <Folder Name="/Archive/">
+    <Project Path="backend/src/Archive.API/Shiron.TheArchive.API.csproj" />
+    <Project Path="backend/src/Archive.DB/Shiron.TheArchive.DB.csproj" />
+    <Project Path="backend/src/Archive.Services/Shiron.TheArchive.Services.csproj" />
+  </Folder>
   <Folder Name="/Beatdash/">
     <Project Path="backend/src/BeatDash.API/Shiron.BeatDash.API.csproj" />
   </Folder>
