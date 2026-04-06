@@ -15,6 +15,10 @@
   <Folder Name="/HonamiSystem/Plugins/">
     <Project Path="backend/src/HonamiSystem.Plugins.ExamplePlugin/Shiron.HonamiSystem.Plugins.ExamplePlugin.csproj" />
   </Folder>
+  <Folder Name="/Lib/">
+    <Project Path="backend/src/Lib.Types.Extension/Shiron.Lib.Types.Extension.csproj" />
+    <Project Path="backend/src/Lib.Types/Shiron.Lib.Types.csproj" />
+  </Folder>
   <Folder Name="/Mutils/">
     <Project Path="backend/src/Mutils.Api/Shiron.Mutils.Api.csproj" />
     <Project Path="backend/src/Mutils.Core/Shiron.Mutils.Core.csproj" />
