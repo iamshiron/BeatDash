@@ -16,6 +16,7 @@
     <Project Path="backend/src/HonamiSystem.Plugins.ExamplePlugin/Shiron.HonamiSystem.Plugins.ExamplePlugin.csproj" />
   </Folder>
   <Folder Name="/Lib/">
+    <Project Path="backend/src/Lib.Types.EFCore/Shiron.Lib.Types.EFCore.csproj" />
     <Project Path="backend/src/Lib.Types.Extension/Shiron.Lib.Types.Extension.csproj" />
     <Project Path="backend/src/Lib.Types/Shiron.Lib.Types.csproj" />
   </Folder>
