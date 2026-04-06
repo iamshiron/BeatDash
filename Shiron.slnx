@@ -25,4 +25,8 @@
     <Project Path="backend/src/Mutils.Core/Shiron.Mutils.Core.csproj" />
     <Project Path="backend/src/Mutils.Infrastructure/Shiron.Mutils.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="backend/tests/Mutils.Tests/Shiron.Mutils.Tests.csproj" />
+    <Project Path="backend/tests/Shiron.Lib.Types/Lib.Types.Tests.csproj" />
+  </Folder>
 </Solution>
