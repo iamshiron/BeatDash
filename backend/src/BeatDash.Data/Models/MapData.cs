@@ -1,4 +1,4 @@
-namespace Shiron.BeatDash.API.Models;
+namespace Shiron.BeatDash.Data.Models;
 
 public class MapData {
     public bool LevelPaused { get; set; }

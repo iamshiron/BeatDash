@@ -1,5 +1,5 @@
 using Shiron.BeatDash.API.Data;
-using Shiron.BeatDash.API.Models;
+using Shiron.BeatDash.Data.Models;
 
 namespace Shiron.BeatDash.API.Services;
 
@@ -148,7 +148,7 @@ public class EventStorageServiceHostedService : BackgroundService {
         _logger = logger;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
+    protected async override Task ExecuteAsync(CancellationToken stoppingToken) {
         using var scope = _serviceProvider.CreateScope();
         _eventStorageService = scope.ServiceProvider.GetRequiredService<IEventStorageService>();
         await _eventStorageService.StartAsync(stoppingToken);

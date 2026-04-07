@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Webp;
 using Shiron.BeatDash.API.Data.Entities;
-using Shiron.BeatDash.API.Models;
+using Shiron.BeatDash.Data.Models;
 
 namespace Shiron.BeatDash.API.Data;
 

@@ -48,6 +48,8 @@ Thumbs.db
 
 vite.config.*.timestamp*
 
-
 # env
 .env
+
+# BeatDash
+.recordings

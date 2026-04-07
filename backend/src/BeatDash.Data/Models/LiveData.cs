@@ -1,4 +1,4 @@
-namespace Shiron.BeatDash.API.Models;
+namespace Shiron.BeatDash.Data.Models;
 
 public class LiveData {
     public int Score { get; set; }

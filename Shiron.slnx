@@ -6,6 +6,8 @@
   </Folder>
   <Folder Name="/Beatdash/">
     <Project Path="backend/src/BeatDash.API/Shiron.BeatDash.API.csproj" />
+    <Project Path="backend/src/BeatDash.Data/Shiron.BeatDash.Data.csproj" />
+    <Project Path="backend/src/BeatDash.Recorder/Shiron.BeatDash.Recorder.csproj" />
   </Folder>
   <Folder Name="/HonamiSystem/">
     <Project Path="backend/src/HonamiSystem.SDK/Shiron.HonamiSystem.SDK.csproj" />

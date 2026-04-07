@@ -1,4 +1,4 @@
-namespace Shiron.BeatDash.API.Models;
+namespace Shiron.BeatDash.Data.Models;
 
 public class Modifiers {
     public bool NoFailOn0Energy { get; set; }

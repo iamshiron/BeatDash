@@ -1,4 +1,4 @@
-namespace Shiron.BeatDash.API.Models;
+namespace Shiron.BeatDash.Data.Models;
 
 public class PracticeModeModifiers {
     public float SongSpeedMul { get; set; } = 1.0f;
