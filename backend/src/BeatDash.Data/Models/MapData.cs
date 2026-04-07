@@ -1,6 +1,7 @@
 namespace Shiron.BeatDash.Data.Models;
 
 public class MapData {
+    public bool InLevel { get; set; }
     public bool LevelPaused { get; set; }
     public bool LevelFinished { get; set; }
     public bool LevelFailed { get; set; }
