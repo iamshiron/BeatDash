@@ -5,6 +5,7 @@ SET client_encoding = 'UTF8';
 CREATE DATABASE beatdash;
 CREATE DATABASE mutils;
 CREATE DATABASE archive;
+CREATE DATABASE "honami-git";
 
 -- Setup Mutils Database (mutils_default)
 \c mutils
