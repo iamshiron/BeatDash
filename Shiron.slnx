@@ -9,6 +9,11 @@
     <Project Path="backend/src/BeatDash.Data/Shiron.BeatDash.Data.csproj" />
     <Project Path="backend/src/BeatDash.Recorder/Shiron.BeatDash.Recorder.csproj" />
   </Folder>
+  <Folder Name="/HonamiGit/">
+    <Project Path="backend/src/HonamiGit.API/Shiron.HonamiGit.API.csproj" />
+    <Project Path="backend/src/HonamiGit.CLI/Shiron.HonamiGit.CLI.csproj" />
+    <Project Path="backend/src/HonamiGit.DB/Shiron.HonamiGit.DB.csproj" />
+  </Folder>
   <Folder Name="/HonamiSystem/">
     <Project Path="backend/src/HonamiSystem.SDK/Shiron.HonamiSystem.SDK.csproj" />
     <Project Path="backend/src/HonamiSystem.Server/Shiron.HonamiSystem.Server.csproj" />
