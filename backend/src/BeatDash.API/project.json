@@ -1,0 +1,13 @@
+{
+    "$schema": "https://raw.githubusercontent.com/nrwl/nx/refs/heads/master/packages/nx/schemas/project-schema.json",
+    "targets": {
+        "migrate": {
+            "cache": false,
+            "executor": "nx:run-commands",
+            "options": {
+                "command": "dotnet ef database update --project {projectRoot} --startup-project backend/src/BeatDash.API/",
+                "cwd": "{workspaceRoot}"
+            }
+        }
+    }
+}
