@@ -1,38 +1,37 @@
 <Solution>
-  <Folder Name="/Archive/">
-    <Project Path="backend/src/Archive.API/Shiron.TheArchive.API.csproj" />
-    <Project Path="backend/src/Archive.DB/Shiron.TheArchive.DB.csproj" />
-  </Folder>
-  <Folder Name="/Beatdash/">
-    <Project Path="backend/src/BeatDash.API/Shiron.BeatDash.API.csproj" />
-    <Project Path="backend/src/BeatDash.Data/Shiron.BeatDash.Data.csproj" />
-    <Project Path="backend/src/BeatDash.Recorder/Shiron.BeatDash.Recorder.csproj" />
-  </Folder>
-  <Folder Name="/HonamiGit/">
-    <Project Path="backend/src/HonamiGit.API/Shiron.HonamiGit.API.csproj" />
-    <Project Path="backend/src/HonamiGit.CLI/Shiron.HonamiGit.CLI.csproj" />
-    <Project Path="backend/src/HonamiGit.DB/Shiron.HonamiGit.DB.csproj" />
-  </Folder>
-  <Folder Name="/HonamiSystem/">
-    <Project Path="backend/src/HonamiSystem.SDK/Shiron.HonamiSystem.SDK.csproj" />
-    <Project Path="backend/src/HonamiSystem.Server/Shiron.HonamiSystem.Server.csproj" />
-    <Project Path="backend/src/HonamiSystem.Services/Shiron.HonamiSystem.Services.csproj" />
-  </Folder>
-  <Folder Name="/HonamiSystem/Plugins/">
-    <Project Path="backend/src/HonamiSystem.Plugins.ExamplePlugin/Shiron.HonamiSystem.Plugins.ExamplePlugin.csproj" />
-  </Folder>
-  <Folder Name="/Lib/">
-    <Project Path="backend/src/Lib.Types.EFCore/Shiron.Lib.Types.EFCore.csproj" />
-    <Project Path="backend/src/Lib.Types.Extension/Shiron.Lib.Types.Extension.csproj" />
-    <Project Path="backend/src/Lib.Types/Shiron.Lib.Types.csproj" />
-  </Folder>
-  <Folder Name="/Mutils/">
-    <Project Path="backend/src/Mutils.Api/Shiron.Mutils.Api.csproj" />
-    <Project Path="backend/src/Mutils.Core/Shiron.Mutils.Core.csproj" />
-    <Project Path="backend/src/Mutils.Infrastructure/Shiron.Mutils.Infrastructure.csproj" />
-  </Folder>
-  <Folder Name="/tests/">
-    <Project Path="backend/tests/Mutils.Tests/Shiron.Mutils.Tests.csproj" />
-    <Project Path="backend/tests/Shiron.Lib.Types/Lib.Types.Tests.csproj" />
-  </Folder>
+    <Folder Name="/Archive/">
+        <Project Path="backend/src/Archive.API/Shiron.TheArchive.API.csproj" />
+        <Project Path="backend/src/Archive.DB/Shiron.TheArchive.DB.csproj" />
+    </Folder>
+    <Folder Name="/Beatdash/">
+        <Project Path="backend/src/BeatDash.API/Shiron.BeatDash.API.csproj" />
+        <Project Path="backend/src/BeatDash.Data/Shiron.BeatDash.Data.csproj" />
+        <Project Path="backend/src/BeatDash.Recorder/Shiron.BeatDash.Recorder.csproj" />
+    </Folder>
+    <Folder Name="/HonamiGit/">
+        <Project Path="backend/src/HonamiGit.API/Shiron.HonamiGit.API.csproj" />
+        <Project Path="backend/src/HonamiGit.CLI/Shiron.HonamiGit.CLI.csproj" />
+        <Project Path="backend/src/HonamiGit.DB/Shiron.HonamiGit.DB.csproj" />
+    </Folder>
+    <Folder Name="/HonamiSystem/">
+        <Project Path="backend/src/HonamiSystem.SDK/Shiron.HonamiSystem.SDK.csproj" />
+        <Project Path="backend/src/HonamiSystem.Server/Shiron.HonamiSystem.Server.csproj" />
+        <Project Path="backend/src/HonamiSystem.Services/Shiron.HonamiSystem.Services.csproj" />
+    </Folder>
+    <Folder Name="/HonamiSystem/Plugins/">
+        <Project Path="backend/src/HonamiSystem.Plugins.ExamplePlugin/Shiron.HonamiSystem.Plugins.ExamplePlugin.csproj" />
+    </Folder>
+    <Folder Name="/Lib/">
+        <Project Path="backend/src/Lib.Types.EFCore/Shiron.Lib.Types.EFCore.csproj" />
+        <Project Path="backend/src/Lib.Types.Extension/Shiron.Lib.Types.Extension.csproj" />
+        <Project Path="backend/src/Lib.Types/Shiron.Lib.Types.csproj" />
+    </Folder>
+    <Folder Name="/Mutils/">
+        <Project Path="backend/src/Mutils.API/Shiron.Mutils.API.csproj" />
+        <Project Path="backend/src/Mutils.DB/Shiron.Mutils.DB.csproj" />
+    </Folder>
+    <Folder Name="/tests/">
+        <Project Path="backend/tests/Mutils.Tests/Shiron.Mutils.Tests.csproj" />
+        <Project Path="backend/tests/Shiron.Lib.Types/Lib.Types.Tests.csproj" />
+    </Folder>
 </Solution>
