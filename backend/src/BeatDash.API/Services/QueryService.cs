@@ -143,6 +143,7 @@ public class QueryService : IQueryService {
         var query = _context.PlaySessions
             .Include(s => s.Map)
             .Include(s => s.Difficulty)
+            .Include(s => s.LiveDataSnapshots)
             .AsQueryable();
 
         if (filter.MapId.HasValue) {
@@ -232,9 +233,9 @@ public class QueryService : IQueryService {
     public async Task<PlaySessionDto?> GetPlaySessionByIdAsync(long id) {
         var session = await _context.PlaySessions
             .Include(s => s.Map)
-                .ThenInclude(m => m.Difficulties)
+            .ThenInclude(m => m.Difficulties)
             .Include(s => s.Map)
-                .ThenInclude(m => m.PlaySessions)
+            .ThenInclude(m => m.PlaySessions)
             .Include(s => s.Difficulty)
             .Include(s => s.Modifiers)
             .Include(s => s.PracticeModeModifiers)
@@ -495,7 +496,7 @@ public class QueryService : IQueryService {
         var sessions = await query.ToListAsync();
 
         var groupByLower = filter.GroupBy.ToLower();
-        IEnumerable<IGrouping<object, PlaySessionEntity>> grouped = groupByLower switch {
+        var grouped = groupByLower switch {
             "hour" => sessions.GroupBy(s => (object) new { s.StartedAt.Year, s.StartedAt.Month, s.StartedAt.Day, s.StartedAt.Hour }),
             "week" => sessions.GroupBy(s => (object) new { Year = s.StartedAt.Year, Week = GetWeekOfYear(s.StartedAt.DateTime) }),
             "month" => sessions.GroupBy(s => (object) new { s.StartedAt.Year, s.StartedAt.Month }),
@@ -523,8 +524,8 @@ public class QueryService : IQueryService {
                 FailedCount = sessionsList.Count(s => s.EndReason == "Failed")
             };
         })
-        .OrderBy(t => t.Date)
-        .ToList();
+            .OrderBy(t => t.Date)
+            .ToList();
     }
 
     public async Task<List<MapPlayStatsDto>> GetTopPlayedMapsAsync(int count = 10) {

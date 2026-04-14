@@ -75,6 +75,20 @@ public static class RecordingEndpoints {
                     snapshotCount++;
                 }
 
+                if (session.Snapshots.Count > 0) {
+                    var last = session.Snapshots[^1];
+                    playSession.FinalScore = last.Score;
+                    playSession.FinalScoreWithMultipliers = last.ScoreWithMultipliers;
+                    playSession.FinalMaxScore = last.MaxScore;
+                    playSession.FinalMaxScoreWithMultipliers = last.MaxScoreWithMultipliers;
+                    playSession.FinalRank = last.Rank;
+                    playSession.FinalFullCombo = last.FullCombo;
+                    playSession.FinalCombo = last.Combo;
+                    playSession.FinalMisses = last.Misses;
+                    playSession.FinalAccuracy = last.Accuracy;
+                    playSession.FinalTimeElapsed = last.TimeElapsed;
+                }
+
                 await db.SaveChangesAsync(ct);
             }
 
