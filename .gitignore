@@ -54,3 +54,5 @@ vite.config.*.timestamp*
 
 # BeatDash
 .recordings
+
+maps.json
