@@ -249,12 +249,20 @@ function SessionCard({ session }: { session: PlaySessionSummaryDto }) {
 										<span className="font-medium truncate">
 											{session.songName || "Unknown Song"}
 										</span>
-										{session.finalFullCombo && (
+										{session.fullCleared && (
 											<Badge
 												variant="outline"
-												className="text-[10px] px-1.5 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20"
+												className="text-[10px] px-1.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
 											>
 												FC
+											</Badge>
+										)}
+										{session.completed && !session.fullCleared && (
+											<Badge
+												variant="outline"
+												className="text-[10px] px-1.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
+											>
+												Completed
 											</Badge>
 										)}
 									</div>

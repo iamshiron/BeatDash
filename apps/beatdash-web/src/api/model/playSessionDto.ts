@@ -17,6 +17,8 @@ export interface PlaySessionDto {
 	finishedAt?: string | null;
 	/** @nullable */
 	endReason?: string | null;
+	completed?: boolean;
+	fullCleared?: boolean;
 	/** @pattern ^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$ */
 	durationSeconds?: number | string;
 	map?: MapSummaryDto;

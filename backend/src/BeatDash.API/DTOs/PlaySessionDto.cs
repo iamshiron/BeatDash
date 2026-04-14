@@ -5,6 +5,8 @@ public record PlaySessionDto {
     public DateTimeOffset StartedAt { get; init; }
     public DateTimeOffset? FinishedAt { get; init; }
     public string? EndReason { get; init; }
+    public bool Completed { get; init; }
+    public bool FullCleared { get; init; }
     public double DurationSeconds => FinishedAt.HasValue ? (FinishedAt.Value - StartedAt).TotalSeconds : 0;
 
     public MapSummaryDto Map { get; init; } = null!;
@@ -40,6 +42,8 @@ public record PlaySessionSummaryDto {
     public DateTimeOffset StartedAt { get; init; }
     public DateTimeOffset? FinishedAt { get; init; }
     public string? EndReason { get; init; }
+    public bool Completed { get; init; }
+    public bool FullCleared { get; init; }
     public double DurationSeconds => FinishedAt.HasValue ? (FinishedAt.Value - StartedAt).TotalSeconds : 0;
 
     public long MapId { get; init; }
