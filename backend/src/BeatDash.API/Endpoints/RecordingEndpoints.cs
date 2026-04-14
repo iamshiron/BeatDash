@@ -14,9 +14,7 @@ public static class RecordingEndpoints {
     private static readonly Regex DataUriPattern = new(@"^data:image/\w+;base64,(.+)$", RegexOptions.Compiled);
 
     public static void MapRecordingEndpoints(this IEndpointRouteBuilder endpoints) {
-        var router = endpoints.MapGroup("/recordings");
-
-        router.MapPost("/upload", async (HttpRequest request, BeatDashDbContext db, IHttpClientFactory httpFactory, CancellationToken ct) => {
+        endpoints.MapPost("/upload", async (HttpRequest request, BeatDashDbContext db, IHttpClientFactory httpFactory, CancellationToken ct) => {
             var data = await JsonSerializer.DeserializeAsync<List<RecordedMessage>>(request.Body, cancellationToken: ct);
             if (data == null || data.Count == 0) {
                 return Results.BadRequest(new { Error = "No data provided" });
@@ -45,7 +43,7 @@ public static class RecordingEndpoints {
                     PreviousRecord = session.PreviousRecord,
                     PreviousBSR = session.PreviousBSR,
                     Modifiers = MapModifiers(session.Modifiers),
-                    PracticeModeModifiers = MapPracticeModeModifiers(session.PracticeModeModifiers),
+                    PracticeModeModifiers = MapPracticeModeModifiers(session.PracticeModeModifiers)
                 };
 
                 db.PlaySessions.Add(playSession);
@@ -72,7 +70,7 @@ public static class RecordingEndpoints {
                         BlockHitPreSwing = snapshot.BlockHitScore.PreSwing,
                         BlockHitPostSwing = snapshot.BlockHitScore.PostSwing,
                         BlockHitCenterSwing = snapshot.BlockHitScore.CenterSwing,
-                        NoteColorType = -1,
+                        NoteColorType = -1
                     });
                     snapshotCount++;
                 }
@@ -95,7 +93,7 @@ public static class RecordingEndpoints {
                     if (mapData?.Hash == null) continue;
 
                     var isEndSignal = mapData.LevelFinished || mapData.LevelQuit
-                        || (mapData.LevelFailed && !mapData.Modifiers.NoFailOn0Energy);
+                        || mapData.LevelFailed && !mapData.Modifiers.NoFailOn0Energy;
 
                     if (isEndSignal) {
                         if (current != null) {
@@ -136,7 +134,7 @@ public static class RecordingEndpoints {
                             PreviousRecord = mapData.PreviousRecord,
                             PreviousBSR = mapData.PreviousBSR,
                             StartedAt = message.Timestamp,
-                            NoFailEnabled = mapData.Modifiers.NoFailOn0Energy,
+                            NoFailEnabled = mapData.Modifiers.NoFailOn0Energy
                         };
                     } else {
                         current.IsPaused = mapData.LevelPaused;
@@ -162,7 +160,7 @@ public static class RecordingEndpoints {
                         NotesSpawned = liveData.NotesSpawned,
                         FullCombo = liveData.FullCombo,
                         Rank = liveData.Rank,
-                        BlockHitScore = liveData.BlockHitScore,
+                        BlockHitScore = liveData.BlockHitScore
                     });
 
                     continue;
@@ -181,7 +179,10 @@ public static class RecordingEndpoints {
     }
 
     private static async Task<MapEntity> GetOrCreateMapAsync(
-        BeatDashDbContext db, MapSessionData session, HttpClient httpClient, CancellationToken ct) {
+        BeatDashDbContext db,
+        MapSessionData session,
+        HttpClient httpClient,
+        CancellationToken ct) {
         var hash = session.Hash ?? "";
         var existing = await db.Maps.FirstOrDefaultAsync(m => m.Hash == hash, ct);
 
@@ -203,7 +204,7 @@ public static class RecordingEndpoints {
             Duration = session.Duration,
             BPM = session.BPM,
             CoverImage = await ConvertCoverImageToWebPAsync(httpClient, session.CoverImage),
-            GameVersion = session.GameVersion,
+            GameVersion = session.GameVersion
         };
 
         db.Maps.Add(map);
@@ -212,7 +213,10 @@ public static class RecordingEndpoints {
     }
 
     private static async Task<DifficultyEntity> GetOrCreateDifficultyAsync(
-        BeatDashDbContext db, MapSessionData session, long mapId, CancellationToken ct) {
+        BeatDashDbContext db,
+        MapSessionData session,
+        long mapId,
+        CancellationToken ct) {
         var existing = await db.Difficulties.FirstOrDefaultAsync(
             d => d.MapId == mapId && d.MapType == session.MapType && d.Difficulty == session.Difficulty, ct);
         if (existing != null) return existing;
@@ -224,7 +228,7 @@ public static class RecordingEndpoints {
             CustomDifficultyLabel = session.CustomDifficultyLabel,
             NJS = session.NJS,
             PP = session.PP,
-            Star = session.Star,
+            Star = session.Star
         };
 
         db.Difficulties.Add(difficulty);
@@ -245,7 +249,7 @@ public static class RecordingEndpoints {
                 return coverImage;
             }
         } else if (Uri.TryCreate(coverImage, UriKind.Absolute, out var uri) &&
-                   (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)) {
+            (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)) {
             try {
                 imageBytes = await httpClient.GetByteArrayAsync(uri);
             } catch {
@@ -266,27 +270,31 @@ public static class RecordingEndpoints {
         }
     }
 
-    private static ModifiersEntity MapModifiers(Modifiers m) => new() {
-        NoFailOn0Energy = m.NoFailOn0Energy,
-        OneLife = m.OneLife,
-        FourLives = m.FourLives,
-        NoBombs = m.NoBombs,
-        NoWalls = m.NoWalls,
-        NoArrows = m.NoArrows,
-        GhostNotes = m.GhostNotes,
-        DisappearingArrows = m.DisappearingArrows,
-        SmallNotes = m.SmallNotes,
-        ProMode = m.ProMode,
-        StrictAngles = m.StrictAngles,
-        ZenMode = m.ZenMode,
-        SlowerSong = m.SlowerSong,
-        FasterSong = m.FasterSong,
-        SuperFastSong = m.SuperFastSong,
-    };
+    private static ModifiersEntity MapModifiers(Modifiers m) {
+        return new ModifiersEntity {
+            NoFailOn0Energy = m.NoFailOn0Energy,
+            OneLife = m.OneLife,
+            FourLives = m.FourLives,
+            NoBombs = m.NoBombs,
+            NoWalls = m.NoWalls,
+            NoArrows = m.NoArrows,
+            GhostNotes = m.GhostNotes,
+            DisappearingArrows = m.DisappearingArrows,
+            SmallNotes = m.SmallNotes,
+            ProMode = m.ProMode,
+            StrictAngles = m.StrictAngles,
+            ZenMode = m.ZenMode,
+            SlowerSong = m.SlowerSong,
+            FasterSong = m.FasterSong,
+            SuperFastSong = m.SuperFastSong
+        };
+    }
 
-    private static PracticeModeModifiersEntity MapPracticeModeModifiers(PracticeModeModifiers m) => new() {
-        SongSpeedMul = m.SongSpeedMul,
-        StartInAdvanceAndClearNotes = m.StartInAdvanceAndClearNotes,
-        SongStartTime = m.SongStartTime,
-    };
+    private static PracticeModeModifiersEntity MapPracticeModeModifiers(PracticeModeModifiers m) {
+        return new PracticeModeModifiersEntity {
+            SongSpeedMul = m.SongSpeedMul,
+            StartInAdvanceAndClearNotes = m.StartInAdvanceAndClearNotes,
+            SongStartTime = m.SongStartTime
+        };
+    }
 }
