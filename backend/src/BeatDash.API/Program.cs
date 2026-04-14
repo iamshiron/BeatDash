@@ -11,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 var noGameMode = args.Contains("--no-game");
 
 builder.Services.AddOpenApi();
+builder.Services.AddRequestDecompression();
 
 builder.Services.AddDbContext<BeatDashDbContext>(options =>
     options.UseNpgsql(
@@ -43,6 +44,7 @@ app.MapScalarApiReference(options => {
     options.Theme = ScalarTheme.Purple;
 });
 
+app.UseRequestDecompression();
 app.UseHttpsRedirection();
 
 var api = app.MapGroup("/api");
@@ -51,6 +53,7 @@ api.MapGroup("/maps").MapMapsApi();
 api.MapGroup("/sessions").MapPlaySessionsApi();
 api.MapGroup("/livedata").MapLiveDataApi();
 api.MapGroup("/analytics").MapAnalyticsApi();
+app.MapGroup("/recordings").MapRecordingEndpoints();
 
 using (var scope = app.Services.CreateScope()) {
     var databaseService = scope.ServiceProvider.GetRequiredService<IDatabaseService>();
