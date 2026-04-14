@@ -62,6 +62,8 @@ public class BeatDashDbContext : DbContext {
             entity.HasIndex(e => e.MapId);
             entity.HasIndex(e => e.DifficultyId);
             entity.HasIndex(e => e.FinishedAt);
+            entity.HasIndex(e => e.Completed);
+            entity.HasIndex(e => e.FullCleared);
 
             entity.Property(e => e.EndReason).HasMaxLength(16);
             entity.Property(e => e.PluginVersion).HasMaxLength(32);

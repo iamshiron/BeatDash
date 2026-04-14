@@ -6,6 +6,8 @@ public class PlaySessionEntity {
     public DateTimeOffset? FinishedAt { get; set; }
 
     public string? EndReason { get; set; }
+    public bool Completed { get; set; }
+    public bool FullCleared { get; set; }
 
     public long MapId { get; set; }
     public MapEntity Map { get; set; } = null!;

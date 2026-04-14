@@ -75,6 +75,8 @@ public static class RecordingEndpoints {
                     snapshotCount++;
                 }
 
+                playSession.Completed = session.FullCleared;
+
                 if (session.Snapshots.Count > 0) {
                     var last = session.Snapshots[^1];
                     playSession.FinalScore = last.Score;
@@ -87,6 +89,7 @@ public static class RecordingEndpoints {
                     playSession.FinalMisses = last.Misses;
                     playSession.FinalAccuracy = last.Accuracy;
                     playSession.FinalTimeElapsed = last.TimeElapsed;
+                    playSession.FullCleared = session.FullCleared && last.Misses == 0;
                 }
 
                 await db.SaveChangesAsync(ct);
