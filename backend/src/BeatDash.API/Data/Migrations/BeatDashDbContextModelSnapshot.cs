@@ -9,7 +9,7 @@ using Shiron.BeatDash.API.Data;
 
 #nullable disable
 
-namespace Shiron.BeatDash.API.Migrations
+namespace Shiron.BeatDash.API.Data.Migrations
 {
     [DbContext(typeof(BeatDashDbContext))]
     partial class BeatDashDbContextModelSnapshot : ModelSnapshot

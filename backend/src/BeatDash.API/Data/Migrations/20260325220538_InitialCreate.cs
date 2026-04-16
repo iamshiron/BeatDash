@@ -5,7 +5,7 @@ using NpgsqlTypes;
 
 #nullable disable
 
-namespace Shiron.BeatDash.API.Migrations {
+namespace Shiron.BeatDash.API.Data.Migrations {
     /// <inheritdoc />
     public partial class InitialCreate : Migration {
         /// <inheritdoc />

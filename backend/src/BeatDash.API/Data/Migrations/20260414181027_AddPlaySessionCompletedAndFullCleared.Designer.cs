@@ -10,7 +10,7 @@ using Shiron.BeatDash.API.Data;
 
 #nullable disable
 
-namespace Shiron.BeatDash.API.Migrations
+namespace Shiron.BeatDash.API.Data.Migrations
 {
     [DbContext(typeof(BeatDashDbContext))]
     [Migration("20260414181027_AddPlaySessionCompletedAndFullCleared")]

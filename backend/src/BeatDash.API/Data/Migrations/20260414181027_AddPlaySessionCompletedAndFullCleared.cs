@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Shiron.BeatDash.API.Migrations {
+namespace Shiron.BeatDash.API.Data.Migrations {
     /// <inheritdoc />
     public partial class AddPlaySessionCompletedAndFullCleared : Migration {
         /// <inheritdoc />

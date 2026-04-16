@@ -10,5 +10,6 @@ app.Configure(c => {
     c.AddCommand<ReplayCommand>("replay");
     c.AddCommand<AnalyzeCommand>("analyze");
     c.AddCommand<UploadCommand>("upload");
+    c.AddCommand<ParseMapCommand>("parse-map");
 });
 await app.RunAsync(args);

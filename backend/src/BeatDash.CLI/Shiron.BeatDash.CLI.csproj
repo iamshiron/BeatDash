@@ -14,5 +14,6 @@
     <ItemGroup>
         <PackageReference Include="Spectre.Console"/>
         <PackageReference Include="Spectre.Console.Cli"/>
+        <PackageReference Include="Spectre.Console.Json"/>
     </ItemGroup>
 </Project>
