@@ -14,13 +14,13 @@
         <Project Path="backend/src/HonamiGit.DB/Shiron.HonamiGit.DB.csproj" />
     </Folder>
     <Folder Name="/HonamiSystem/">
-        <Project Path="backend/src/HonamiSystem.DB/Shiron.HonamiSystem.DB.csproj" />
-        <Project Path="backend/src/HonamiSystem.SDK/Shiron.HonamiSystem.SDK.csproj" />
-        <Project Path="backend/src/HonamiSystem.Server/Shiron.HonamiSystem.Server.csproj" />
-        <Project Path="backend/src/HonamiSystem.Services/Shiron.HonamiSystem.Services.csproj" />
+        <Project Path="backend/src/HonamiSystem/DB/Shiron.HonamiSystem.DB.csproj" />
+        <Project Path="backend/src/HonamiSystem/SDK/Shiron.HonamiSystem.SDK.csproj" />
+        <Project Path="backend/src/HonamiSystem/Server/Shiron.HonamiSystem.Server.csproj" />
+        <Project Path="backend/src/HonamiSystem/Services/Shiron.HonamiSystem.Services.csproj" />
     </Folder>
     <Folder Name="/HonamiSystem/Plugins/">
-        <Project Path="backend/src/HonamiSystem.Plugins.ExamplePlugin/Shiron.HonamiSystem.Plugins.ExamplePlugin.csproj" />
+        <Project Path="backend/src/HonamiSystem/Plugins/ExamplePlugin/Shiron.HonamiSystem.Plugins.ExamplePlugin.csproj" />
     </Folder>
     <Folder Name="/Lib/">
         <Project Path="backend/src/Lib.Types.EFCore/Shiron.Lib.Types.EFCore.csproj" />

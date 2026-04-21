@@ -5,36 +5,67 @@
 My personal monorepo for side projects, all living under the `@shiron` scope. Managed with [Nx](https://nx.dev), pnpm, and a .NET solution file (`Shiron.slnx`).
 
 ## Structure
-    
+
 ```
 apps/                  # Frontend applications
+  archive-web/         # Archive web client (React + Vite + TanStack Router/Query)
   beatdash-web/        # BeatDash web client (React + Vite + TanStack Router/Query)
+  honami-git-web/      # HonamiGit web client (React + Vite + TanStack Router/Query)
+  honami-system-web/   # HonamiSystem web client (React + Vite + TanStack Router/Query)
   mutils-web/          # Mutils web client (React + Vite + TanStack Router/Query)
 packages/              # Shared packages
   ui/                  # @shiron/ui - shared React component library (Tailwind, Radix, shadcn-based)
 backend/               # .NET 10 backend services
   src/
+    Archive.API/       # Archive API (ASP.NET Core, EF Core, PostgreSQL)
+    Archive.DB/        # Archive database layer
     BeatDash.API/      # BeatDash API (ASP.NET Core, EF Core, PostgreSQL, MinIO)
-    Mutils.Api/        # Mutils API (ASP.NET Core, EF Core, PostgreSQL, Discord OAuth)
-    Mutils.Core/       # Mutils domain layer
-    Mutils.Infrastructure/ # Mutils data access / infrastructure
+    BeatDash.CLI/      # BeatDash CLI tool
+    BeatDash.Data/     # BeatDash data layer
+    HonamiGit.API/     # HonamiGit API (ASP.NET Core, EF Core, PostgreSQL)
+    HonamiGit.CLI/     # HonamiGit CLI tool
+    HonamiGit.DB/      # HonamiGit database layer
+    HonamiSystem/      # HonamiSystem (nested project structure)
+      DB/              # HonamiSystem database layer (EF Core, PostgreSQL, pgvector)
+      Plugins/         # HonamiSystem plugin projects
+        ExamplePlugin/ # Example plugin implementation
+      SDK/             # HonamiSystem plugin SDK
+      Server/          # HonamiSystem API (ASP.NET Core)
+      Services/        # HonamiSystem service layer
+    Lib.Types/         # Shared type library
+    Lib.Types.EFCore/  # EF Core type extensions
+    Lib.Types.Extension/ # Type extension utilities
+    Mutils.API/        # Mutils API (ASP.NET Core, EF Core, PostgreSQL, Discord OAuth)
+    Mutils.DB/         # Mutils database layer
   tests/               # .NET test projects
 docker/                # Docker Compose configs for local infrastructure
 ```
 
 ## Projects
 
+### Archive
+
+Web app with a React frontend (`apps/archive-web`) and an ASP.NET Core API backend (`backend/src/Archive.API`). Backed by PostgreSQL.
+
 ### BeatDash
 
-Web app with a React frontend (`apps/beatdash-web`) and an ASP.NET Core API backend (`backend/src/BeatDash.API`). Backed by PostgreSQL.
+Web app with a React frontend (`apps/beatdash-web`) and an ASP.NET Core API backend (`backend/src/BeatDash.API`). Backed by PostgreSQL and MinIO for object storage.
+
+### HonamiGit
+
+Web app with a React frontend (`apps/honami-git-web`) and an ASP.NET Core API backend (`backend/src/HonamiGit.API`). Includes a CLI tool (`backend/src/HonamiGit.CLI`). Backed by PostgreSQL.
+
+### HonamiSystem
+
+Web app with a React frontend (`apps/honami-system-web`) and an ASP.NET Core API backend (`backend/src/HonamiSystem/Server`). Uses a nested project structure with separate layers for database (`DB`), services (`Services`), plugin SDK (`SDK`), and extensible plugins (`Plugins`). Backed by PostgreSQL with pgvector support.
 
 ### Mutils
 
-React web client (`apps/mutils-web`) with an ASP.NET Core API backend (`backend/src/Mutils.Api`). Auth via Discord OAuth + JWT. PostgreSQL for persistence, MinIO for object storage. Backend uses a clean architecture split across `Mutils.Core` and `Mutils.Infrastructure`.
+React web client (`apps/mutils-web`) with an ASP.NET Core API backend (`backend/src/Mutils.API`). Auth via Discord OAuth + JWT. PostgreSQL for persistence, MinIO for object storage.
 
 ### Shared UI (`@shiron/ui`)
 
-My shared React component library, used across both web apps. Tailwind CSS, Radix UI, shadcn.
+My shared React component library, used across all web apps. Tailwind CSS, Radix UI, shadcn.
 
 ## Prerequisites
 
@@ -85,8 +116,9 @@ All commands are run from the repository root.
 ```sh
 dotnet build Shiron.slnx
 dotnet test Shiron.slnx
-dotnet run --project backend/src/Mutils.Api
+dotnet run --project backend/src/Mutils.API
 dotnet run --project backend/src/BeatDash.API
+dotnet run --project backend/src/HonamiSystem/Server
 ```
 
 ## Tooling
