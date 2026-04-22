@@ -31,7 +31,12 @@
                 }
             }
         },
-        "@nx/dotnet",
+        {
+            "plugin": "@nx/dotnet",
+            "exclude": [
+                "external/grpc/**"
+            ]
+        },
         {
             "plugin": "@nx/vite/plugin",
             "options": {

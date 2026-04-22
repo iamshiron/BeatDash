@@ -1,3 +1,7 @@
 [submodule "docs/templates/tokyo_night/public"]
 	path = docs/templates/tokyo_night/public
 	url = https://github.com/iamshiron/docfx-tokyo-night
+[submodule "external/grpc"]
+	path = external/grpc
+	url = https://github.com/grpc/grpc
+	branch = v1.80.x
