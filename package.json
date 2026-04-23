@@ -8,7 +8,8 @@
         "build": "nx run-many --target=build --all",
         "dev": "nx run-many --target=dev,run --all",
         "migrate": "nx run-many --target=migrate --all",
-        "install": "nx run-many --target=install --all"
+        "install": "nx run-many --target=install --all",
+        "clean": "nx run-many --target=clean --all"
     },
     "private": true,
     "devDependencies": {
