@@ -1,7 +1,5 @@
 # Shiron Monorepo
 
-[![CI](https://github.com/iamshiron/monorepo/actions/workflows/ci.yml/badge.svg)](https://github.com/iamshiron/monorepo/actions/workflows/ci.yml)
-
 My personal monorepo for side projects, all living under the `@shiron` scope. Managed with [Nx](https://nx.dev), pnpm, and a .NET solution file (`Shiron.slnx`).
 
 ## Structure
