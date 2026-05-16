@@ -52,6 +52,7 @@ public class AnalyzedMapSession {
     public bool WasFullComboThroughout { get; set; }
     public BlockHitScore? FinalBlockHitScore { get; set; }
     public int DurationPlayed { get; set; }
+    public double NotesPerSecond { get; set; }
 
     public List<LiveDataSnapshot> Snapshots { get; set; } = [];
 
@@ -100,6 +101,7 @@ public class AnalyzedMapSession {
             WasFullComboThroughout = s.WasFullComboThroughout,
             FinalBlockHitScore = s.FinalBlockHitScore,
             DurationPlayed = s.DurationPlayed,
+            NotesPerSecond = s.SessionDuration.TotalSeconds > 0 ? s.NotesSpawned / s.SessionDuration.TotalSeconds : 0,
             Snapshots = s.Snapshots
         };
     }
@@ -233,7 +235,8 @@ public class AnalyzeCommand : AsyncCommand<AnalyzeCommand.Settings> {
             var duration = $" | {TimeSpan.FromSeconds(s.SessionDurationSeconds):m\\:ss}";
             var score = s.FinalScore > 0 ? $" | Score: [green]{s.FinalScore:N0}[/]" : "";
             var rank = !string.IsNullOrEmpty(s.FinalRank) ? $" | Rank: [bold]{Markup.Escape(s.FinalRank)}[/]" : "";
-            AnsiConsole.MarkupLine($"  {label} - {result}{duration}{score}{rank}");
+            var nps = s.NotesPerSecond > 0 ? $" | NPS: [blue]{s.NotesPerSecond:F2}[/]" : "";
+            AnsiConsole.MarkupLine($"  {label} - {result}{duration}{score}{rank}{nps}");
         }
 
         var totalDuration = TimeSpan.FromSeconds(results.Sum(s => s.SessionDurationSeconds));
