@@ -31,6 +31,12 @@
         <Project Path="backend/src/Mutils.API/Shiron.Mutils.API.csproj" />
         <Project Path="backend/src/Mutils.DB/Shiron.Mutils.DB.csproj" />
     </Folder>
+    <Folder Name="/ResonanceSystem/">
+        <Project Path="backend/src/ResonanceSystem.API/Shiron.ResonanceSystem.API.csproj" />
+        <Project Path="backend/src/ResonanceSystem.Core/Shiron.ResonanceSystem.Core.csproj" />
+        <Project Path="backend/src/ResonanceSystem.DB/Shiron.ResonanceSystem.DB.csproj" />
+        <Project Path="backend/src/ResonanceSystem.Services/Shiron.ResonanceSystem.Services.csproj" />
+    </Folder>
     <Folder Name="/tests/">
         <Project Path="backend/tests/Mutils.Tests/Shiron.Mutils.Tests.csproj" />
         <Project Path="backend/tests/Shiron.Lib.Types/Lib.Types.Tests.csproj" />
