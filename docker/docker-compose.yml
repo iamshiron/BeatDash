@@ -56,6 +56,8 @@ services:
       HONAMI_GIT_BUCKET_ASSETS: ${HONAMI_GIT_BUCKET_ASSETS:-honami-git-assets}
       HONAMI_GIT_BUCKET_USER_DATA: ${HONAMI_GIT_BUCKET_USER_DATA:-honami-git-user-data}
       HONAMI_GIT_BUCKET_LFS: ${HONAMI_GIT_BUCKET_LFS:-honami-git-lfs}
+      RESONANCE_SYSTEM_BUCKET_ASSETS: ${RESONANCE_SYSTEM_BUCKET_ASSETS:-resonance-system-assets}
+      RESONANCE_SYSTEM_BUCKET_USER_DATA: ${RESONANCE_SYSTEM_BUCKET_USER_DATA:-resonance-system-user-data}
     entrypoint: >
       /bin/sh -c "
       mc alias set myminio http://$$MINIO_ENDPOINT:$$MINIO_PORT $$MINIO_ACCESS_KEY $$MINIO_SECRET_KEY;
@@ -76,6 +78,11 @@ services:
       mc anonymous set download myminio/$$HONAMI_GIT_BUCKET_ASSETS;
       mc anonymous set none myminio/$$HONAMI_GIT_BUCKET_USER_DATA;
       mc anonymous set none myminio/$$HONAMI_GIT_BUCKET_LFS;
+
+      mc mb myminio/$$RESONANCE_SYSTEM_BUCKET_ASSETS --ignore-existing;
+      mc mb myminio/$$RESONANCE_SYSTEM_BUCKET_USER_DATA --ignore-existing;
+      mc anonymous set download myminio/$$RESONANCE_SYSTEM_BUCKET_ASSETS;
+      mc anonymous set none myminio/$$RESONANCE_SYSTEM_BUCKET_USER_DATA;
       echo 'Buckets created and policies set';
       "
 
