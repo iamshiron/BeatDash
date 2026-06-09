@@ -11,6 +11,7 @@ apps/                  # Frontend applications
   honami-git-web/      # HonamiGit web client (React + Vite + TanStack Router/Query)
   honami-system-web/   # HonamiSystem web client (React + Vite + TanStack Router/Query)
   mutils-web/          # Mutils web client (React + Vite + TanStack Router/Query)
+  resonance-system-web/ # ResonanceSystem web client (React + Vite + TanStack Router/Query)
 packages/              # Shared packages
   ui/                  # @shiron/ui - shared React component library (Tailwind, Radix, shadcn-based)
 backend/               # .NET 10 backend services
@@ -35,6 +36,10 @@ backend/               # .NET 10 backend services
     Lib.Types.Extension/ # Type extension utilities
     Mutils.API/        # Mutils API (ASP.NET Core, EF Core, PostgreSQL, Discord OAuth)
     Mutils.DB/         # Mutils database layer
+    ResonanceSystem.API/     # ResonanceSystem API (ASP.NET Core, EF Core, PostgreSQL, MinIO)
+    ResonanceSystem.Core/    # ResonanceSystem core/domain layer
+    ResonanceSystem.DB/      # ResonanceSystem database layer (EF Core, PostgreSQL, ASP.NET Identity)
+    ResonanceSystem.Services/ # ResonanceSystem service layer (MinIO, Tesseract OCR)
   tests/               # .NET test projects
 docker/                # Docker Compose configs for local infrastructure
 ```
@@ -60,6 +65,10 @@ Web app with a React frontend (`apps/honami-system-web`) and an ASP.NET Core API
 ### Mutils
 
 React web client (`apps/mutils-web`) with an ASP.NET Core API backend (`backend/src/Mutils.API`). Auth via Discord OAuth + JWT. PostgreSQL for persistence, MinIO for object storage.
+
+### ResonanceSystem
+
+Web app with a React frontend (`apps/resonance-system-web`) and an ASP.NET Core API backend (`backend/src/ResonanceSystem.API`). Uses a layered architecture with separate projects for core/domain (`ResonanceSystem.Core`), database (`ResonanceSystem.DB` with ASP.NET Identity + EF Core), and services (`ResonanceSystem.Services` with MinIO and Tesseract OCR). Backed by PostgreSQL and MinIO.
 
 ### Shared UI (`@shiron/ui`)
 
@@ -117,6 +126,7 @@ dotnet test Shiron.slnx
 dotnet run --project backend/src/Mutils.API
 dotnet run --project backend/src/BeatDash.API
 dotnet run --project backend/src/HonamiSystem/Server
+dotnet run --project backend/src/ResonanceSystem.API
 ```
 
 ## Tooling
