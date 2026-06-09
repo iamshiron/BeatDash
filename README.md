@@ -110,13 +110,14 @@ My shared React component library, used across all web apps. Tailwind CSS, Radix
 
 All commands are run from the repository root.
 
-| Command                     | Description                                     |
-| --------------------------- | ----------------------------------------------- |
-| `pnpm dev`                  | Start all apps and backend services in dev mode |
-| `pnpm build`                | Build all projects                              |
-| `pnpm lint`                 | Lint all projects                               |
-| `pnpm format`               | Format all projects                             |
-| `npx nx <target> <project>` | Run a specific target on a specific Nx project  |
+| Command                      | Description                                                 |
+|------------------------------|-------------------------------------------------------------|
+| `pnpm dev`                   | Start all apps and backend services in dev mode             |
+| `pnpm build`                 | Build all projects                                          |
+| `pnpm lint`                  | Lint all projects                                           |
+| `pnpm format`                | Format all projects                                         |
+| `pnpm migrate`               | Migrate all databases based on the existing migration files |
+| `pnpm nx <target> <project>` | Run a specific target on a specific Nx project              |
 
 ### .NET
 
