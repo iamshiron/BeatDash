@@ -33,7 +33,7 @@ docker/                # Docker Compose configs for local infrastructure
 1. Clone with submodules:
 
     ```sh
-    git clone --recurse-submodules <repo-url>
+    git clone --recurse-submodules https://github.com/iamshiron/BeatDash.git
     ```
 
 2. Install dependencies:
