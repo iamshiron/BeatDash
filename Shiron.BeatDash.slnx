@@ -1,0 +1,7 @@
+<Solution>
+    <Folder Name="/BeatDash/">
+        <Project Path="backend/src/BeatDash.API/Shiron.BeatDash.API.csproj" />
+        <Project Path="backend/src/BeatDash.Data/Shiron.BeatDash.Data.csproj" />
+        <Project Path="backend/src/BeatDash.CLI\Shiron.BeatDash.CLI.csproj" />
+    </Folder>
+</Solution>
