@@ -103,7 +103,7 @@ app.UseHttpsRedirection();
 var api = app.MapGroup("/api");
 api.MapGet("/health", () => new { Message = "OK" }).WithTags("Health");
 api.MapIdentityEndpoints();
-app.MapPinEndpoints();
+app.MapDeviceEndpoints();
 api.MapClientEndpoints();
 
 app.Run();

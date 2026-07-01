@@ -8,21 +8,21 @@ using Shiron.BeatDash.DB.Schema;
 
 namespace Shiron.BeatDash.API.Endpoints;
 
-public static class PinEndpoints {
-    public static void MapPinEndpoints(this IEndpointRouteBuilder endpoints) {
-        var group = endpoints.MapGroup("/pin").WithTags("Pin");
+public static class DeviceEndpoints {
+    public static void MapDeviceEndpoints(this IEndpointRouteBuilder endpoints) {
+        var group = endpoints.MapGroup("/device").WithTags("Device");
 
-        group.MapGet("/create", (IPinService pinService, ClaimsPrincipal user) => {
+        group.MapGet("/register", (IPinService pinService, ClaimsPrincipal user) => {
             var userId = IdentityUtils.GetUserID(user) ?? throw new InvalidOperationException("User not authenticated.");
             var pin = pinService.GeneratePin(userId, out var expires);
-            return Results.Ok(new PinResponseDto(pin, expires));
-        }).RequireAuthorization().Produces<PinResponseDto>();
+            return Results.Ok(new RegisterDeviceResponseDto(pin, expires));
+        }).RequireAuthorization().Produces<RegisterDeviceResponseDto>();
 
         group.MapPost("/authenticate", async (
             IPinService pinService,
             ITokenService tokenService,
             BeatDashDbContext db,
-            [FromBody] PinAuthenticateDto body,
+            [FromBody] AuthenticateDeviceDto body,
             CancellationToken ct) => {
                 var pin = body.Pin;
                 if (!pinService.TryConsumePin(pin, out var userId)) {
@@ -41,7 +41,7 @@ public static class PinEndpoints {
                     device = new Device {
                         ClientId = body.ClientId,
                         UserId = userId,
-                        Name = "VR Headset",
+                        Name = "VR Headset"
                     };
                     db.Devices.Add(device);
                 }
@@ -49,15 +49,32 @@ public static class PinEndpoints {
                 await db.RefreshTokens.AddAsync(new RefreshToken {
                     DeviceId = device.Id,
                     Expires = refreshTokenExpires,
-                    Token = tokenPair.RefreshToken,
+                    Token = tokenPair.RefreshToken
                 }, ct);
 
                 await db.SaveChangesAsync(ct);
 
                 return Results.Ok(tokenPair);
             }).AllowAnonymous().Produces<TokenPairExpiryDto>();
+
+        group.MapGet("/", async (ClaimsPrincipal user, BeatDashDbContext db, ISessionManager sessionManager) => {
+            var userId = IdentityUtils.GetUserID(user);
+            if (!userId.HasValue) return Results.Unauthorized();
+
+            var devices = db.Devices.Where(d => d.UserId == userId);
+            List<DeviceResponseDto> res = [];
+            foreach (var device in devices) {
+                var session = sessionManager.GetSession(userId.Value);
+                res.Add(new DeviceResponseDto(device.ClientId, device.Name, device.LastSeenAt,
+                    session != null && session.ClientId == device.ClientId ? new SessionDto(session.Id, device.Id, session.CreatedAt) : null));
+            }
+
+            return Results.Ok(res);
+        }).RequireAuthorization().Produces<IList<DeviceResponseDto>>();
     }
 }
 
-public record PinResponseDto(string Pin, DateTime Expires);
-public record PinAuthenticateDto(string Pin, Guid ClientId);
+public record RegisterDeviceResponseDto(string Pin, DateTime Expires);
+public record AuthenticateDeviceDto(string Pin, Guid ClientId);
+public record DeviceResponseDto(Guid ClientId, string Name, DateTime LastSeenAt, SessionDto? Session);
+public record SessionDto(Guid SessionId, Guid DeviceId, DateTime OnlineSince);
