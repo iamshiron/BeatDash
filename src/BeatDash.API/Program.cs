@@ -17,8 +17,6 @@ var jwtSecret = builder.Configuration.GetSection("Jwt")["SecretKey"] ?? throw ne
 var jwtIssuer = builder.Configuration.GetSection("Jwt")["Issuer"] ?? throw new InvalidOperationException("JWT issuer not configured");
 var jwtAudience = builder.Configuration.GetSection("Jwt")["Audience"] ?? throw new InvalidOperationException("JWT audience not configured");
 
-builder.Services.AddSingleton<ITokenService, TokenService>();
-
 builder.Services.AddOpenApi();
 builder.Services.AddIdentity<User, IdentityRole<Guid>>(c => {
     if (builder.Environment.IsDevelopment()) {
@@ -60,6 +58,12 @@ builder.Services.AddAuthentication(o => {
 
 builder.Services.AddAuthorization();
 
+builder.Services.AddMemoryCache();
+
+// Services
+builder.Services.AddSingleton<ITokenService>(new TokenService(jwtSecret, jwtIssuer, jwtAudience));
+builder.Services.AddScoped<IPinService, PinService>();
+
 var app = builder.Build();
 using (var scope = app.Services.CreateScope()) {
     await scope.SeedAdminUser(
@@ -81,7 +85,7 @@ app.UseHttpsRedirection();
 
 var api = app.MapGroup("/api");
 api.MapGet("/health", () => new { Message = "OK" }).WithTags("Health");
-app.MapBeatSaberEndpoints();
 api.MapIdentityEndpoints();
+app.MapPinEndpoints();
 
 app.Run();

@@ -12,7 +12,7 @@ using Shiron.BeatDash.DB;
 namespace Shiron.BeatDash.DB.Migrations
 {
     [DbContext(typeof(BeatDashDbContext))]
-    [Migration("20260701130718_InitialCreate")]
+    [Migration("20260701152206_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -155,30 +155,37 @@ namespace Shiron.BeatDash.DB.Migrations
                     b.ToTable("UserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Shiron.BeatDash.DB.Schema.AuthTokenSession", b =>
+            modelBuilder.Entity("Shiron.BeatDash.DB.Schema.Device", b =>
                 {
-                    b.Property<Guid>("ID")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("Expires")
+                    b.Property<Guid>("ClientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("LastSeenAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<bool>("Revoked")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Token")
+                    b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<DateTime>("RegisteredAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("ID");
+                    b.HasKey("Id");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AuthTokenSessions", (string)null);
+                    b.HasIndex("ClientId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("Devices", (string)null);
                 });
 
             modelBuilder.Entity("Shiron.BeatDash.DB.Schema.RefreshToken", b =>
@@ -187,22 +194,26 @@ namespace Shiron.BeatDash.DB.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("DeviceId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime>("Expires")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<bool>("Revoked")
-                        .HasColumnType("boolean");
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Token")
                         .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("DeviceId");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
 
                     b.ToTable("RefreshTokens", (string)null);
                 });
@@ -328,10 +339,10 @@ namespace Shiron.BeatDash.DB.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Shiron.BeatDash.DB.Schema.AuthTokenSession", b =>
+            modelBuilder.Entity("Shiron.BeatDash.DB.Schema.Device", b =>
                 {
                     b.HasOne("Shiron.BeatDash.DB.Schema.User", "User")
-                        .WithMany()
+                        .WithMany("Devices")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -341,18 +352,23 @@ namespace Shiron.BeatDash.DB.Migrations
 
             modelBuilder.Entity("Shiron.BeatDash.DB.Schema.RefreshToken", b =>
                 {
-                    b.HasOne("Shiron.BeatDash.DB.Schema.User", "User")
+                    b.HasOne("Shiron.BeatDash.DB.Schema.Device", "Device")
                         .WithMany("RefreshTokens")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("DeviceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Device");
+                });
+
+            modelBuilder.Entity("Shiron.BeatDash.DB.Schema.Device", b =>
+                {
+                    b.Navigation("RefreshTokens");
                 });
 
             modelBuilder.Entity("Shiron.BeatDash.DB.Schema.User", b =>
                 {
-                    b.Navigation("RefreshTokens");
+                    b.Navigation("Devices");
                 });
 #pragma warning restore 612, 618
         }

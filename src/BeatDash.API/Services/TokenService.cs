@@ -14,17 +14,9 @@ public interface ITokenService {
     ClaimsPrincipal? FromExpiredToken(string accessToken);
 }
 
-public class TokenService(IConfiguration config) : ITokenService {
-    private readonly string _secretKey = config.GetSection("Jwt")["SecretKey"] ?? throw new InvalidOperationException("JWT secret key not configured");
-    private readonly string _issuer = config.GetSection("Jwt")["Issuer"] ?? throw new InvalidOperationException("JWT issuer not configured");
-    private readonly string _audience = config.GetSection("Jwt")["Audience"] ?? throw new InvalidOperationException("JWT audience not configured");
-
+public class TokenService(string secretKey, string issuer, string audience) : ITokenService {
     public string GenerateAccessToken(Guid userId, out DateTime expires) {
-        Console.WriteLine($"Secret key: {_secretKey}");
-        Console.WriteLine($"Issuer: {_issuer}");
-        Console.WriteLine($"Audience: {_audience}");
-
-        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
         List<Claim> claims = [
@@ -36,8 +28,8 @@ public class TokenService(IConfiguration config) : ITokenService {
         var tokenDescriptor = new SecurityTokenDescriptor {
             Subject = new ClaimsIdentity(claims),
             Expires = expires,
-            Issuer = _issuer,
-            Audience = _audience,
+            Issuer = issuer,
+            Audience = audience,
             SigningCredentials = credentials
         };
 
@@ -46,10 +38,6 @@ public class TokenService(IConfiguration config) : ITokenService {
         return tokenHandler.WriteToken(token);
     }
     public string GenerateRefreshToken(out DateTime expires) {
-        Console.WriteLine($"Secret key: {_secretKey}");
-        Console.WriteLine($"Issuer: {_issuer}");
-        Console.WriteLine($"Audience: {_audience}");
-
         var randomNumber = new byte[64];
         using var rng = RandomNumberGenerator.Create();
         rng.GetBytes(randomNumber);
@@ -63,28 +51,32 @@ public class TokenService(IConfiguration config) : ITokenService {
     }
 
     public ClaimsPrincipal? FromExpiredToken(string accessToken) {
-        Console.WriteLine($"Secret key: {_secretKey}");
-        Console.WriteLine($"Issuer: {_issuer}");
-        Console.WriteLine($"Audience: {_audience}");
-
         var tokenValidationParams = new TokenValidationParameters {
             ValidateAudience = true,
             ValidateIssuer = true,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey)),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
             ValidateLifetime = false,
-            ValidIssuer = _issuer,
-            ValidAudience = _audience
+            ValidIssuer = issuer,
+            ValidAudience = audience
         };
 
         var tokenHandler = new JwtSecurityTokenHandler();
-        var principal = tokenHandler.ValidateToken(accessToken, tokenValidationParams, out var securityToken);
-
-        var jwtSecurityToken = securityToken as JwtSecurityToken;
-        if (jwtSecurityToken == null || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase)) {
-            throw new SecurityTokenExpiredException("Invalid token");
+        if (!tokenHandler.CanReadToken(accessToken)) {
+            return null;
         }
 
-        return principal;
+        try {
+            var principal = tokenHandler.ValidateToken(accessToken, tokenValidationParams, out var securityToken);
+
+            var jwtSecurityToken = securityToken as JwtSecurityToken;
+            if (jwtSecurityToken == null || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.OrdinalIgnoreCase)) {
+                return null;
+            }
+
+            return principal;
+        } catch (SecurityTokenException) {
+            return null;
+        }
     }
 }

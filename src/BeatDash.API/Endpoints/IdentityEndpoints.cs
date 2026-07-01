@@ -3,6 +3,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Shiron.BeatDash.API.DTOs;
 using Shiron.BeatDash.API.Services;
 using Shiron.BeatDash.DB;
 using Shiron.BeatDash.DB.Schema;
@@ -49,7 +50,7 @@ public static class IdentityEndpoints {
             .WithName("RefreshToken")
             .WithDescription("Refresh the current user's access token")
             .AllowAnonymous()
-            .Produces<TokenRefreshResponseDto>()
+            .Produces<TokenPairExpiryDto>()
             .Produces(401);
     }
 
@@ -116,43 +117,46 @@ public static class IdentityEndpoints {
         return Results.Ok(new { Message = "Password changed successfully" });
     }
 
-    private static async Task<IResult> RefreshToken([FromBody] TokenRefreshRequestDto body, ITokenService tokenService, BeatDashDbContext db) {
-        var principial = tokenService.FromExpiredToken(body.AccessToken);
-        if (principial == null) {
+    private static async Task<IResult> RefreshToken(ITokenService tokenService, BeatDashDbContext db, [FromBody] RefreshTokenRequestDto body) {
+        var principal = tokenService.FromExpiredToken(body.AccessToken);
+        if (principal == null) {
             return Results.Unauthorized();
         }
 
-        var userId = IdentityUtils.GetUserID(principial);
+        var userId = IdentityUtils.GetUserID(principal);
         if (userId == null) {
             return Results.Unauthorized();
         }
 
-        var user = await db.Users
-            .Include(u => u.RefreshTokens)
-            .SingleOrDefaultAsync(u => u.Id == userId);
+        var existingToken = await db.RefreshTokens
+            .Include(t => t.Device)
+            .SingleOrDefaultAsync(t => t.Token == body.RefreshToken);
 
-        if (user == null) {
-            return Results.Unauthorized();
-        }
-
-        var existingToken = user.RefreshTokens.SingleOrDefault(t => t.Token == body.RefreshToken);
-        if (existingToken == null || existingToken.Revoked) {
+        if (existingToken == null
+            || existingToken.Device.ClientId != body.ClientId
+            || existingToken.Device.UserId != userId
+            || existingToken.RevokedAt != null
+            || existingToken.Expires < DateTime.UtcNow) {
             return Results.Unauthorized();
         }
 
         var newAccessToken = tokenService.GenerateAccessToken(userId.Value, out var newAccessTokenExpire);
         var newRefreshToken = tokenService.GenerateRefreshToken(out var newRefreshTokenExpire);
-        existingToken.Revoked = true;
+        existingToken.RevokedAt = DateTime.UtcNow;
 
         db.RefreshTokens.Add(new RefreshToken {
             Token = newRefreshToken,
             Expires = newRefreshTokenExpire,
-            Revoked = false,
-            UserId = userId.Value
+            DeviceId = existingToken.DeviceId
         });
 
         await db.SaveChangesAsync();
-        return Results.Ok(new TokenRefreshResponseDto(newAccessToken, newRefreshToken));
+        return Results.Ok(new TokenPairExpiryDto {
+            AccessToken = newAccessToken,
+            RefreshToken = newRefreshToken,
+            AccessExpiresAt = newAccessTokenExpire,
+            RefreshExpiresAt = newRefreshTokenExpire
+        });
     }
 }
 
@@ -181,6 +185,3 @@ public record UserInfoDto {
     public string Email { get; init; } = default!;
     public List<string> Roles { get; init; } = [];
 }
-
-public record TokenRefreshRequestDto(string AccessToken, string RefreshToken);
-public record TokenRefreshResponseDto(string AccessToken, string RefreshToken);
