@@ -12,7 +12,7 @@
         <RootNamespace>Shiron.BeatDash.Mod</RootNamespace>
         <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);MSB3277</MSBuildWarningsAsMessages>
     </PropertyGroup>
-    
+
     <PropertyGroup Condition="'$(OS)' == 'Unix'">
         <BeatSaberDir>/home/shiron/.local/share/BSManager/BSInstances/1.40.8</BeatSaberDir>
     </PropertyGroup>
@@ -82,5 +82,13 @@
             <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\UnityEngine.UIModule.dll</HintPath>
             <Private>False</Private>
         </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Remove="settings.bsml"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Include="UI\Settings.bsml"/>
     </ItemGroup>
 </Project>
