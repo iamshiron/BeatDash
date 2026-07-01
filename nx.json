@@ -2,7 +2,8 @@
     "$schema": "./node_modules/nx/schemas/nx-schema.json",
     "namedInputs": {
         "default": [
-            "{projectRoot}/**/*",
+            "{projectRoot}/src/**/*",
+            "{projectRoot}/apps/**/*",
             "sharedGlobals"
         ],
         "production": [
@@ -32,10 +33,7 @@
             }
         },
         {
-            "plugin": "@nx/dotnet",
-            "exclude": [
-                "external/grpc/**"
-            ]
+            "plugin": "@nx/dotnet"
         },
         {
             "plugin": "@nx/vite/plugin",
