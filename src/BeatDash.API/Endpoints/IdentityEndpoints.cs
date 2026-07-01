@@ -1,6 +1,10 @@
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Shiron.BeatDash.API.Services;
+using Shiron.BeatDash.DB;
 using Shiron.BeatDash.DB.Schema;
 
 namespace Shiron.BeatDash.API.Endpoints;
@@ -40,6 +44,13 @@ public static class IdentityEndpoints {
             .RequireAuthorization()
             .Produces(200)
             .Produces(400);
+
+        group.MapPost("/refresh-token", RefreshToken)
+            .WithName("RefreshToken")
+            .WithDescription("Refresh the current user's access token")
+            .AllowAnonymous()
+            .Produces<TokenRefreshResponseDto>()
+            .Produces(401);
     }
 
     private static async Task<IResult> Register(
@@ -104,6 +115,45 @@ public static class IdentityEndpoints {
 
         return Results.Ok(new { Message = "Password changed successfully" });
     }
+
+    private static async Task<IResult> RefreshToken([FromBody] TokenRefreshRequestDto body, ITokenService tokenService, BeatDashDbContext db) {
+        var principial = tokenService.FromExpiredToken(body.AccessToken);
+        if (principial == null) {
+            return Results.Unauthorized();
+        }
+
+        var userId = IdentityUtils.GetUserID(principial);
+        if (userId == null) {
+            return Results.Unauthorized();
+        }
+
+        var user = await db.Users
+            .Include(u => u.RefreshTokens)
+            .SingleOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null) {
+            return Results.Unauthorized();
+        }
+
+        var existingToken = user.RefreshTokens.SingleOrDefault(t => t.Token == body.RefreshToken);
+        if (existingToken == null || existingToken.Revoked) {
+            return Results.Unauthorized();
+        }
+
+        var newAccessToken = tokenService.GenerateAccessToken(userId.Value, out var newAccessTokenExpire);
+        var newRefreshToken = tokenService.GenerateRefreshToken(out var newRefreshTokenExpire);
+        existingToken.Revoked = true;
+
+        db.RefreshTokens.Add(new RefreshToken {
+            Token = newRefreshToken,
+            Expires = newRefreshTokenExpire,
+            Revoked = false,
+            UserId = userId.Value
+        });
+
+        await db.SaveChangesAsync();
+        return Results.Ok(new TokenRefreshResponseDto(newAccessToken, newRefreshToken));
+    }
 }
 
 public record RegisterDto {
@@ -131,3 +181,6 @@ public record UserInfoDto {
     public string Email { get; init; } = default!;
     public List<string> Roles { get; init; } = [];
 }
+
+public record TokenRefreshRequestDto(string AccessToken, string RefreshToken);
+public record TokenRefreshResponseDto(string AccessToken, string RefreshToken);

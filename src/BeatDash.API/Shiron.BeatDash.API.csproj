@@ -10,13 +10,16 @@
     <ItemGroup>
         <PackageReference Include="BlurHashSharp"/>
         <PackageReference Include="DotNetEnv"/>
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer"/>
         <PackageReference Include="Microsoft.AspNetCore.OpenApi"/>
+        <PackageReference Include="Microsoft.IdentityModel.Tokens"/>
         <PackageReference Include="Microsoft.OpenApi"/>
         <PackageReference Include="Minio"/>
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design"/>
         <PackageReference Include="Scalar.AspNetCore"/>
         <PackageReference Include="SkiaSharp"/>
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt"/>
     </ItemGroup>
 
     <ItemGroup>

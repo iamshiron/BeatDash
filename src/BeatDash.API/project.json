@@ -5,7 +5,7 @@
             "cache": false,
             "executor": "nx:run-commands",
             "options": {
-                "command": "dotnet ef database update --project {projectRoot} --startup-project backend/src/BeatDash.API/",
+                "command": "dotnet ef database update --project {projectRoot} --startup-project src/BeatDash.API/",
                 "cwd": "{workspaceRoot}"
             }
         }

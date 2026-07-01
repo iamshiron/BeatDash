@@ -65,6 +65,44 @@ namespace Shiron.BeatDash.DB.Migrations {
                 });
 
             migrationBuilder.CreateTable(
+                name: "AuthTokenSessions",
+                columns: table => new {
+                    ID = table.Column<Guid>(type: "uuid", nullable: false),
+                    Token = table.Column<string>(type: "text", nullable: false),
+                    Expires = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Revoked = table.Column<bool>(type: "boolean", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table => {
+                    table.PrimaryKey("PK_AuthTokenSessions", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_AuthTokenSessions_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "RefreshTokens",
+                columns: table => new {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Revoked = table.Column<bool>(type: "boolean", nullable: false),
+                    Token = table.Column<string>(type: "text", nullable: false),
+                    Expires = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table => {
+                    table.PrimaryKey("PK_RefreshTokens", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_RefreshTokens_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "UserClaims",
                 columns: table => new {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -142,6 +180,16 @@ namespace Shiron.BeatDash.DB.Migrations {
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_AuthTokenSessions_UserId",
+                table: "AuthTokenSessions",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RefreshTokens_UserId",
+                table: "RefreshTokens",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_RoleClaims_RoleId",
                 table: "RoleClaims",
                 column: "RoleId");
@@ -181,6 +229,12 @@ namespace Shiron.BeatDash.DB.Migrations {
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder) {
+            migrationBuilder.DropTable(
+                name: "AuthTokenSessions");
+
+            migrationBuilder.DropTable(
+                name: "RefreshTokens");
+
             migrationBuilder.DropTable(
                 name: "RoleClaims");
 
