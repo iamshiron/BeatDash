@@ -71,6 +71,33 @@ public static class DeviceEndpoints {
 
             return Results.Ok(res);
         }).RequireAuthorization().Produces<IList<DeviceResponseDto>>();
+
+        group.MapDelete("/{clientId:Guid}", async (ClaimsPrincipal user, BeatDashDbContext db, Guid clientId, CancellationToken ct) => {
+            var userId = IdentityUtils.GetUserID(user);
+            if (!userId.HasValue) return Results.Unauthorized();
+
+            await db.Devices.Where(d => d.ClientId == clientId && d.UserId == userId)
+                .ExecuteDeleteAsync(ct);
+
+            return Results.NoContent();
+        }).RequireAuthorization().Produces(204);
+
+        group.MapPatch("/{clientId:Guid}", async (
+            ClaimsPrincipal user,
+            BeatDashDbContext db,
+            Guid clientId,
+            [FromBody] UpdateDeviceDto body,
+            CancellationToken ct) => {
+                var userId = IdentityUtils.GetUserID(user);
+                if (!userId.HasValue) return Results.Unauthorized();
+
+                var device = await db.Devices.SingleOrDefaultAsync(d => d.ClientId == clientId && d.UserId == userId, ct);
+                if (device == null) return Results.NotFound();
+                if (!string.IsNullOrEmpty(body.Name)) device.Name = body.Name;
+
+                await db.SaveChangesAsync(ct);
+                return Results.NoContent();
+            }).RequireAuthorization().Produces(204);
     }
 }
 
@@ -78,3 +105,4 @@ public record RegisterDeviceResponseDto(string Pin, DateTime Expires);
 public record AuthenticateDeviceDto(string Pin, Guid ClientId);
 public record DeviceResponseDto(Guid ClientId, string Name, DateTime LastSeenAt, SessionDto? Session);
 public record SessionDto(Guid SessionId, Guid DeviceId, DateTime OnlineSince);
+public record UpdateDeviceDto(string? Name);

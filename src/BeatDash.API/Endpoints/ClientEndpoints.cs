@@ -1,6 +1,5 @@
 using System.Net.WebSockets;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Shiron.BeatDash.API.DTOs.Socket;
 using Shiron.BeatDash.API.Services;
@@ -64,7 +63,7 @@ public static class ClientEndpoints {
                 return Results.Ok();
             }).RequireAuthorization().ExcludeFromDescription();
 
-        group.MapPost("/ping/{clientId}", async (
+        group.MapPost("/ping/{clientId:Guid}", async (
             ISessionManager sessionManager,
             ClaimsPrincipal user,
             BeatDashDbContext db,
