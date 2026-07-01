@@ -18,6 +18,10 @@ node_modules
 .settings/
 *.sublime-workspace
 
+# IDE - JetBrains Rider/ReSharper
+*.DotSettings.user
+*.sln.DotSettings.user
+
 # IDE - VSCode
 .vscode/*
 !.vscode/settings.json

@@ -1,62 +1,58 @@
 using DotNetEnv;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
-using Shiron.BeatDash.API.Data;
 using Shiron.BeatDash.API.Endpoints;
-using Shiron.BeatDash.API.Services;
+using Shiron.BeatDash.API.Seeders;
+using Shiron.BeatDash.DB;
+using Shiron.BeatDash.DB.Schema;
 
 Env.TraversePath().Load();
 var builder = WebApplication.CreateBuilder(args);
 
-var noGameMode = args.Contains("--no-game");
-
 builder.Services.AddOpenApi();
-builder.Services.AddRequestDecompression();
+builder.Services.AddIdentity<User, IdentityRole<Guid>>(c => {
+    if (builder.Environment.IsDevelopment()) {
+        c.Password.RequireDigit = false;
+        c.Password.RequireLowercase = false;
+        c.Password.RequireNonAlphanumeric = false;
+        c.Password.RequireUppercase = false;
+        c.Password.RequiredLength = 1;
+    }
+
+    c.User.RequireUniqueEmail = true;
+}).AddEntityFrameworkStores<BeatDashDbContext>();
 
 builder.Services.AddDbContext<BeatDashDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("Default")
-        ?? builder.Configuration.GetSection("BEATDASH_ConnectionStrings")["Default"]
         ?? throw new InvalidOperationException("Database connection string not configured")
     ));
 
-builder.Services.AddHttpClient<DatabaseService>();
-builder.Services.AddScoped<IDatabaseService, DatabaseService>();
-builder.Services.AddScoped<IQueryService, QueryService>();
-
-if (!noGameMode) {
-    builder.Services.AddSingleton<IEventStorageService, EventStorageService>();
-    builder.Services.AddSingleton<WebSocketClientService>();
-    builder.Services.AddHostedService<WebSocketClientService>(sp => sp.GetRequiredService<WebSocketClientService>());
-    builder.Services.AddHostedService<EventStorageServiceHostedService>();
-}
+builder.Services.AddAuthentication();
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
-using (var scope = app.Services.CreateAsyncScope()) {
-    var context = scope.ServiceProvider.GetRequiredService<BeatDashDbContext>();
-    await context.Database.MigrateAsync();
+using (var scope = app.Services.CreateScope()) {
+    await scope.SeedAdminUser(
+        app.Configuration.GetSection("AdminUser")["Email"] ?? throw new InvalidOperationException("Admin user email not configured"),
+        app.Configuration.GetSection("AdminUser")["Password"] ?? throw new InvalidOperationException("Admin user password not configured"),
+        app.Configuration.GetSection("AdminUser")["Role"] ?? throw new InvalidOperationException("Admin user role not configured")
+    );
 }
 
-app.MapOpenApi();
-app.MapScalarApiReference(options => {
-    options.Title = "BeatDash API";
-    options.Theme = ScalarTheme.Purple;
-});
+if (builder.Environment.IsDevelopment()) {
+    app.MapOpenApi();
+    app.MapScalarApiReference(o => {
+        o.Title = "BeatDash API";
+        o.Theme = ScalarTheme.Purple;
+    });
+}
 
-app.UseRequestDecompression();
 app.UseHttpsRedirection();
 
 var api = app.MapGroup("/api");
-api.MapGroup("/status").MapStatusApi();
-api.MapGroup("/maps").MapMapsApi();
-api.MapGroup("/sessions").MapPlaySessionsApi();
-api.MapGroup("/livedata").MapLiveDataApi();
-api.MapGroup("/analytics").MapAnalyticsApi();
-app.MapGroup("/recordings").MapRecordingEndpoints();
-
-using (var scope = app.Services.CreateScope()) {
-    var databaseService = scope.ServiceProvider.GetRequiredService<IDatabaseService>();
-    await databaseService.InitializeAsync();
-}
+api.MapGet("/health", () => new { Message = "OK" }).WithTags("Health");
+api.MapIdentityEndpoints();
 
 app.Run();

@@ -2,10 +2,10 @@
     <Folder Name="/BeatDash/">
         <Project Path="backend/src/BeatDash.API/Shiron.BeatDash.API.csproj" />
         <Project Path="backend/src/BeatDash.Data/Shiron.BeatDash.Data.csproj" />
-        <Project Path="backend/src/BeatDash.CLI/Shiron.BeatDash.CLI.csproj" />
+        <Project Path="backend/src/BeatDash.DB/Shiron.BeatDash.DB.csproj" />
     </Folder>
     
-    <Folder Name="/external/"/>
+    <Folder Name="/external/" />
     <Folder Name="/external/lib/">
         <Project Path="external/lib/src/Collections/Shiron.Lib.Collections.csproj" />
         <Project Path="external/lib/src/Types/Shiron.Lib.Types.csproj" />

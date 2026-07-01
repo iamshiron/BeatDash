@@ -8,17 +8,20 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Bogus"/>
+        <PackageReference Include="BlurHashSharp"/>
         <PackageReference Include="DotNetEnv"/>
         <PackageReference Include="Microsoft.AspNetCore.OpenApi"/>
+        <PackageReference Include="Microsoft.OpenApi"/>
+        <PackageReference Include="Minio"/>
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design"/>
         <PackageReference Include="Scalar.AspNetCore"/>
-        <PackageReference Include="SixLabors.ImageSharp"/>
+        <PackageReference Include="SkiaSharp"/>
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\BeatDash.Data\Shiron.BeatDash.Data.csproj"/>
+        <ProjectReference Include="..\BeatDash.DB\Shiron.BeatDash.DB.csproj"/>
     </ItemGroup>
 
 </Project>
