@@ -1,6 +1,7 @@
 using System.Text;
 using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -43,6 +44,7 @@ builder.Services.ConfigureApplicationCookie(o => {
 
 builder.Services.AddAuthentication(o => {
     o.DefaultScheme = IdentityConstants.ApplicationScheme;
+    o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, o => {
     o.TokenValidationParameters = new TokenValidationParameters {
         ValidateIssuerSigningKey = true,
@@ -56,15 +58,30 @@ builder.Services.AddAuthentication(o => {
     };
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options => {
+    var defaultAuthorizationPolicyBuilder = new AuthorizationPolicyBuilder(
+        JwtBearerDefaults.AuthenticationScheme,
+        IdentityConstants.ApplicationScheme);
+
+    defaultAuthorizationPolicyBuilder = defaultAuthorizationPolicyBuilder.RequireAuthenticatedUser();
+    options.DefaultPolicy = defaultAuthorizationPolicyBuilder.Build();
+});
 
 builder.Services.AddMemoryCache();
 
 // Services
 builder.Services.AddSingleton<ITokenService>(new TokenService(jwtSecret, jwtIssuer, jwtAudience));
+builder.Services.AddSingleton<ISessionManager, SessionManager>();
 builder.Services.AddScoped<IPinService, PinService>();
 
 var app = builder.Build();
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.UseWebSockets(new WebSocketOptions {
+    KeepAliveInterval = TimeSpan.FromSeconds(120)
+});
+
 using (var scope = app.Services.CreateScope()) {
     await scope.SeedAdminUser(
         app.Configuration.GetSection("AdminUser")["Email"] ?? throw new InvalidOperationException("Admin user email not configured"),
@@ -87,5 +104,6 @@ var api = app.MapGroup("/api");
 api.MapGet("/health", () => new { Message = "OK" }).WithTags("Health");
 api.MapIdentityEndpoints();
 app.MapPinEndpoints();
+api.MapClientEndpoints();
 
 app.Run();
