@@ -1,7 +1,8 @@
 using System.Net.WebSockets;
 using System.Security.Claims;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
-using Shiron.BeatDash.API.DTOs.Socket;
+using Shiron.BeatDash.Data.Socket;
 using Shiron.BeatDash.API.Services;
 using Shiron.BeatDash.DB;
 
@@ -51,6 +52,8 @@ public static class ClientEndpoints {
                     while (!receiveResult.CloseStatus.HasValue) {
                         // TODO: Implement actual client to server communication
                         receiveResult = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), cts.Token);
+                        var message = Encoding.UTF8.GetString(buffer, 0, receiveResult.Count);
+                        Console.WriteLine($"Received: {message}");
                     }
 
                     await socket.CloseAsync(receiveResult.CloseStatus.Value, receiveResult.CloseStatusDescription, CancellationToken.None);
@@ -76,7 +79,7 @@ public static class ClientEndpoints {
                 if (session == null) return Results.NotFound();
                 if (session.ClientId != device?.ClientId) return Results.NotFound();
 
-                var payload = new PingRequestDto {
+                var payload = new PingRequestMessage {
                     Message = "Test"
                 };
 

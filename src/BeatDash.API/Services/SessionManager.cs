@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
-using Shiron.BeatDash.API.DTOs.Socket;
+using Shiron.BeatDash.Data.Socket;
 
 namespace Shiron.BeatDash.API.Services;
 

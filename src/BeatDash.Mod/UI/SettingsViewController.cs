@@ -13,6 +13,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Shiron.BeatDash.Mod.Network;
 
 namespace Shiron.BeatDash.Mod.UI;
 
@@ -21,6 +22,8 @@ namespace Shiron.BeatDash.Mod.UI;
 internal class SettingsViewController : BSMLAutomaticViewController {
     [Inject]
     private readonly PluginConfig _config = null!;
+    [Inject]
+    private readonly NetworkManager _networkManager = null!;
 
     [UIComponent("host")]
     [UsedImplicitly]
@@ -37,7 +40,7 @@ internal class SettingsViewController : BSMLAutomaticViewController {
         Host.ApplyValue();
     }
 
-    public void OnSubmitPin() {
+    public async Task OnSubmitPin() {
         try {
             using var httpClient = new HttpClient();
             var content = new StringContent(
@@ -46,9 +49,7 @@ internal class SettingsViewController : BSMLAutomaticViewController {
                 "application/json"
             );
 
-            var task = httpClient.PostAsync($"{Host.Text}/api/device/authenticate", content);
-            task.Wait();
-            var response = task.Result;
+            var response = await httpClient.PostAsync($"{(_config.UseSsl ? "https" : "http")}://{Host.Text}/api/device/authenticate", content);
 
             var tokenPair = JsonConvert.DeserializeObject<DeviceAuthResponse>(response.Content.ReadAsStringAsync().Result);
             if (tokenPair == null) throw new Exception("TokenPair is null!");
@@ -61,6 +62,7 @@ internal class SettingsViewController : BSMLAutomaticViewController {
 
             _config.AccessToken = tokenPair.AccessToken;
             _config.RefreshToken = tokenPair.RefreshToken;
+            await _networkManager.ConnectToSocketAsync();
         } catch (Exception e) {
             Plugin.Log.Error(e.ToString());
             ErrorText = e.Message;

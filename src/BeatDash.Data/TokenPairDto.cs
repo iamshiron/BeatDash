@@ -1,4 +1,6 @@
-namespace Shiron.BeatDash.API.DTOs;
+using System;
+
+namespace Shiron.BeatDash.Data;
 
 public record TokenPairDto {
     public required string AccessToken { get; init; }

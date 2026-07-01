@@ -36,5 +36,6 @@
         <Message Text="[Linux] Copying mod to Beat Saber Plugins directory..." Importance="high"/>
         <MakeDir Directories="$(BeatSaberDir)/Plugins"/>
         <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(BeatSaberDir)/Plugins"/>
+        <Copy SourceFiles="$(TargetDir)Shiron.BeatDash.Data.dll" DestinationFolder="$(BeatSaberDir)\Libs" />
     </Target>
 </Project>

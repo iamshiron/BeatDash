@@ -28,7 +28,7 @@
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
 
-        <Reference Include="System.Net.Http" />
+        <Reference Include="System.Net.Http"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -107,7 +107,7 @@
             <HintPath>$(BeatSaberDir)\Libs\websocket-sharp.dll</HintPath>
             <Private>False</Private>
         </Reference>
-        
+
         <Reference Include="Newtonsoft.Json">
             <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\Newtonsoft.Json.dll</HintPath>
             <Private>False</Private>
@@ -120,5 +120,9 @@
 
     <ItemGroup>
         <EmbeddedResource Include="UI\SettingsView.bsml"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\BeatDash.Data\Shiron.BeatDash.Data.csproj"/>
     </ItemGroup>
 </Project>

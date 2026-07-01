@@ -3,8 +3,9 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Shiron.BeatDash.API.DTOs;
+using Shiron.BeatDash.Data.Socket;
 using Shiron.BeatDash.API.Services;
+using Shiron.BeatDash.Data;
 using Shiron.BeatDash.DB;
 using Shiron.BeatDash.DB.Schema;
 
