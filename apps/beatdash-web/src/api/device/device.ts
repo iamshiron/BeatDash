@@ -50,29 +50,29 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   return result;
 };
 
-export type getDeviceRegisterResponse200 = {
+export type getApiDeviceRegisterResponse200 = {
   data: RegisterDeviceResponseDto
   status: 200
 }
 
-export type getDeviceRegisterResponseSuccess = (getDeviceRegisterResponse200) & {
+export type getApiDeviceRegisterResponseSuccess = (getApiDeviceRegisterResponse200) & {
   headers: Headers;
 };
 ;
 
-export type getDeviceRegisterResponse = (getDeviceRegisterResponseSuccess)
+export type getApiDeviceRegisterResponse = (getApiDeviceRegisterResponseSuccess)
 
-export const getGetDeviceRegisterUrl = () => {
-
-
+export const getGetApiDeviceRegisterUrl = () => {
 
 
-  return `/device/register`
+
+
+  return `/api/device/register`
 }
 
-export const getDeviceRegister = async ( options?: RequestInit): Promise<getDeviceRegisterResponse> => {
+export const getApiDeviceRegister = async ( options?: RequestInit): Promise<getApiDeviceRegisterResponse> => {
 
-  const res = await fetch(getGetDeviceRegisterUrl(),
+  const res = await fetch(getGetApiDeviceRegisterUrl(),
   {
     ...options,
     method: 'GET'
@@ -84,74 +84,74 @@ export const getDeviceRegister = async ( options?: RequestInit): Promise<getDevi
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
 
-  const data: getDeviceRegisterResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getDeviceRegisterResponse
+  const data: getApiDeviceRegisterResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as getApiDeviceRegisterResponse
 }
 
 
 
 
 
-export const getGetDeviceRegisterQueryKey = () => {
+export const getGetApiDeviceRegisterQueryKey = () => {
     return [
-    `/device/register`
+    `/api/device/register`
     ] as const;
     }
 
 
-export const getGetDeviceRegisterQueryOptions = <TData = Awaited<ReturnType<typeof getDeviceRegister>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDeviceRegister>>, TError, TData>>, fetch?: RequestInit}
+export const getGetApiDeviceRegisterQueryOptions = <TData = Awaited<ReturnType<typeof getApiDeviceRegister>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiDeviceRegister>>, TError, TData>>, fetch?: RequestInit}
 ) => {
 
 const {query: queryOptions, fetch: fetchOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetDeviceRegisterQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getGetApiDeviceRegisterQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDeviceRegister>>> = ({ signal }) => getDeviceRegister({ signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiDeviceRegister>>> = ({ signal }) => getApiDeviceRegister({ signal, ...fetchOptions });
 
 
 
 
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDeviceRegister>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiDeviceRegister>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export type GetDeviceRegisterQueryResult = NonNullable<Awaited<ReturnType<typeof getDeviceRegister>>>
-export type GetDeviceRegisterQueryError = unknown
+export type GetApiDeviceRegisterQueryResult = NonNullable<Awaited<ReturnType<typeof getApiDeviceRegister>>>
+export type GetApiDeviceRegisterQueryError = unknown
 
 
-export function useGetDeviceRegister<TData = Awaited<ReturnType<typeof getDeviceRegister>>, TError = unknown>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDeviceRegister>>, TError, TData>> & Pick<
+export function useGetApiDeviceRegister<TData = Awaited<ReturnType<typeof getApiDeviceRegister>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiDeviceRegister>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getDeviceRegister>>,
+          Awaited<ReturnType<typeof getApiDeviceRegister>>,
           TError,
-          Awaited<ReturnType<typeof getDeviceRegister>>
+          Awaited<ReturnType<typeof getApiDeviceRegister>>
         > , 'initialData'
       >, fetch?: RequestInit}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetDeviceRegister<TData = Awaited<ReturnType<typeof getDeviceRegister>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDeviceRegister>>, TError, TData>> & Pick<
+export function useGetApiDeviceRegister<TData = Awaited<ReturnType<typeof getApiDeviceRegister>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiDeviceRegister>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getDeviceRegister>>,
+          Awaited<ReturnType<typeof getApiDeviceRegister>>,
           TError,
-          Awaited<ReturnType<typeof getDeviceRegister>>
+          Awaited<ReturnType<typeof getApiDeviceRegister>>
         > , 'initialData'
       >, fetch?: RequestInit}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetDeviceRegister<TData = Awaited<ReturnType<typeof getDeviceRegister>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDeviceRegister>>, TError, TData>>, fetch?: RequestInit}
+export function useGetApiDeviceRegister<TData = Awaited<ReturnType<typeof getApiDeviceRegister>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiDeviceRegister>>, TError, TData>>, fetch?: RequestInit}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
-export function useGetDeviceRegister<TData = Awaited<ReturnType<typeof getDeviceRegister>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDeviceRegister>>, TError, TData>>, fetch?: RequestInit}
+export function useGetApiDeviceRegister<TData = Awaited<ReturnType<typeof getApiDeviceRegister>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiDeviceRegister>>, TError, TData>>, fetch?: RequestInit}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetDeviceRegisterQueryOptions(options)
+  const queryOptions = getGetApiDeviceRegisterQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -163,29 +163,29 @@ export function useGetDeviceRegister<TData = Awaited<ReturnType<typeof getDevice
 
 
 
-export type postDeviceAuthenticateResponse200 = {
+export type postApiDeviceAuthenticateResponse200 = {
   data: TokenPairExpiryDto
   status: 200
 }
 
-export type postDeviceAuthenticateResponseSuccess = (postDeviceAuthenticateResponse200) & {
+export type postApiDeviceAuthenticateResponseSuccess = (postApiDeviceAuthenticateResponse200) & {
   headers: Headers;
 };
 ;
 
-export type postDeviceAuthenticateResponse = (postDeviceAuthenticateResponseSuccess)
+export type postApiDeviceAuthenticateResponse = (postApiDeviceAuthenticateResponseSuccess)
 
-export const getPostDeviceAuthenticateUrl = () => {
-
-
+export const getPostApiDeviceAuthenticateUrl = () => {
 
 
-  return `/device/authenticate`
+
+
+  return `/api/device/authenticate`
 }
 
-export const postDeviceAuthenticate = async (authenticateDeviceDto: AuthenticateDeviceDto, options?: RequestInit): Promise<postDeviceAuthenticateResponse> => {
+export const postApiDeviceAuthenticate = async (authenticateDeviceDto: AuthenticateDeviceDto, options?: RequestInit): Promise<postApiDeviceAuthenticateResponse> => {
 
-  const res = await fetch(getPostDeviceAuthenticateUrl(),
+  const res = await fetch(getPostApiDeviceAuthenticateUrl(),
   {
     ...options,
     method: 'POST',
@@ -197,19 +197,19 @@ export const postDeviceAuthenticate = async (authenticateDeviceDto: Authenticate
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
 
-  const data: postDeviceAuthenticateResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as postDeviceAuthenticateResponse
+  const data: postApiDeviceAuthenticateResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as postApiDeviceAuthenticateResponse
 }
 
 
 
 
 
-export const getPostDeviceAuthenticateMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postDeviceAuthenticate>>, TError,{data: AuthenticateDeviceDto}, TContext>, fetch?: RequestInit}
-): UseMutationOptions<Awaited<ReturnType<typeof postDeviceAuthenticate>>, TError,{data: AuthenticateDeviceDto}, TContext> => {
+export const getPostApiDeviceAuthenticateMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiDeviceAuthenticate>>, TError,{data: AuthenticateDeviceDto}, TContext>, fetch?: RequestInit}
+): UseMutationOptions<Awaited<ReturnType<typeof postApiDeviceAuthenticate>>, TError,{data: AuthenticateDeviceDto}, TContext> => {
 
-const mutationKey = ['postDeviceAuthenticate'];
+const mutationKey = ['postApiDeviceAuthenticate'];
 const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -219,10 +219,10 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postDeviceAuthenticate>>, {data: AuthenticateDeviceDto}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiDeviceAuthenticate>>, {data: AuthenticateDeviceDto}> = (props) => {
           const {data} = props ?? {};
 
-          return  postDeviceAuthenticate(data,fetchOptions)
+          return  postApiDeviceAuthenticate(data,fetchOptions)
         }
 
 
@@ -232,43 +232,43 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type PostDeviceAuthenticateMutationResult = NonNullable<Awaited<ReturnType<typeof postDeviceAuthenticate>>>
-    export type PostDeviceAuthenticateMutationBody = AuthenticateDeviceDto
-    export type PostDeviceAuthenticateMutationError = unknown
+    export type PostApiDeviceAuthenticateMutationResult = NonNullable<Awaited<ReturnType<typeof postApiDeviceAuthenticate>>>
+    export type PostApiDeviceAuthenticateMutationBody = AuthenticateDeviceDto
+    export type PostApiDeviceAuthenticateMutationError = unknown
 
-    export const usePostDeviceAuthenticate = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postDeviceAuthenticate>>, TError,{data: AuthenticateDeviceDto}, TContext>, fetch?: RequestInit}
+    export const usePostApiDeviceAuthenticate = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiDeviceAuthenticate>>, TError,{data: AuthenticateDeviceDto}, TContext>, fetch?: RequestInit}
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof postDeviceAuthenticate>>,
+        Awaited<ReturnType<typeof postApiDeviceAuthenticate>>,
         TError,
         {data: AuthenticateDeviceDto},
         TContext
       > => {
-      return useMutation(getPostDeviceAuthenticateMutationOptions(options), queryClient);
+      return useMutation(getPostApiDeviceAuthenticateMutationOptions(options), queryClient);
     }
-    export type getDeviceResponse200 = {
+    export type getApiDeviceResponse200 = {
   data: DeviceResponseDto[]
   status: 200
 }
 
-export type getDeviceResponseSuccess = (getDeviceResponse200) & {
+export type getApiDeviceResponseSuccess = (getApiDeviceResponse200) & {
   headers: Headers;
 };
 ;
 
-export type getDeviceResponse = (getDeviceResponseSuccess)
+export type getApiDeviceResponse = (getApiDeviceResponseSuccess)
 
-export const getGetDeviceUrl = () => {
-
-
+export const getGetApiDeviceUrl = () => {
 
 
-  return `/device`
+
+
+  return `/api/device`
 }
 
-export const getDevice = async ( options?: RequestInit): Promise<getDeviceResponse> => {
+export const getApiDevice = async ( options?: RequestInit): Promise<getApiDeviceResponse> => {
 
-  const res = await fetch(getGetDeviceUrl(),
+  const res = await fetch(getGetApiDeviceUrl(),
   {
     ...options,
     method: 'GET'
@@ -280,74 +280,74 @@ export const getDevice = async ( options?: RequestInit): Promise<getDeviceRespon
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
 
-  const data: getDeviceResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getDeviceResponse
+  const data: getApiDeviceResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as getApiDeviceResponse
 }
 
 
 
 
 
-export const getGetDeviceQueryKey = () => {
+export const getGetApiDeviceQueryKey = () => {
     return [
-    `/device`
+    `/api/device`
     ] as const;
     }
 
 
-export const getGetDeviceQueryOptions = <TData = Awaited<ReturnType<typeof getDevice>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDevice>>, TError, TData>>, fetch?: RequestInit}
+export const getGetApiDeviceQueryOptions = <TData = Awaited<ReturnType<typeof getApiDevice>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiDevice>>, TError, TData>>, fetch?: RequestInit}
 ) => {
 
 const {query: queryOptions, fetch: fetchOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetDeviceQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getGetApiDeviceQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDevice>>> = ({ signal }) => getDevice({ signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiDevice>>> = ({ signal }) => getApiDevice({ signal, ...fetchOptions });
 
 
 
 
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDevice>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiDevice>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export type GetDeviceQueryResult = NonNullable<Awaited<ReturnType<typeof getDevice>>>
-export type GetDeviceQueryError = unknown
+export type GetApiDeviceQueryResult = NonNullable<Awaited<ReturnType<typeof getApiDevice>>>
+export type GetApiDeviceQueryError = unknown
 
 
-export function useGetDevice<TData = Awaited<ReturnType<typeof getDevice>>, TError = unknown>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDevice>>, TError, TData>> & Pick<
+export function useGetApiDevice<TData = Awaited<ReturnType<typeof getApiDevice>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiDevice>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getDevice>>,
+          Awaited<ReturnType<typeof getApiDevice>>,
           TError,
-          Awaited<ReturnType<typeof getDevice>>
+          Awaited<ReturnType<typeof getApiDevice>>
         > , 'initialData'
       >, fetch?: RequestInit}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetDevice<TData = Awaited<ReturnType<typeof getDevice>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDevice>>, TError, TData>> & Pick<
+export function useGetApiDevice<TData = Awaited<ReturnType<typeof getApiDevice>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiDevice>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getDevice>>,
+          Awaited<ReturnType<typeof getApiDevice>>,
           TError,
-          Awaited<ReturnType<typeof getDevice>>
+          Awaited<ReturnType<typeof getApiDevice>>
         > , 'initialData'
       >, fetch?: RequestInit}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetDevice<TData = Awaited<ReturnType<typeof getDevice>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDevice>>, TError, TData>>, fetch?: RequestInit}
+export function useGetApiDevice<TData = Awaited<ReturnType<typeof getApiDevice>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiDevice>>, TError, TData>>, fetch?: RequestInit}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
-export function useGetDevice<TData = Awaited<ReturnType<typeof getDevice>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDevice>>, TError, TData>>, fetch?: RequestInit}
+export function useGetApiDevice<TData = Awaited<ReturnType<typeof getApiDevice>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiDevice>>, TError, TData>>, fetch?: RequestInit}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetDeviceQueryOptions(options)
+  const queryOptions = getGetApiDeviceQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -359,29 +359,29 @@ export function useGetDevice<TData = Awaited<ReturnType<typeof getDevice>>, TErr
 
 
 
-export type deleteDeviceClientIdResponse204 = {
+export type deleteApiDeviceClientIdResponse204 = {
   data: void
   status: 204
 }
 
-export type deleteDeviceClientIdResponseSuccess = (deleteDeviceClientIdResponse204) & {
+export type deleteApiDeviceClientIdResponseSuccess = (deleteApiDeviceClientIdResponse204) & {
   headers: Headers;
 };
 ;
 
-export type deleteDeviceClientIdResponse = (deleteDeviceClientIdResponseSuccess)
+export type deleteApiDeviceClientIdResponse = (deleteApiDeviceClientIdResponseSuccess)
 
-export const getDeleteDeviceClientIdUrl = (clientId: string,) => {
-
-
+export const getDeleteApiDeviceClientIdUrl = (clientId: string,) => {
 
 
-  return `/device/${clientId}`
+
+
+  return `/api/device/${clientId}`
 }
 
-export const deleteDeviceClientId = async (clientId: string, options?: RequestInit): Promise<deleteDeviceClientIdResponse> => {
+export const deleteApiDeviceClientId = async (clientId: string, options?: RequestInit): Promise<deleteApiDeviceClientIdResponse> => {
 
-  const res = await fetch(getDeleteDeviceClientIdUrl(clientId),
+  const res = await fetch(getDeleteApiDeviceClientIdUrl(clientId),
   {
     ...options,
     method: 'DELETE'
@@ -393,19 +393,19 @@ export const deleteDeviceClientId = async (clientId: string, options?: RequestIn
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
 
-  const data: deleteDeviceClientIdResponse['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as deleteDeviceClientIdResponse
+  const data: deleteApiDeviceClientIdResponse['data'] = body ? JSON.parse(body) : undefined
+  return { data, status: res.status, headers: res.headers } as deleteApiDeviceClientIdResponse
 }
 
 
 
 
 
-export const getDeleteDeviceClientIdMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteDeviceClientId>>, TError,{clientId: string}, TContext>, fetch?: RequestInit}
-): UseMutationOptions<Awaited<ReturnType<typeof deleteDeviceClientId>>, TError,{clientId: string}, TContext> => {
+export const getDeleteApiDeviceClientIdMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiDeviceClientId>>, TError,{clientId: string}, TContext>, fetch?: RequestInit}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteApiDeviceClientId>>, TError,{clientId: string}, TContext> => {
 
-const mutationKey = ['deleteDeviceClientId'];
+const mutationKey = ['deleteApiDeviceClientId'];
 const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -415,10 +415,10 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteDeviceClientId>>, {clientId: string}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteApiDeviceClientId>>, {clientId: string}> = (props) => {
           const {clientId} = props ?? {};
 
-          return  deleteDeviceClientId(clientId,fetchOptions)
+          return  deleteApiDeviceClientId(clientId,fetchOptions)
         }
 
 
@@ -428,44 +428,44 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type DeleteDeviceClientIdMutationResult = NonNullable<Awaited<ReturnType<typeof deleteDeviceClientId>>>
+    export type DeleteApiDeviceClientIdMutationResult = NonNullable<Awaited<ReturnType<typeof deleteApiDeviceClientId>>>
 
-    export type DeleteDeviceClientIdMutationError = unknown
+    export type DeleteApiDeviceClientIdMutationError = unknown
 
-    export const useDeleteDeviceClientId = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteDeviceClientId>>, TError,{clientId: string}, TContext>, fetch?: RequestInit}
+    export const useDeleteApiDeviceClientId = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiDeviceClientId>>, TError,{clientId: string}, TContext>, fetch?: RequestInit}
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof deleteDeviceClientId>>,
+        Awaited<ReturnType<typeof deleteApiDeviceClientId>>,
         TError,
         {clientId: string},
         TContext
       > => {
-      return useMutation(getDeleteDeviceClientIdMutationOptions(options), queryClient);
+      return useMutation(getDeleteApiDeviceClientIdMutationOptions(options), queryClient);
     }
-    export type patchDeviceClientIdResponse204 = {
+    export type patchApiDeviceClientIdResponse204 = {
   data: void
   status: 204
 }
 
-export type patchDeviceClientIdResponseSuccess = (patchDeviceClientIdResponse204) & {
+export type patchApiDeviceClientIdResponseSuccess = (patchApiDeviceClientIdResponse204) & {
   headers: Headers;
 };
 ;
 
-export type patchDeviceClientIdResponse = (patchDeviceClientIdResponseSuccess)
+export type patchApiDeviceClientIdResponse = (patchApiDeviceClientIdResponseSuccess)
 
-export const getPatchDeviceClientIdUrl = (clientId: string,) => {
-
-
+export const getPatchApiDeviceClientIdUrl = (clientId: string,) => {
 
 
-  return `/device/${clientId}`
+
+
+  return `/api/device/${clientId}`
 }
 
-export const patchDeviceClientId = async (clientId: string,
-    updateDeviceDto: UpdateDeviceDto, options?: RequestInit): Promise<patchDeviceClientIdResponse> => {
+export const patchApiDeviceClientId = async (clientId: string,
+    updateDeviceDto: UpdateDeviceDto, options?: RequestInit): Promise<patchApiDeviceClientIdResponse> => {
 
-  const res = await fetch(getPatchDeviceClientIdUrl(clientId),
+  const res = await fetch(getPatchApiDeviceClientIdUrl(clientId),
   {
     ...options,
     method: 'PATCH',
@@ -477,19 +477,19 @@ export const patchDeviceClientId = async (clientId: string,
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
 
-  const data: patchDeviceClientIdResponse['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as patchDeviceClientIdResponse
+  const data: patchApiDeviceClientIdResponse['data'] = body ? JSON.parse(body) : undefined
+  return { data, status: res.status, headers: res.headers } as patchApiDeviceClientIdResponse
 }
 
 
 
 
 
-export const getPatchDeviceClientIdMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchDeviceClientId>>, TError,{clientId: string;data: UpdateDeviceDto}, TContext>, fetch?: RequestInit}
-): UseMutationOptions<Awaited<ReturnType<typeof patchDeviceClientId>>, TError,{clientId: string;data: UpdateDeviceDto}, TContext> => {
+export const getPatchApiDeviceClientIdMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchApiDeviceClientId>>, TError,{clientId: string;data: UpdateDeviceDto}, TContext>, fetch?: RequestInit}
+): UseMutationOptions<Awaited<ReturnType<typeof patchApiDeviceClientId>>, TError,{clientId: string;data: UpdateDeviceDto}, TContext> => {
 
-const mutationKey = ['patchDeviceClientId'];
+const mutationKey = ['patchApiDeviceClientId'];
 const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -499,10 +499,10 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchDeviceClientId>>, {clientId: string;data: UpdateDeviceDto}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchApiDeviceClientId>>, {clientId: string;data: UpdateDeviceDto}> = (props) => {
           const {clientId,data} = props ?? {};
 
-          return  patchDeviceClientId(clientId,data,fetchOptions)
+          return  patchApiDeviceClientId(clientId,data,fetchOptions)
         }
 
 
@@ -512,17 +512,17 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type PatchDeviceClientIdMutationResult = NonNullable<Awaited<ReturnType<typeof patchDeviceClientId>>>
-    export type PatchDeviceClientIdMutationBody = UpdateDeviceDto
-    export type PatchDeviceClientIdMutationError = unknown
+    export type PatchApiDeviceClientIdMutationResult = NonNullable<Awaited<ReturnType<typeof patchApiDeviceClientId>>>
+    export type PatchApiDeviceClientIdMutationBody = UpdateDeviceDto
+    export type PatchApiDeviceClientIdMutationError = unknown
 
-    export const usePatchDeviceClientId = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchDeviceClientId>>, TError,{clientId: string;data: UpdateDeviceDto}, TContext>, fetch?: RequestInit}
+    export const usePatchApiDeviceClientId = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchApiDeviceClientId>>, TError,{clientId: string;data: UpdateDeviceDto}, TContext>, fetch?: RequestInit}
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof patchDeviceClientId>>,
+        Awaited<ReturnType<typeof patchApiDeviceClientId>>,
         TError,
         {clientId: string;data: UpdateDeviceDto},
         TContext
       > => {
-      return useMutation(getPatchDeviceClientIdMutationOptions(options), queryClient);
+      return useMutation(getPatchApiDeviceClientIdMutationOptions(options), queryClient);
     }

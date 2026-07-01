@@ -57,17 +57,24 @@ public static class DeviceEndpoints {
                 return Results.Ok(tokenPair);
             }).AllowAnonymous().Produces<TokenPairExpiryDto>();
 
-        group.MapGet("/", async (ClaimsPrincipal user, BeatDashDbContext db, ISessionManager sessionManager) => {
+        group.MapGet("/", async (ClaimsPrincipal user, BeatDashDbContext db, ISessionManager sessionManager, CancellationToken ct) => {
             var userId = IdentityUtils.GetUserID(user);
             if (!userId.HasValue) return Results.Unauthorized();
 
-            var devices = db.Devices.Where(d => d.UserId == userId);
-            List<DeviceResponseDto> res = [];
-            foreach (var device in devices) {
-                var session = sessionManager.GetSession(userId.Value);
-                res.Add(new DeviceResponseDto(device.ClientId, device.Name, device.LastSeenAt,
-                    session != null && session.ClientId == device.ClientId ? new SessionDto(session.Id, device.Id, session.CreatedAt) : null));
-            }
+            var session = sessionManager.GetSession(userId.Value);
+            var devices = await db.Devices
+                .AsNoTracking()
+                .Where(d => d.UserId == userId)
+                .ToListAsync(ct);
+
+            var res = devices.Select(device => new DeviceResponseDto(
+                device.ClientId,
+                device.Name,
+                device.LastSeenAt,
+                session is not null && session.ClientId == device.ClientId
+                    ? new SessionDto(session.Id, device.Id, session.CreatedAt)
+                    : null
+            )).ToList();
 
             return Results.Ok(res);
         }).RequireAuthorization().Produces<IList<DeviceResponseDto>>();
