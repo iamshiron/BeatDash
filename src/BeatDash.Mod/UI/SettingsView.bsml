@@ -3,5 +3,9 @@
 
     <settings-container>
         <string-setting id="host" text="Host"/>
+        <string-setting id="pin" text="Pin"/>
+        <button id="submit-pin" on-click="OnSubmitPin"/>
+
+        <text text="~ErrorText" id="error-text"/>
     </settings-container>
 </bg>
