@@ -1,16 +1,17 @@
 <Solution>
     <Folder Name="/BeatDash/">
-        <Project Path="backend/src/BeatDash.API/Shiron.BeatDash.API.csproj" />
-        <Project Path="backend/src/BeatDash.Data/Shiron.BeatDash.Data.csproj" />
-        <Project Path="backend/src/BeatDash.DB/Shiron.BeatDash.DB.csproj" />
+        <Project Path="src/BeatDash.API/Shiron.BeatDash.API.csproj"/>
+        <Project Path="src/BeatDash.Data/Shiron.BeatDash.Data.csproj"/>
+        <Project Path="src/BeatDash.DB/Shiron.BeatDash.DB.csproj"/>
+        <Project Path="src/BeatDash.Mod/BeatDash.Mod.csproj"/>
     </Folder>
-    
-    <Folder Name="/external/" />
+
+    <Folder Name="/external/"/>
     <Folder Name="/external/lib/">
-        <Project Path="external/lib/src/Collections/Shiron.Lib.Collections.csproj" />
-        <Project Path="external/lib/src/Types/Shiron.Lib.Types.csproj" />
-        <Project Path="external/lib/src/Types.Ext.Conversion/Shiron.Lib.Types.Ext.Conversion.csproj" />
-        <Project Path="external/lib/src/Types.Ext.EFCore/Shiron.Lib.Types.Ext.EFCore.csproj" />
-        <Project Path="external/lib/src/Utils/Shiron.Lib.Utils.csproj" />
+        <Project Path="external/lib/src/Collections/Shiron.Lib.Collections.csproj"/>
+        <Project Path="external/lib/src/Types/Shiron.Lib.Types.csproj"/>
+        <Project Path="external/lib/src/Types.Ext.Conversion/Shiron.Lib.Types.Ext.Conversion.csproj"/>
+        <Project Path="external/lib/src/Types.Ext.EFCore/Shiron.Lib.Types.Ext.EFCore.csproj"/>
+        <Project Path="external/lib/src/Utils/Shiron.Lib.Utils.csproj"/>
     </Folder>
 </Solution>
