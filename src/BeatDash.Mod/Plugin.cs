@@ -15,15 +15,15 @@ namespace Shiron.BeatDash.Mod;
 internal class Plugin {
     internal static IpaLogger Log { get; private set; } = null!;
 
-    private readonly SettingsViewController _settingsViewController = new();
+    private readonly PluginConfig _config;
 
     [Init]
     public Plugin(IpaLogger ipaLogger, Config config, PluginMetadata pluginMetadata, Zenjector zenjector) {
         Log = ipaLogger;
         Log.Info($"{pluginMetadata.Name} {pluginMetadata.HVersion} initialized.");
 
-        var pluginConfig = config.Generated<PluginConfig>();
-        zenjector.Install<AppInstaller>(Location.App, pluginConfig);
+        _config = config.Generated<PluginConfig>();
+        zenjector.Install<AppInstaller>(Location.App, _config);
         zenjector.Install<MenuInstaller>(Location.Menu);
     }
 
@@ -35,13 +35,7 @@ internal class Plugin {
     }
 
     private void MainMenuInit() {
-        // BSMLSettings.Instance.AddSettingsMenu(
-        //     "BeatDash",
-        //     "Shiron.BeatDash.Mod.UI.SettingsView.bsml",
-        //     _settingsView
-        // );
-
-        Log.Info($"Host: {_settingsViewController.Host.Text}");
+        Log.Info($"Host: {_config.Host}");
     }
 
     [OnExit]
