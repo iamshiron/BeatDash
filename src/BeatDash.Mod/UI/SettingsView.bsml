@@ -1,4 +1,7 @@
 <bg xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
     xsi:noNamespaceSchemaLocation='https://monkeymanboy.github.io/BSML-Docs/BSMLSchema.xsd'>
-    
+
+    <settings-container>
+        <string-setting id="host" text="Host"/>
+    </settings-container>
 </bg>
