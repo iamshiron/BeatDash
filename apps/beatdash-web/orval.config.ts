@@ -8,7 +8,7 @@ export default defineConfig({
             schemas: 'src/api/model',
             client: 'react-query',
             mock: false,
-            httpClient: 'axios',
+            httpClient: 'fetch',
             biome: true
         },
         input: {

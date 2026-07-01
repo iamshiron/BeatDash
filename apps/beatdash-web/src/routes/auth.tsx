@@ -1,6 +1,27 @@
-import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
+import {
+	createFileRoute,
+	Link,
+	Outlet,
+	redirect,
+} from "@tanstack/react-router";
+import { getMe } from "@/api/auth/auth";
 
 export const Route = createFileRoute("/auth")({
+	beforeLoad: async ({ context }) => {
+		if (context.auth.isAuthenticated) {
+			throw redirect({ to: "/", replace: true });
+		}
+		let authenticated = false;
+		try {
+			const response = await getMe();
+			authenticated = response.status === 200;
+		} catch {
+			authenticated = false;
+		}
+		if (authenticated) {
+			throw redirect({ to: "/", replace: true });
+		}
+	},
 	component: AuthLayout,
 });
 

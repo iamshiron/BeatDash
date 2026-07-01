@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { getGetMeQueryKey, useRegister } from "@/api/auth/auth";
+import type { RegisterDto } from "@/api/model";
 import {
 	Card,
 	CardContent,
@@ -21,11 +25,39 @@ function RegisterPage() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
+	const navigate = useNavigate();
+	const queryClient = useQueryClient();
+
+	const registerMutation = useRegister({
+		mutation: {
+			onSuccess: async (response) => {
+				if (response.status !== 200) {
+					toast.error(response.data?.detail ?? "Registration failed.");
+					return;
+				}
+				await queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
+				toast.success("Account created!");
+				navigate({ to: "/" });
+			},
+		},
+	});
 
 	function handleSubmit(event: React.FormEvent) {
 		event.preventDefault();
-		// TODO: wire to auth API
+		if (password !== confirmPassword) {
+			toast.error("Passwords do not match.");
+			return;
+		}
+		const payload: RegisterDto = {
+			displayName: username,
+			userName: username,
+			email,
+			password,
+		};
+		registerMutation.mutate({ data: payload });
 	}
+
+	const isPending = registerMutation.isPending;
 
 	return (
 		<Card className="w-full">
@@ -89,8 +121,14 @@ function RegisterPage() {
 				</form>
 			</CardContent>
 			<CardFooter className="flex flex-col gap-3">
-				<Button type="submit" form="register-form" size="lg" className="w-full">
-					Create account
+				<Button
+					type="submit"
+					form="register-form"
+					size="lg"
+					className="w-full"
+					disabled={isPending}
+				>
+					{isPending ? "Creating…" : "Create account"}
 				</Button>
 				<p className="text-xs text-muted-foreground">
 					Already have an account?{" "}

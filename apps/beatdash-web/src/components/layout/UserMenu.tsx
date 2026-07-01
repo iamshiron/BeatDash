@@ -1,0 +1,71 @@
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@shiron/ui/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@shiron/ui/components/ui/avatar";
+import { Button } from "@shiron/ui/components/ui/button";
+import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
+import { getGetMeQueryKey, useAuth } from "@/contexts/auth";
+import { useLogout } from "@/api/auth/auth";
+
+function getInitials(name: string): string {
+	const parts = name.trim().split(/\s+/).filter(Boolean);
+	if (parts.length === 0) return "?";
+	if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+	return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+}
+
+export function UserMenu() {
+	const { user } = useAuth();
+	const navigate = useNavigate();
+	const queryClient = useQueryClient();
+
+	const name = user?.displayName || user?.userName || "User";
+	const initials = getInitials(name);
+
+	const logoutMutation = useLogout({
+		mutation: {
+			onSuccess: () => {
+				queryClient.setQueryData(getGetMeQueryKey(), {
+					data: undefined,
+					status: 401,
+					headers: new Headers(),
+				});
+				toast.success("Signed out.");
+				navigate({ to: "/auth/login" });
+			},
+		},
+	});
+
+	return (
+		<DropdownMenu>
+			<DropdownMenuTrigger asChild>
+				<Button variant="ghost" className="h-8 gap-2 pl-1.5 pr-2">
+					<Avatar size="sm">
+						<AvatarFallback>{initials}</AvatarFallback>
+					</Avatar>
+					<span className="max-w-24 truncate text-xs font-medium">{name}</span>
+				</Button>
+			</DropdownMenuTrigger>
+			<DropdownMenuContent align="end" className="min-w-52">
+				<DropdownMenuLabel className="truncate">{name}</DropdownMenuLabel>
+				<DropdownMenuSeparator />
+				<DropdownMenuItem disabled>Profile</DropdownMenuItem>
+				<DropdownMenuItem disabled>Settings</DropdownMenuItem>
+				<DropdownMenuSeparator />
+				<DropdownMenuItem
+					variant="destructive"
+					onClick={() => logoutMutation.mutate()}
+				>
+					Sign out
+				</DropdownMenuItem>
+			</DropdownMenuContent>
+		</DropdownMenu>
+	);
+}

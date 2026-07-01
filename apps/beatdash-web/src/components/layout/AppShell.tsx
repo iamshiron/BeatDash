@@ -1,7 +1,11 @@
 import { Link } from "@tanstack/react-router";
+import { Button } from "@shiron/ui/components/ui/button";
 import { ModeToggle } from "@/components/layout/ModeToggle";
+import { UserMenu } from "@/components/layout/UserMenu";
+import { useAuth } from "@/contexts/auth";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
+	const { isAuthenticated } = useAuth();
 	return (
 		<div className="relative min-h-screen bg-background">
 			<header className="sticky top-4 z-50 mx-auto w-full max-w-3xl px-4">
@@ -16,6 +20,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 					</Link>
 					<div className="flex items-center gap-1">
 						<ModeToggle />
+						{isAuthenticated ? (
+							<UserMenu />
+						) : (
+							<Button variant="ghost" size="sm" asChild>
+								<Link to="/auth/login">Sign In</Link>
+							</Button>
+						)}
 					</div>
 				</div>
 			</header>

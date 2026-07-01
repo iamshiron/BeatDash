@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { getGetMeQueryKey, useLogin } from "@/api/auth/auth";
+import type { LoginDto } from "@/api/model";
 import {
 	Card,
 	CardContent,
@@ -19,11 +23,30 @@ export const Route = createFileRoute("/auth/login")({
 function LoginPage() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const navigate = useNavigate();
+	const queryClient = useQueryClient();
+
+	const loginMutation = useLogin({
+		mutation: {
+			onSuccess: async (response) => {
+				if (response.status !== 200) {
+					toast.error("Invalid email or password.");
+					return;
+				}
+				await queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
+				toast.success("Welcome back!");
+				navigate({ to: "/" });
+			},
+		},
+	});
 
 	function handleSubmit(event: React.FormEvent) {
 		event.preventDefault();
-		// TODO: wire to auth API
+		const payload: LoginDto = { email, password };
+		loginMutation.mutate({ data: payload });
 	}
+
+	const isPending = loginMutation.isPending;
 
 	return (
 		<Card className="w-full">
@@ -61,8 +84,14 @@ function LoginPage() {
 				</form>
 			</CardContent>
 			<CardFooter className="flex flex-col gap-3">
-				<Button type="submit" form="login-form" size="lg" className="w-full">
-					Sign In
+				<Button
+					type="submit"
+					form="login-form"
+					size="lg"
+					className="w-full"
+					disabled={isPending}
+				>
+					{isPending ? "Signing in…" : "Sign In"}
 				</Button>
 				<p className="text-xs text-muted-foreground">
 					Don't have an account?{" "}

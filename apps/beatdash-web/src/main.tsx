@@ -4,6 +4,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { ThemeProvider } from "next-themes";
+import { AuthProvider, useAuth } from "@/contexts/auth";
+import type { RouterContext } from "@/routes/__root";
 import "@/styles/globals.css";
 import { routeTree } from "./routeTree.gen";
 
@@ -16,12 +18,27 @@ const queryClient = new QueryClient({
 	},
 });
 
-const router = createRouter({ routeTree });
+const router = createRouter({
+	routeTree,
+	context: {
+		auth: {
+			user: undefined,
+			isLoading: true,
+			isAuthenticated: false,
+		},
+		queryClient,
+	} satisfies RouterContext,
+});
 
 declare module "@tanstack/react-router" {
 	interface Register {
 		router: typeof router;
 	}
+}
+
+function App() {
+	const auth = useAuth();
+	return <RouterProvider router={router} context={{ auth, queryClient }} />;
 }
 
 // biome-ignore lint/style/noNonNullAssertion: standard React entry point
@@ -34,7 +51,9 @@ createRoot(document.getElementById("root")!).render(
 			disableTransitionOnChange
 		>
 			<QueryClientProvider client={queryClient}>
-				<RouterProvider router={router} />
+				<AuthProvider>
+					<App />
+				</AuthProvider>
 				<ReactQueryDevtools buttonPosition="bottom-right" />
 			</QueryClientProvider>
 		</ThemeProvider>

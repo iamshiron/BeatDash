@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/layout/AppShell";
+import { useAuth } from "@/contexts/auth";
 import { Button } from "@shiron/ui/components/ui/button";
 
 export const Route = createFileRoute("/")({
@@ -7,6 +8,8 @@ export const Route = createFileRoute("/")({
 });
 
 function LandingPage() {
+	const { isAuthenticated } = useAuth();
+
 	return (
 		<AppShell>
 			<div className="flex flex-col items-center justify-center gap-8 py-20 text-center">
@@ -19,14 +22,16 @@ function LandingPage() {
 						into your play habits.
 					</p>
 				</div>
-				<div className="flex gap-3">
-					<Button asChild size="lg">
-						<Link to="/auth/register">Get Started</Link>
-					</Button>
-					<Button asChild size="lg" variant="outline">
-						<Link to="/auth/login">Sign In</Link>
-					</Button>
-				</div>
+				{!isAuthenticated && (
+					<div className="flex gap-3">
+						<Button asChild size="lg">
+							<Link to="/auth/register">Get Started</Link>
+						</Button>
+						<Button asChild size="lg" variant="outline">
+							<Link to="/auth/login">Sign In</Link>
+						</Button>
+					</div>
+				)}
 			</div>
 		</AppShell>
 	);
