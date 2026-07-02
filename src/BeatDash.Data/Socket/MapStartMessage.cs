@@ -1,29 +1,35 @@
 namespace Shiron.BeatDash.Data.Socket;
 
-public class MapStartMessage : SocketMessage<MapStartMessage> {
-    public required string LevelId { get; set; }
-    public required int DurationMs { get; set; }
-    public required float NotesPerSecond { get; set; }
-    public required string SongName { get; set; }
-    public required string SongSubName { get; set; }
-    public required string SongAuthor { get; set; }
-    public required string Mapper { get; set; }
-    public required float Bpm { get; set; }
-    public required string Difficulty { get; set; }
-    public required float? NoteJumpSpeed { get; set; }
-    public required int BombsCount { get; set; }
-    public required int ObstaclesCount { get; set; }
-    public required int CuttableObjectsCount { get; set; }
-    public required int LaneCount { get; set; }
-
-    public required BeatmapCharacteristic Characteristic { get; set; }
+/// <summary>
+/// Payload sent when a beatmap starts, containing map metadata and gameplay stats.
+/// </summary>
+public sealed class MapStartMessage : SocketMessage<MapStartMessage> {
+    public required string LevelId { get; init; }
+    public required int DurationMs { get; init; }
+    public required float NotesPerSecond { get; init; }
+    public required string SongName { get; init; }
+    public required string SongSubName { get; init; }
+    public required string SongAuthor { get; init; }
+    public required string Mapper { get; init; }
+    public required float Bpm { get; init; }
+    public required string Difficulty { get; init; }
+    public required string DifficultyName { get; init; }
+    public required float? NoteJumpSpeed { get; init; }
+    public required int BombCount { get; init; }
+    public required int ObstacleCount { get; init; }
+    public required int CuttableObjectCount { get; init; }
+    public required int LaneCount { get; init; }
+    public required BeatmapCharacteristic Characteristic { get; init; }
 }
 
-public class BeatmapCharacteristic {
-    public required int NumberOfColors { get; set; }
-    public required bool Requires360Movement { get; set; }
-    public required bool ContainsRotationEvents { get; set; }
-    public required string SerializedName { get; set; }
-    public required string LocalizationKey { get; set; }
-    public required string DescriptionLocalizationKey { get; set; }
+/// <summary>
+/// Describes the beatmap characteristic (game mode) associated with a map.
+/// </summary>
+public sealed class BeatmapCharacteristic {
+    public required int ColorCount { get; init; }
+    public required bool Requires360Movement { get; init; }
+    public required bool ContainsRotationEvents { get; init; }
+    public required string SerializedName { get; init; }
+    public required string LocalizationKey { get; init; }
+    public required string DescriptionLocalizationKey { get; init; }
 }

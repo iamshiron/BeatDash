@@ -1,37 +1,34 @@
 using System;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using BeatSaverSharp;
 using Newtonsoft.Json;
 using Shiron.BeatDash.Data.Socket;
 using Shiron.BeatDash.Mod.Network;
 using SiraUtil.Zenject;
 using SongCore;
-using Zenject;
-using Unity;
 using UnityEngine;
-using WebSocketSharp;
-using Graphics = System.Drawing.Graphics;
 using Object = UnityEngine.Object;
 
 namespace Shiron.BeatDash.Mod.Trackers;
 
-public class LevelDataTracker(GameplayCoreSceneSetupData setupData, NetworkManager networkManager) : IAsyncInitializable, IDisposable {
-    private static readonly BeatSaver beatSaver = new(Plugin.PluginName, Assembly.GetExecutingAssembly().GetName().Version);
+/// <summary>
+/// Collects beatmap metadata and cover art at scene load, then transmits them over the socket.
+/// </summary>
+public sealed class LevelDataTracker(GameplayCoreSceneSetupData setupData, NetworkManager networkManager)
+    : IAsyncInitializable, IDisposable {
 
+    /// <summary>
+    /// Builds the <see cref="MapStartMessage"/> from scene data and sends it along with the cover image.
+    /// </summary>
     public async Task InitializeAsync(CancellationToken ct) {
         var level = setupData.beatmapLevel;
         var key = setupData.beatmapKey;
         var basicData = setupData.beatmapBasicData;
-        var coverSprite = await level.previewMediaData.GetCoverSpriteAsync();
-        var texture = coverSprite.texture;
-        var (textureData, textureWidth, textureHeight, format) = await GetCoverBytesAsync(level);
         var transformedData = setupData.transformedBeatmapData;
+        var characteristic = key.beatmapCharacteristic;
 
-        var characteristics = setupData.beatmapKey.beatmapCharacteristic;
+        var coverPng = await GetCoverPngAsync(level);
 
         var mapPayload = new MapStartMessage {
             LevelId = level.levelID,
@@ -42,56 +39,53 @@ public class LevelDataTracker(GameplayCoreSceneSetupData setupData, NetworkManag
             SongAuthor = level.songAuthorName,
             Mapper = level.allMappers.Length > 0
                 ? string.Join(", ", level.allMappers)
-                : level.songAuthorName
-                ?? "Unknown",
+                : level.songAuthorName ?? "Unknown",
             Bpm = level.beatsPerMinute,
             Difficulty = key.difficulty.SerializedName(),
-            NoteJumpSpeed = GetNjs(key.difficulty, basicData),
-            BombsCount = transformedData.bombsCount,
-            CuttableObjectsCount = transformedData.cuttableNotesCount,
-            ObstaclesCount = transformedData.obstaclesCount,
+            DifficultyName = ExtractDifficultyName(level, key),
+            NoteJumpSpeed = GetNoteJumpSpeed(key.difficulty, basicData),
+            BombCount = transformedData.bombsCount,
+            ObstacleCount = transformedData.obstaclesCount,
+            CuttableObjectCount = transformedData.cuttableNotesCount,
             LaneCount = transformedData.numberOfLines,
-
             Characteristic = new BeatmapCharacteristic {
-                SerializedName = characteristics.serializedName,
-                ContainsRotationEvents = characteristics.containsRotationEvents,
-                DescriptionLocalizationKey = characteristics.descriptionLocalizationKey,
-                LocalizationKey = characteristics.characteristicNameLocalizationKey,
-                NumberOfColors = characteristics.numberOfColors,
-                Requires360Movement = characteristics.requires360Movement
-            }
+                SerializedName = characteristic.serializedName,
+                ContainsRotationEvents = characteristic.containsRotationEvents,
+                DescriptionLocalizationKey = characteristic.descriptionLocalizationKey,
+                LocalizationKey = characteristic.characteristicNameLocalizationKey,
+                ColorCount = characteristic.numberOfColors,
+                Requires360Movement = characteristic.requires360Movement,
+            },
         };
 
-        var imagePayload = new BinaryPacket(BinaryPacketTypes.MapCoverImage, textureData);
+        var imagePayload = new BinaryPacket(BinaryPacketTypes.MapCoverImage, coverPng);
 
-        Plugin.Log.Info($"Sending map data: {mapPayload.SongName} - {mapPayload.SongAuthor} - {imagePayload.Payload.Length} bytes");
-        var jsonPayload = JsonConvert.SerializeObject(mapPayload);
-        Plugin.Log.Info($"Map JSON Payload: {jsonPayload}");
+        Plugin.Log.Info($"Sending map data: {mapPayload.SongName} - {mapPayload.SongAuthor} ({imagePayload.Payload.Length} bytes)");
 
-        await networkManager.PostMessageAsync(jsonPayload);
+        await networkManager.PostMessageAsync(JsonConvert.SerializeObject(mapPayload));
         await networkManager.PostMessageAsync(imagePayload);
     }
 
-    private async Task<(byte[] data, int width, int height, TextureFormat format)> GetCoverBytesAsync(BeatmapLevel level) {
-        var sprite = await level.previewMediaData.GetCoverSpriteAsync();
-        if (sprite == null) {
-            throw new InvalidOperationException("Cover sprite is null!");
-        }
+    /// <summary>
+    /// Encodes the level's cover image to PNG bytes.
+    /// </summary>
+    private static async Task<byte[]> GetCoverPngAsync(BeatmapLevel level) {
+        var sprite = await level.previewMediaData.GetCoverSpriteAsync()
+            ?? throw new InvalidOperationException("Cover sprite is null.");
 
         var texture = ExtractReadableTexture(sprite);
-        var data = texture.EncodeToPNG();
-
-        var width = texture.width;
-        var height = texture.height;
-        var format = texture.format;
+        var png = texture.EncodeToPNG();
 
         Object.Destroy(texture);
-        return (data, width, height, format);
+        return png;
     }
 
-    private Texture2D ExtractReadableTexture(Sprite sprite) {
+    /// <summary>
+    /// Creates a CPU-readable copy of a sprite's texture via a render-to-texture blit.
+    /// </summary>
+    private static Texture2D ExtractReadableTexture(Sprite sprite) {
         var sourceTex = sprite.texture;
-        var r = sprite.textureRect;
+        var rect = sprite.textureRect;
 
         var tmp = RenderTexture.GetTemporary(
             sourceTex.width,
@@ -106,9 +100,8 @@ public class LevelDataTracker(GameplayCoreSceneSetupData setupData, NetworkManag
         var previous = RenderTexture.active;
         RenderTexture.active = tmp;
 
-        var readableTex = new Texture2D((int) r.width, (int) r.height, TextureFormat.RGBA32, false);
-
-        readableTex.ReadPixels(new Rect(r.x, r.y, r.width, r.height), 0, 0);
+        var readableTex = new Texture2D((int) rect.width, (int) rect.height, TextureFormat.RGBA32, false);
+        readableTex.ReadPixels(new Rect(rect.x, rect.y, rect.width, rect.height), 0, 0);
         readableTex.Apply();
 
         RenderTexture.active = previous;
@@ -117,18 +110,41 @@ public class LevelDataTracker(GameplayCoreSceneSetupData setupData, NetworkManag
         return readableTex;
     }
 
-    private static float? GetNjs(BeatmapDifficulty difficulty, BeatmapBasicData data) {
+    /// <summary>
+    /// Returns the note-jump speed, falling back to difficulty-based defaults when unset.
+    /// </summary>
+    private static float? GetNoteJumpSpeed(BeatmapDifficulty difficulty, BeatmapBasicData data) {
         var njs = data.noteJumpMovementSpeed;
-
         if (njs > 0) return njs;
+
         return difficulty switch {
             BeatmapDifficulty.Easy or BeatmapDifficulty.Normal or BeatmapDifficulty.Hard => 10f,
             BeatmapDifficulty.Expert => 12f,
             BeatmapDifficulty.ExpertPlus => 16f,
-            _ => null
+            _ => null,
         };
     }
 
-    public void Dispose() {
+    /// <summary>
+    /// Resolves the display difficulty name, preferring custom labels for custom levels.
+    /// </summary>
+    private static string ExtractDifficultyName(BeatmapLevel level, BeatmapKey key) {
+        var difficultyName = key.difficulty.ToString("g");
+
+        if (!level.levelID.StartsWith("custom_level_")) return difficultyName;
+
+        var extraData = Collections.GetCustomLevelSongData(level.levelID);
+        var customDiffData = extraData?._difficulties.FirstOrDefault(x =>
+            x._difficulty == key.difficulty &&
+            x._beatmapCharacteristicName == key.beatmapCharacteristic.serializedName);
+
+        if (customDiffData is not null && !string.IsNullOrWhiteSpace(customDiffData._difficultyLabel)) {
+            difficultyName = customDiffData._difficultyLabel;
+        }
+
+        return difficultyName;
     }
+
+    /// <inheritdoc/>
+    public void Dispose() { }
 }
