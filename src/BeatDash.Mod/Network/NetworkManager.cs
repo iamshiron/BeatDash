@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Shiron.BeatDash.Data;
+using Shiron.BeatDash.Data.Socket;
 using Zenject;
 
 namespace Shiron.BeatDash.Mod.Network;
@@ -57,6 +58,14 @@ public class NetworkManager : IDisposable {
 
         var buffer = Encoding.UTF8.GetBytes(message);
         await _socket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, _cancellationTokenSource.Token);
+    }
+
+    public async Task PostMessageAsync(BinaryPacket packet) {
+        if (_socket == null || _socket.State != WebSocketState.Open || _cancellationTokenSource == null) {
+            return;
+        }
+
+        await _socket.SendAsync(new ArraySegment<byte>(packet.Payload), WebSocketMessageType.Binary, true, _cancellationTokenSource.Token);
     }
 
     public void Dispose() {

@@ -52,8 +52,15 @@ public static class ClientEndpoints {
                     while (!receiveResult.CloseStatus.HasValue) {
                         // TODO: Implement actual client to server communication
                         receiveResult = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), cts.Token);
-                        var message = Encoding.UTF8.GetString(buffer, 0, receiveResult.Count);
-                        Console.WriteLine($"Received: {message}");
+                        switch (receiveResult.MessageType) {
+                            case WebSocketMessageType.Binary:
+                                Console.WriteLine($"Received binary data, length: {receiveResult.Count}");
+                                break;
+                            case WebSocketMessageType.Text:
+                                var message = Encoding.UTF8.GetString(buffer, 0, receiveResult.Count);
+                                Console.WriteLine($"Received: {message}");
+                                break;
+                        }
                     }
 
                     await socket.CloseAsync(receiveResult.CloseStatus.Value, receiveResult.CloseStatusDescription, CancellationToken.None);
