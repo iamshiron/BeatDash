@@ -7,11 +7,13 @@
 
 export * from './anonymousTypeOfstring.ts';
 export * from './authenticateDeviceDto.ts';
+export * from './beatmapDifficultyDto.ts';
 export * from './changePasswordDto.ts';
 export * from './deviceResponseDto.ts';
 export * from './httpValidationProblemDetails.ts';
 export * from './httpValidationProblemDetailsErrors.ts';
 export * from './loginDto.ts';
+export * from './mapDetailDto.ts';
 export * from './refreshTokenRequestDto.ts';
 export * from './registerDeviceResponseDto.ts';
 export * from './registerDto.ts';

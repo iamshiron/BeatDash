@@ -8,6 +8,8 @@
 export interface TokenPairExpiryDto {
   accessExpiresAt: string;
   refreshExpiresAt: string;
-  accessToken: string;
-  refreshToken: string;
+  /** @nullable */
+  accessToken: string | null;
+  /** @nullable */
+  refreshToken: string | null;
 }

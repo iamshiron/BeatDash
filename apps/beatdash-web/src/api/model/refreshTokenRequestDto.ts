@@ -7,6 +7,8 @@
 
 export interface RefreshTokenRequestDto {
   clientId: string;
-  accessToken: string;
-  refreshToken: string;
+  /** @nullable */
+  accessToken: string | null;
+  /** @nullable */
+  refreshToken: string | null;
 }

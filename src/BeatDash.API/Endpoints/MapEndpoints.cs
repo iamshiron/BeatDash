@@ -11,6 +11,18 @@ public static class MapEndpoints {
     public static void MapMapEndpoints(this IEndpointRouteBuilder endpoints) {
         var group = endpoints.MapGroup("/maps").WithTags("Maps");
 
+        group.MapGet("/", async (
+            BeatDashDbContext db,
+            CancellationToken ct) => {
+                var maps = await db.Beatmaps
+                    .AsNoTracking()
+                    .Include(b => b.Difficulties)
+                    .OrderByDescending(b => b.CreatedAt)
+                    .ToListAsync(ct);
+
+                return Results.Ok(maps.Select(MapDetailDto.From).ToList());
+            }).RequireAuthorization().Produces<IList<MapDetailDto>>();
+
         group.MapGet("/{mapId:Guid}", async (
             Guid mapId,
             BeatDashDbContext db,
