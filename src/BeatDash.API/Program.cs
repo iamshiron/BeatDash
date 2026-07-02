@@ -9,6 +9,9 @@ using Scalar.AspNetCore;
 using Shiron.BeatDash.API.Endpoints;
 using Shiron.BeatDash.API.Seeders;
 using Shiron.BeatDash.API.Services;
+using Shiron.BeatDash.API.Services.Socket;
+using Shiron.BeatDash.API.Services.Socket.Handlers;
+using Shiron.BeatDash.Data.Socket;
 using Shiron.BeatDash.DB;
 using Shiron.BeatDash.DB.Schema;
 
@@ -73,6 +76,14 @@ builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<ITokenService>(new TokenService(jwtSecret, jwtIssuer, jwtAudience));
 builder.Services.AddSingleton<ISessionManager, SessionManager>();
 builder.Services.AddScoped<IPinService, PinService>();
+
+// Socket dispatchers
+builder.Services.AddScoped<SocketMessageDispatcher>();
+builder.Services.AddScoped<SocketBinaryDispatcher>();
+
+// Socket handlers
+builder.Services.AddSocketMessageHandler<MapStartMessage, MapStartHandler>();
+builder.Services.AddSocketBinaryHandler<MapCoverImageHandler>(BinaryPacketTypes.MapCoverImage);
 
 var app = builder.Build();
 app.UseAuthentication();

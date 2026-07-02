@@ -1,14 +1,17 @@
+using System.Buffers;
 using System.Net.WebSockets;
 using System.Security.Claims;
-using System.Text;
 using Microsoft.EntityFrameworkCore;
-using Shiron.BeatDash.Data.Socket;
 using Shiron.BeatDash.API.Services;
+using Shiron.BeatDash.API.Services.Socket;
+using Shiron.BeatDash.Data.Socket;
 using Shiron.BeatDash.DB;
 
 namespace Shiron.BeatDash.API.Endpoints;
 
 public static class ClientEndpoints {
+    private const int ReceiveBufferSize = 8192;
+
     public static void MapClientEndpoints(this IEndpointRouteBuilder endpoints) {
         var group = endpoints.MapGroup("/client").WithTags("Client");
 
@@ -16,6 +19,8 @@ public static class ClientEndpoints {
             HttpContext context,
             ISessionManager sessionManager,
             IHostApplicationLifetime appLifetime,
+            SocketMessageDispatcher messageDispatcher,
+            SocketBinaryDispatcher binaryDispatcher,
             BeatDashDbContext db,
             CancellationToken ct) => {
                 if (!context.WebSockets.IsWebSocketRequest) {
@@ -40,37 +45,24 @@ public static class ClientEndpoints {
                             .SetProperty(p => p.LastSeenAt, DateTime.UtcNow), ct
                     );
 
+                var socketContext = new SocketContext(userId.Value, clientId, session.Id, sessionManager);
+
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(
                     context.RequestAborted,
                     appLifetime.ApplicationStopping
                 );
 
                 try {
-                    var buffer = new byte[1024 * 4];
-                    var receiveResult = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), cts.Token);
-
-                    while (!receiveResult.CloseStatus.HasValue) {
-                        // TODO: Implement actual client to server communication
-                        receiveResult = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), cts.Token);
-                        switch (receiveResult.MessageType) {
-                            case WebSocketMessageType.Binary:
-                                Console.WriteLine($"Received binary data, length: {receiveResult.Count}");
-                                break;
-                            case WebSocketMessageType.Text:
-                                var message = Encoding.UTF8.GetString(buffer, 0, receiveResult.Count);
-                                Console.WriteLine($"Received: {message}");
-                                break;
-                        }
-                    }
-
-                    await socket.CloseAsync(receiveResult.CloseStatus.Value, receiveResult.CloseStatusDescription, CancellationToken.None);
+                    await ReceiveLoopAsync(socket, socketContext, messageDispatcher, binaryDispatcher, cts.Token);
                 } catch (WebSocketException) {
                     socket.Abort();
+                } catch (OperationCanceledException) {
+                    // Connection cancelled — normal shutdown
                 } finally {
                     sessionManager.TryRemoveSession(session.Id);
                 }
 
-                return Results.Ok();
+                return Results.Empty;
             }).RequireAuthorization().ExcludeFromDescription();
 
         group.MapPost("/ping/{clientId:Guid}", async (
@@ -93,5 +85,58 @@ public static class ClientEndpoints {
                 await sessionManager.SendMessageAsync(session.Id, payload, CancellationToken.None);
                 return Results.Ok();
             }).RequireAuthorization();
+    }
+
+    /// <summary>
+    /// Receives WebSocket messages, reassembling fragmented frames, and dispatches
+    /// each complete message to the appropriate dispatcher.
+    /// </summary>
+    private static async Task ReceiveLoopAsync(
+        WebSocket socket,
+        SocketContext socketContext,
+        SocketMessageDispatcher messageDispatcher,
+        SocketBinaryDispatcher binaryDispatcher,
+        CancellationToken ct) {
+
+        var buffer = ArrayPool<byte>.Shared.Rent(ReceiveBufferSize);
+        var messageStream = new MemoryStream();
+
+        try {
+            while (true) {
+                messageStream.SetLength(0);
+
+                var result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), ct);
+
+                if (result.MessageType == WebSocketMessageType.Close) {
+                    await socket.CloseAsync(
+                        result.CloseStatus ?? WebSocketCloseStatus.NormalClosure,
+                        result.CloseStatusDescription,
+                        CancellationToken.None
+                    );
+                    return;
+                }
+
+                messageStream.Write(buffer, 0, result.Count);
+
+                while (!result.EndOfMessage) {
+                    result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), ct);
+                    messageStream.Write(buffer, 0, result.Count);
+                }
+
+                var payload = messageStream.GetBuffer().AsMemory(0, (int) messageStream.Length);
+
+                switch (result.MessageType) {
+                    case WebSocketMessageType.Text:
+                        await messageDispatcher.DispatchAsync(socketContext, payload, ct);
+                        break;
+                    case WebSocketMessageType.Binary:
+                        await binaryDispatcher.DispatchAsync(socketContext, payload, ct);
+                        break;
+                }
+            }
+        } finally {
+            messageStream.Dispose();
+            ArrayPool<byte>.Shared.Return(buffer);
+        }
     }
 }
