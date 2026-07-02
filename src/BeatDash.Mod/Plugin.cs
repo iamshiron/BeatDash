@@ -1,3 +1,5 @@
+using System;
+using System.Reflection;
 using BeatSaberMarkupLanguage.Settings;
 using BeatSaberMarkupLanguage.Util;
 using IPA;
@@ -13,9 +15,12 @@ namespace Shiron.BeatDash.Mod;
 
 [Plugin(RuntimeOptions.DynamicInit)]
 internal class Plugin {
-    internal static IpaLogger Log { get; private set; } = null!;
+    public const string PluginName = "BeatDash";
 
+    internal static IpaLogger Log { get; private set; } = null!;
     private readonly PluginConfig _config;
+
+    internal static readonly HarmonyLib.Harmony Harmony = new($"io.Shiron.{PluginName}");
 
     [Init]
     public Plugin(IpaLogger ipaLogger, Config config, PluginMetadata pluginMetadata, Zenjector zenjector) {
@@ -25,6 +30,13 @@ internal class Plugin {
         _config = config.Generated<PluginConfig>();
         zenjector.Install<AppInstaller>(Location.App, _config);
         zenjector.Install<MenuInstaller>(Location.Menu);
+        zenjector.Install<MapTrackerInstaller>(Location.StandardPlayer);
+
+        try {
+            Harmony.PatchAll(Assembly.GetExecutingAssembly());
+        } catch (Exception e) {
+            Log.Error(e);
+        }
     }
 
     [OnStart]
