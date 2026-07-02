@@ -4,8 +4,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Minio;
 using Scalar.AspNetCore;
+using Shiron.BeatDash.API.Configuration;
 using Shiron.BeatDash.API.Endpoints;
 using Shiron.BeatDash.API.Seeders;
 using Shiron.BeatDash.API.Services;
@@ -39,6 +42,15 @@ builder.Services.AddDbContext<BeatDashDbContext>(options =>
         builder.Configuration.GetConnectionString("Default")
         ?? throw new InvalidOperationException("Database connection string not configured")
     ));
+
+builder.Services.Configure<StorageOptions>(options => {
+    options.Endpoint = builder.Configuration["MINIO_ENDPOINT"] ?? "localhost:9000";
+    options.AccessKey = builder.Configuration["MINIO_ACCESS_KEY"] ?? "minioadmin";
+    options.SecretKey = builder.Configuration["MINIO_SECRET_KEY"] ?? "minioadmin";
+    options.UseSsl = bool.TryParse(builder.Configuration["MINIO_USE_SSL"], out var ssl) && ssl;
+    options.BucketAssets = builder.Configuration["MINIO_BUCKET_ASSETS"] ?? "beatdash-assets";
+    options.BucketUserData = builder.Configuration["MINIO_BUCKET_USER_DATA"] ?? "beatdash-user-data";
+});
 
 builder.Services.ConfigureApplicationCookie(o => {
     o.LoginPath = "/auth/login";
@@ -77,6 +89,16 @@ builder.Services.AddSingleton<ITokenService>(new TokenService(jwtSecret, jwtIssu
 builder.Services.AddSingleton<ISessionManager, SessionManager>();
 builder.Services.AddSingleton<IMapDataStore, MapDataStore>();
 builder.Services.AddScoped<IPinService, PinService>();
+
+// MinIO
+builder.Services.AddSingleton<IMinioClient>(sp => {
+    var opts = sp.GetRequiredService<IOptions<StorageOptions>>().Value;
+    return new MinioClient()
+        .WithEndpoint(opts.Endpoint)
+        .WithCredentials(opts.AccessKey, opts.SecretKey)
+        .WithSSL(opts.UseSsl)
+        .Build();
+});
 
 // Socket dispatchers
 builder.Services.AddScoped<SocketMessageDispatcher>();
