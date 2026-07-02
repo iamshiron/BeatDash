@@ -37,11 +37,10 @@ builder.Services.AddIdentity<User, IdentityRole<Guid>>(c => {
     c.User.RequireUniqueEmail = true;
 }).AddEntityFrameworkStores<BeatDashDbContext>();
 
-builder.Services.AddDbContext<BeatDashDbContext>(options =>
-    options.UseNpgsql(
-        builder.Configuration.GetConnectionString("Default")
-        ?? throw new InvalidOperationException("Database connection string not configured")
-    ));
+var connectionString = builder.Configuration.GetConnectionString("Default")
+    ?? throw new InvalidOperationException("Database connection string not configured");
+
+builder.Services.AddDbContextFactory<BeatDashDbContext>(options => options.UseNpgsql(connectionString));
 
 builder.Services.Configure<StorageOptions>(options => {
     options.Endpoint = builder.Configuration["MINIO_ENDPOINT"] ?? "localhost:9000";
@@ -88,7 +87,9 @@ builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<ITokenService>(new TokenService(jwtSecret, jwtIssuer, jwtAudience));
 builder.Services.AddSingleton<ISessionManager, SessionManager>();
 builder.Services.AddSingleton<IMapDataStore, MapDataStore>();
+builder.Services.AddSingleton<IStorageService, MinioStorageService>();
 builder.Services.AddScoped<IPinService, PinService>();
+builder.Services.AddScoped<IBeatmapPersistenceService, BeatmapPersistenceService>();
 
 // MinIO
 builder.Services.AddSingleton<IMinioClient>(sp => {
@@ -139,5 +140,6 @@ api.MapGet("/health", () => new { Message = "OK" }).WithTags("Health");
 api.MapIdentityEndpoints();
 api.MapDeviceEndpoints();
 api.MapClientEndpoints();
+api.MapMapEndpoints();
 
 app.Run();
