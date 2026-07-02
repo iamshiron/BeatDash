@@ -30,7 +30,10 @@ public sealed class LevelDataTracker(GameplayCoreSceneSetupData setupData, Netwo
 
         var coverPng = await GetCoverPngAsync(level);
 
+        var correlationId = UnityEngine.Random.Range(0, int.MaxValue);
+
         var mapPayload = new MapStartMessage {
+            CorrelationId = correlationId,
             LevelId = level.levelID,
             DurationMs = (int) (level.songDuration * 1000f),
             NotesPerSecond = transformedData.cuttableNotesCount / level.songDuration,
@@ -58,9 +61,10 @@ public sealed class LevelDataTracker(GameplayCoreSceneSetupData setupData, Netwo
             },
         };
 
-        var imagePayload = new BinaryPacket(BinaryPacketTypes.MapCoverImage, coverPng);
+        var imageData = MapCoverImagePacket.Build(correlationId, coverPng);
+        var imagePayload = new BinaryPacket(BinaryPacketTypes.MapCoverImage, imageData);
 
-        Plugin.Log.Info($"Sending map data: {mapPayload.SongName} - {mapPayload.SongAuthor} ({imagePayload.Payload.Length} bytes)");
+        Plugin.Log.Info($"Sending map data: {mapPayload.SongName} - {mapPayload.SongAuthor} ({imagePayload.Payload.Length} bytes) [corr={correlationId}]");
 
         await networkManager.PostMessageAsync(JsonConvert.SerializeObject(mapPayload));
         await networkManager.PostMessageAsync(imagePayload);

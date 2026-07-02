@@ -6,11 +6,22 @@ namespace Shiron.BeatDash.API.Services.Socket.Handlers;
 /// <summary>
 /// Handles binary <see cref="BinaryPacketTypes.MapCoverImage"/> packets received from the client.
 /// </summary>
-public sealed class MapCoverImageHandler(ILogger<MapCoverImageHandler> logger) : ISocketBinaryHandler {
+public sealed class MapCoverImageHandler(ILogger<MapCoverImageHandler> logger, IMapDataStore mapDataStore) : ISocketBinaryHandler {
     public BinaryPacketTypes PacketType => BinaryPacketTypes.MapCoverImage;
 
     public Task HandleAsync(SocketContext context, ReadOnlyMemory<byte> data, CancellationToken ct) {
-        logger.LogInformation("Received cover image, length: {Length} bytes", data.Length);
+        if (!MapCoverImagePacket.TryParse(data.ToArray(), out var correlationId, out var png)) {
+            logger.LogWarning("Cover image packet too small for a correlation ID ({Bytes} bytes)", data.Length);
+            return Task.CompletedTask;
+        }
+
+        logger.LogInformation("Received cover image (corr={CorrelationId}, {Bytes} bytes)", correlationId, png.Length);
+
+        var pair = mapDataStore.SubmitImage(context, correlationId, png);
+        if (pair is not null) {
+            logger.LogInformation("Map data complete: '{SongName}' + {Bytes}-byte image",
+                pair.Metadata.SongName, pair.ImageBytes.Length);
+        }
         return Task.CompletedTask;
     }
 }

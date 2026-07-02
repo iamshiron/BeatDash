@@ -75,6 +75,7 @@ builder.Services.AddMemoryCache();
 // Services
 builder.Services.AddSingleton<ITokenService>(new TokenService(jwtSecret, jwtIssuer, jwtAudience));
 builder.Services.AddSingleton<ISessionManager, SessionManager>();
+builder.Services.AddSingleton<IMapDataStore, MapDataStore>();
 builder.Services.AddScoped<IPinService, PinService>();
 
 // Socket dispatchers

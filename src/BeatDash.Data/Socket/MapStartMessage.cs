@@ -4,6 +4,7 @@ namespace Shiron.BeatDash.Data.Socket;
 /// Payload sent when a beatmap starts, containing map metadata and gameplay stats.
 /// </summary>
 public sealed class MapStartMessage : SocketMessage<MapStartMessage> {
+    public required int CorrelationId { get; init; }
     public required string LevelId { get; init; }
     public required int DurationMs { get; init; }
     public required float NotesPerSecond { get; init; }
