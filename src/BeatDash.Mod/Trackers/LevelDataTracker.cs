@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,9 +9,11 @@ using Newtonsoft.Json;
 using Shiron.BeatDash.Data.Socket;
 using Shiron.BeatDash.Mod.Network;
 using SiraUtil.Zenject;
+using SongCore;
 using Zenject;
 using Unity;
 using UnityEngine;
+using WebSocketSharp;
 using Graphics = System.Drawing.Graphics;
 using Object = UnityEngine.Object;
 
@@ -25,12 +29,14 @@ public class LevelDataTracker(GameplayCoreSceneSetupData setupData, NetworkManag
         var coverSprite = await level.previewMediaData.GetCoverSpriteAsync();
         var texture = coverSprite.texture;
         var (textureData, textureWidth, textureHeight, format) = await GetCoverBytesAsync(level);
+        var transformedData = setupData.transformedBeatmapData;
 
-        Plugin.Log.Debug($"Sprite: {coverSprite}");
-        Plugin.Log.Debug($"Texture: {texture}");
-        Plugin.Log.Debug($"Data Length: {textureData.Length}, {textureWidth}x{textureHeight}, Format: {format.ToString()}");
+        var characteristics = setupData.beatmapKey.beatmapCharacteristic;
 
         var mapPayload = new MapStartMessage {
+            LevelId = level.levelID,
+            DurationMs = (int) (level.songDuration * 1000f),
+            NotesPerSecond = transformedData.cuttableNotesCount / level.songDuration,
             SongName = level.songName,
             SongSubName = level.songSubName,
             SongAuthor = level.songAuthorName,
@@ -38,15 +44,31 @@ public class LevelDataTracker(GameplayCoreSceneSetupData setupData, NetworkManag
                 ? string.Join(", ", level.allMappers)
                 : level.songAuthorName
                 ?? "Unknown",
-            BPM = level.beatsPerMinute,
-            Difficulty = key.difficulty.ToString("g"),
-            NJS = basicData.noteJumpMovementSpeed
+            Bpm = level.beatsPerMinute,
+            Difficulty = key.difficulty.SerializedName(),
+            NoteJumpSpeed = GetNjs(key.difficulty, basicData),
+            BombsCount = transformedData.bombsCount,
+            CuttableObjectsCount = transformedData.cuttableNotesCount,
+            ObstaclesCount = transformedData.obstaclesCount,
+            LaneCount = transformedData.numberOfLines,
+
+            Characteristic = new BeatmapCharacteristic {
+                SerializedName = characteristics.serializedName,
+                ContainsRotationEvents = characteristics.containsRotationEvents,
+                DescriptionLocalizationKey = characteristics.descriptionLocalizationKey,
+                LocalizationKey = characteristics.characteristicNameLocalizationKey,
+                NumberOfColors = characteristics.numberOfColors,
+                Requires360Movement = characteristics.requires360Movement
+            }
         };
 
         var imagePayload = new BinaryPacket(BinaryPacketTypes.MapCoverImage, textureData);
 
         Plugin.Log.Info($"Sending map data: {mapPayload.SongName} - {mapPayload.SongAuthor} - {imagePayload.Payload.Length} bytes");
-        await networkManager.PostMessageAsync(JsonConvert.SerializeObject(mapPayload));
+        var jsonPayload = JsonConvert.SerializeObject(mapPayload);
+        Plugin.Log.Info($"Map JSON Payload: {jsonPayload}");
+
+        await networkManager.PostMessageAsync(jsonPayload);
         await networkManager.PostMessageAsync(imagePayload);
     }
 
@@ -69,9 +91,8 @@ public class LevelDataTracker(GameplayCoreSceneSetupData setupData, NetworkManag
 
     private Texture2D ExtractReadableTexture(Sprite sprite) {
         var sourceTex = sprite.texture;
-        var r = sprite.textureRect; // The specific crop of the atlas for this song
+        var r = sprite.textureRect;
 
-        // Create a temporary RenderTexture with the full atlas dimensions
         var tmp = RenderTexture.GetTemporary(
             sourceTex.width,
             sourceTex.height,
@@ -94,6 +115,18 @@ public class LevelDataTracker(GameplayCoreSceneSetupData setupData, NetworkManag
         RenderTexture.ReleaseTemporary(tmp);
 
         return readableTex;
+    }
+
+    private static float? GetNjs(BeatmapDifficulty difficulty, BeatmapBasicData data) {
+        var njs = data.noteJumpMovementSpeed;
+
+        if (njs > 0) return njs;
+        return difficulty switch {
+            BeatmapDifficulty.Easy or BeatmapDifficulty.Normal or BeatmapDifficulty.Hard => 10f,
+            BeatmapDifficulty.Expert => 12f,
+            BeatmapDifficulty.ExpertPlus => 16f,
+            _ => null
+        };
     }
 
     public void Dispose() {

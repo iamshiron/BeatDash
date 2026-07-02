@@ -1,0 +1,27 @@
+{
+    "LevelId": "custom_level_8AA2411D8550E27A88D7842948C0793E0892540F",
+    "DurationMs": 206188,
+    "NotesPerSecond": 4.82082,
+    "SongName": "...Ready for it?",
+    "SongSubName": "(ft. Skyelle)",
+    "SongAuthor": "MUZZ",
+    "Mapper": "nitronik.exe",
+    "Bpm": 175.0,
+    "Difficulty": "ExpertPlus",
+    "DifficultyName": "Expert+",
+    "NoteJumpSpeed": 16.0,
+    "BombsCount": 52,
+    "ObstaclesCount": 0,
+    "CuttableObjectsCount": 994,
+    "LaneCount": 4,
+    "Characteristic": {
+        "NumberOfColors": 2,
+        "Requires360Movement": false,
+        "ContainsRotationEvents": false,
+        "SerializedName": "Standard",
+        "LocalizationKey": "LEVEL_STANDARD",
+        "DescriptionLocalizationKey": "LEVEL_STANDARD_HINT"
+    },
+    "Type": "MapStartMessage"
+}
+    
