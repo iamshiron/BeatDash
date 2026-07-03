@@ -36,6 +36,9 @@ export function AppShell({
 								<Button variant="ghost" size="sm" asChild>
 									<Link to="/maps">Maps</Link>
 								</Button>
+								<Button variant="ghost" size="sm" asChild>
+									<Link to="/live">Live</Link>
+								</Button>
 							</div>
 						)}
 					</nav>

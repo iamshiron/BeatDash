@@ -1,6 +1,10 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shiron.BeatDash.API.Services;
+using Shiron.BeatDash.API.Services.Realtime;
+using Shiron.BeatDash.Data.Realtime.Events;
 using Shiron.BeatDash.Data.Socket;
+using Shiron.BeatDash.DB;
 
 namespace Shiron.BeatDash.API.Services.Socket.Handlers;
 
@@ -10,7 +14,9 @@ namespace Shiron.BeatDash.API.Services.Socket.Handlers;
 public sealed class MapStartHandler(
     ILogger<MapStartHandler> logger,
     IMapDataStore mapDataStore,
-    IBeatmapPersistenceService persistence
+    IBeatmapPersistenceService persistence,
+    IRealtimeBroadcaster broadcaster,
+    IDbContextFactory<BeatDashDbContext> dbFactory
 ) : SocketMessageHandler<MapStartMessage> {
 
     protected override async Task HandleMessageAsync(
@@ -18,10 +24,38 @@ public sealed class MapStartHandler(
         logger.LogInformation("Map started: {SongName} (corr={CorrelationId})", message.SongName, message.CorrelationId);
 
         var pair = mapDataStore.SubmitMetadata(context, message);
+        Guid? mapId = null;
         if (pair is not null) {
             logger.LogInformation("Map data complete: '{SongName}' + {Bytes}-byte image",
                 pair.Metadata.SongName, pair.ImageBytes.Length);
-            await persistence.PersistAsync(pair, ct);
+            mapId = await persistence.PersistAsync(pair, ct);
+        } else {
+            await using var db = await dbFactory.CreateDbContextAsync(ct);
+            mapId = await db.Beatmaps
+                .AsNoTracking()
+                .Where(b => b.LevelId == message.LevelId)
+                .Select(b => (Guid?) b.Id)
+                .FirstOrDefaultAsync(ct);
         }
+
+        await broadcaster.SendLiveMapStartedAsync(context.UserId, new LiveMapStartedEvent(
+            mapId,
+            message.SongName,
+            message.SongSubName,
+            message.SongAuthor,
+            message.Mapper,
+            message.Bpm,
+            message.DurationMs,
+            message.Difficulty,
+            message.DifficultyName,
+            message.NotesPerSecond,
+            message.NoteJumpSpeed,
+            message.BombCount,
+            message.ObstacleCount,
+            message.CuttableObjectCount,
+            message.LaneCount,
+            message.Characteristic.SerializedName,
+            DateTime.UtcNow
+        ));
     }
 }

@@ -21,4 +21,11 @@ public interface IRealtimeBroadcaster {
     /// <param name="userId">The user whose clients should receive the event.</param>
     /// <param name="payload">The device paired event details.</param>
     Task SendDevicePairedAsync(Guid userId, DevicePairedEvent payload);
+
+    /// <summary>
+    /// Notifies a user's web clients that the user started playing a beatmap.
+    /// </summary>
+    /// <param name="userId">The user whose clients should receive the event.</param>
+    /// <param name="payload">The live map started event details.</param>
+    Task SendLiveMapStartedAsync(Guid userId, LiveMapStartedEvent payload);
 }

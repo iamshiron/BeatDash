@@ -19,4 +19,10 @@ public interface IRealtimeClient {
     /// </summary>
     /// <param name="payload">The device paired event details.</param>
     Task ReceiveDevicePaired(DevicePairedEvent payload);
+
+    /// <summary>
+    /// Notifies the client that the user started playing a beatmap.
+    /// </summary>
+    /// <param name="payload">The live map started event details.</param>
+    Task ReceiveLiveMapStarted(LiveMapStartedEvent payload);
 }

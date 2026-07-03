@@ -1,4 +1,8 @@
-import type { DevicePairedEvent, DeviceStatusEvent } from "./types";
+import type {
+	DevicePairedEvent,
+	DeviceStatusEvent,
+	LiveMapStartedEvent,
+} from "./types";
 
 /**
  * Type-safe map of SignalR event names to their payload types.
@@ -14,4 +18,5 @@ import type { DevicePairedEvent, DeviceStatusEvent } from "./types";
 export interface RealtimeEvents {
 	receiveDeviceStatus: DeviceStatusEvent;
 	receiveDevicePaired: DevicePairedEvent;
+	receiveLiveMapStarted: LiveMapStartedEvent;
 }

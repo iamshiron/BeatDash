@@ -26,7 +26,7 @@ public sealed class MapCoverImageHandler(
         if (pair is not null) {
             logger.LogInformation("Map data complete: '{SongName}' + {Bytes}-byte image",
                 pair.Metadata.SongName, pair.ImageBytes.Length);
-            await persistence.PersistAsync(pair, ct);
+            _ = await persistence.PersistAsync(pair, ct);
         }
     }
 }

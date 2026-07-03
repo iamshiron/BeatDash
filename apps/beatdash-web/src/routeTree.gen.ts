@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as MapsRouteImport } from './routes/maps'
+import { Route as LiveRouteImport } from './routes/live'
 import { Route as DevicesRouteImport } from './routes/devices'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
@@ -19,6 +20,11 @@ import { Route as AuthLoginRouteImport } from './routes/auth/login'
 const MapsRoute = MapsRouteImport.update({
   id: '/maps',
   path: '/maps',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LiveRoute = LiveRouteImport.update({
+  id: '/live',
+  path: '/live',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DevicesRoute = DevicesRouteImport.update({
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/devices': typeof DevicesRoute
+  '/live': typeof LiveRoute
   '/maps': typeof MapsRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/devices': typeof DevicesRoute
+  '/live': typeof LiveRoute
   '/maps': typeof MapsRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
@@ -68,6 +76,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/devices': typeof DevicesRoute
+  '/live': typeof LiveRoute
   '/maps': typeof MapsRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
@@ -75,14 +84,28 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/auth' | '/devices' | '/maps' | '/auth/login' | '/auth/register'
+    | '/'
+    | '/auth'
+    | '/devices'
+    | '/live'
+    | '/maps'
+    | '/auth/login'
+    | '/auth/register'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/devices' | '/maps' | '/auth/login' | '/auth/register'
+  to:
+    | '/'
+    | '/auth'
+    | '/devices'
+    | '/live'
+    | '/maps'
+    | '/auth/login'
+    | '/auth/register'
   id:
     | '__root__'
     | '/'
     | '/auth'
     | '/devices'
+    | '/live'
     | '/maps'
     | '/auth/login'
     | '/auth/register'
@@ -92,6 +115,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRouteWithChildren
   DevicesRoute: typeof DevicesRoute
+  LiveRoute: typeof LiveRoute
   MapsRoute: typeof MapsRoute
 }
 
@@ -102,6 +126,13 @@ declare module '@tanstack/react-router' {
       path: '/maps'
       fullPath: '/maps'
       preLoaderRoute: typeof MapsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/live': {
+      id: '/live'
+      path: '/live'
+      fullPath: '/live'
+      preLoaderRoute: typeof LiveRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/devices': {
@@ -158,6 +189,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRouteWithChildren,
   DevicesRoute: DevicesRoute,
+  LiveRoute: LiveRoute,
   MapsRoute: MapsRoute,
 }
 export const routeTree = rootRouteImport

@@ -16,3 +16,24 @@ export interface DevicePairedEvent {
 	name: string;
 	timestamp: string;
 }
+
+/** Mirrors `Shiron.BeatDash.Data.Realtime.Events.LiveMapStartedEvent`. */
+export interface LiveMapStartedEvent {
+	mapId: string | null;
+	songName: string;
+	songSubName: string;
+	songAuthor: string;
+	mapper: string;
+	bpm: number;
+	durationMs: number;
+	difficulty: string;
+	difficultyName: string;
+	notesPerSecond: number;
+	noteJumpSpeed: number | null;
+	bombCount: number;
+	obstacleCount: number;
+	cuttableObjectCount: number;
+	laneCount: number;
+	characteristic: string;
+	timestamp: string;
+}

@@ -19,7 +19,8 @@ public interface IBeatmapPersistenceService {
     /// and stores the difficulty variant. Safe to call for repeated plays of
     /// the same map.
     /// </summary>
-    Task PersistAsync(MapDataPair pair, CancellationToken ct);
+    /// <returns>The database ID of the persisted beatmap.</returns>
+    Task<Guid> PersistAsync(MapDataPair pair, CancellationToken ct);
 }
 
 /// <summary>
@@ -38,7 +39,7 @@ public sealed class BeatmapPersistenceService(
     private const string CoverKeyPrefix = "covers/";
 
     /// <inheritdoc/>
-    public async Task PersistAsync(MapDataPair pair, CancellationToken ct) {
+    public async Task<Guid> PersistAsync(MapDataPair pair, CancellationToken ct) {
         var m = pair.Metadata;
         var bucket = options.Value.BucketAssets;
 
@@ -87,6 +88,8 @@ public sealed class BeatmapPersistenceService(
         logger.LogInformation(
             "Persisted map '{Song}' ({MapId}){Action}",
             m.SongName, beatmap.Id, isNew ? " [new]" : "");
+
+        return beatmap.Id;
     }
 
     /// <summary>

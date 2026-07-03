@@ -7,5 +7,9 @@ export {
 	RealtimeProvider,
 	useRealtimeContext,
 } from "./RealtimeProvider";
-export type { DevicePairedEvent, DeviceStatusEvent } from "./types";
+export type {
+	DevicePairedEvent,
+	DeviceStatusEvent,
+	LiveMapStartedEvent,
+} from "./types";
 export { useRealtimeEvent } from "./useRealtimeEvent";

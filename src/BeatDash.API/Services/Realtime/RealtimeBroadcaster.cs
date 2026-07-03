@@ -22,4 +22,11 @@ public sealed class RealtimeBroadcaster(
             .Group(RealtimeHub.GroupForUser(userId))
             .ReceiveDevicePaired(payload);
     }
+
+    /// <inheritdoc/>
+    public Task SendLiveMapStartedAsync(Guid userId, LiveMapStartedEvent payload) {
+        return hubContext.Clients
+            .Group(RealtimeHub.GroupForUser(userId))
+            .ReceiveLiveMapStarted(payload);
+    }
 }
