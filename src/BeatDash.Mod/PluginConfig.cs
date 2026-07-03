@@ -20,4 +20,7 @@ public class PluginConfig {
     /// When false (default), UDP is enabled and live traffic is sent over UDP.
     /// </summary>
     public virtual bool DisableUdp { get; set; } = false;
+
+    public virtual int TransmissionBufferSize { get; set; } = 50;
+    public virtual bool DisableDoubleBuffering { get; set; } = true;
 }

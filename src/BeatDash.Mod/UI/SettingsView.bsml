@@ -7,6 +7,8 @@
         <bool-setting id="disableUdp" text="Disable UDP"/>
         <button id="submit-pin" on-click="OnSubmitPin" text="Submit"/>
 
-        <text text="~ErrorText" id="error-text"/>
+        <text text="Developer Settings. Only adjust them if you know what you are doing."/>
+        <slider-setting text="Transmit Buffer Size" id="transmitBufferSize" max="500" min="5" integer-only="true" increment="1"/>
+        <bool-setting text="Disable Double Buffering" id="disableDoubleBuffering"/>
     </settings-container>
 </bg>
