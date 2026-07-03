@@ -82,7 +82,14 @@ function DevicesPage() {
 	const devices = data?.status === 200 ? data.data : [];
 
 	const queryClient = useQueryClient();
-	useRealtimeEvent("receiveDeviceStatus", () => {
+	useRealtimeEvent("receiveDeviceStatus", (event) => {
+		const device = devices.find((d) => d.clientId === event.clientId);
+		const name = device?.name ?? "Device";
+		if (event.isOnline) {
+			toast.success(`${name} came online`);
+		} else {
+			toast.info(`${name} went offline`);
+		}
 		queryClient.invalidateQueries({
 			queryKey: getGetApiDeviceQueryKey(),
 		});
