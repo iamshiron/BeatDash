@@ -36,6 +36,7 @@ public class TokenRefreshHandler : DelegatingHandler {
                 var pair = await PerformTokenRefreshAsync();
                 _config.AccessToken = pair.AccessToken;
                 _config.RefreshToken = pair.RefreshToken;
+                Plugin.Log.Debug("Access token refreshed.");
             }
 
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _config.AccessToken);
