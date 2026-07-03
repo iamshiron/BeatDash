@@ -13,13 +13,25 @@ using Object = UnityEngine.Object;
 namespace Shiron.BeatDash.Mod.Trackers;
 
 /// <summary>
-/// Collects beatmap metadata and cover art at scene load, then transmits them over the socket.
+/// Tracks the full lifecycle of a beatmap gameplay session: start, pause, resume,
+/// finish, fail, and quit. Collects beatmap metadata and cover art at scene load,
+/// subscribes to gameplay events, and transmits state changes over the socket.
 /// </summary>
-public sealed class LevelDataTracker(GameplayCoreSceneSetupData setupData, NetworkManager networkManager)
-    : IAsyncInitializable, IDisposable {
+public sealed class GameplaySessionTracker(
+    GameplayCoreSceneSetupData setupData,
+    PauseController pauseController,
+    ILevelEndActions levelEndActions,
+    PrepareLevelCompletionResults prepareResults,
+    NetworkManager networkManager
+) : IAsyncInitializable, IDisposable {
+
+    private int _correlationId;
+    private string _levelId = null!;
+    private int _maxMultipliedScore;
 
     /// <summary>
-    /// Builds the <see cref="MapStartMessage"/> from scene data and sends it along with the cover image.
+    /// Subscribes to gameplay lifecycle events, computes derived data, and sends
+    /// the initial map-start message with metadata and cover art.
     /// </summary>
     public async Task InitializeAsync(CancellationToken ct) {
         var level = setupData.beatmapLevel;
@@ -28,12 +40,20 @@ public sealed class LevelDataTracker(GameplayCoreSceneSetupData setupData, Netwo
         var transformedData = setupData.transformedBeatmapData;
         var characteristic = key.beatmapCharacteristic;
 
+        _levelId = level.levelID;
+        _correlationId = UnityEngine.Random.Range(0, int.MaxValue);
+        _maxMultipliedScore = ScoreModel.ComputeMaxMultipliedScoreForBeatmap(transformedData);
+
+        pauseController.didPauseEvent += HandlePaused;
+        pauseController.didResumeEvent += HandleResumed;
+        pauseController.didReturnToMenuEvent += HandleQuit;
+        levelEndActions.levelFinishedEvent += HandleFinished;
+        levelEndActions.levelFailedEvent += HandleFailed;
+
         var coverPng = await GetCoverPngAsync(level);
 
-        var correlationId = UnityEngine.Random.Range(0, int.MaxValue);
-
         var mapPayload = new MapStartMessage {
-            CorrelationId = correlationId,
+            CorrelationId = _correlationId,
             LevelId = level.levelID,
             DurationMs = (int) (level.songDuration * 1000f),
             NotesPerSecond = transformedData.cuttableNotesCount / level.songDuration,
@@ -61,13 +81,87 @@ public sealed class LevelDataTracker(GameplayCoreSceneSetupData setupData, Netwo
             },
         };
 
-        var imageData = MapCoverImagePacket.Build(correlationId, coverPng);
+        var imageData = MapCoverImagePacket.Build(_correlationId, coverPng);
         var imagePayload = new BinaryPacket(BinaryPacketTypes.MapCoverImage, imageData);
 
-        Plugin.Log.Info($"Sending map data: {mapPayload.SongName} - {mapPayload.SongAuthor} ({imagePayload.Payload.Length} bytes) [corr={correlationId}]");
+        Plugin.Log.Info($"Sending map data: {mapPayload.SongName} - {mapPayload.SongAuthor} ({imagePayload.Payload.Length} bytes) [corr={_correlationId}]");
 
         await networkManager.PostMessageAsync(JsonConvert.SerializeObject(mapPayload));
         await networkManager.PostMessageAsync(imagePayload);
+    }
+
+    private async void HandlePaused() {
+        await SendStateAsync(MapState.Paused);
+    }
+
+    private async void HandleResumed() {
+        await SendStateAsync(MapState.Resumed);
+    }
+
+    private async void HandleFinished() {
+        var results = prepareResults.FillLevelCompletionResults(
+            LevelCompletionResults.LevelEndStateType.Cleared,
+            LevelCompletionResults.LevelEndAction.None);
+        await SendStateAsync(MapState.Finished, results);
+    }
+
+    private async void HandleFailed() {
+        var results = prepareResults.FillLevelCompletionResults(
+            LevelCompletionResults.LevelEndStateType.Failed,
+            LevelCompletionResults.LevelEndAction.None);
+        await SendStateAsync(MapState.Failed, results);
+    }
+
+    private async void HandleQuit() {
+        var results = prepareResults.FillLevelCompletionResults(
+            LevelCompletionResults.LevelEndStateType.Incomplete,
+            LevelCompletionResults.LevelEndAction.Quit);
+        await SendStateAsync(MapState.Quit, results);
+    }
+
+    /// <summary>
+    /// Builds and sends a <see cref="MapStateMessage"/> over the socket.
+    /// All exceptions are caught to prevent crashing the Unity main thread.
+    /// </summary>
+    private async Task SendStateAsync(MapState state, LevelCompletionResults? bsResults = null) {
+        try {
+            var message = new MapStateMessage {
+                CorrelationId = _correlationId,
+                LevelId = _levelId,
+                State = state.ToString(),
+                Results = bsResults is not null ? ToMapResults(bsResults) : null,
+            };
+
+            Plugin.Log.Info($"Sending map state: {state} [corr={_correlationId}]");
+            await networkManager.PostMessageAsync(JsonConvert.SerializeObject(message));
+        } catch (Exception e) {
+            Plugin.Log.Error($"Failed to send MapState.{state}: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Converts Beat Saber's <see cref="LevelCompletionResults"/> into the
+    /// serializable <see cref="MapResults"/> DTO.
+    /// </summary>
+    private MapResults ToMapResults(LevelCompletionResults results) {
+        var accuracy = _maxMultipliedScore > 0
+            ? results.multipliedScore / (float) _maxMultipliedScore
+            : 0f;
+
+        return new MapResults {
+            Score = results.modifiedScore,
+            MultipliedScore = results.multipliedScore,
+            MaxMultipliedScore = _maxMultipliedScore,
+            Accuracy = accuracy,
+            Rank = results.rank.ToString(),
+            FullCombo = results.fullCombo,
+            MaxCombo = results.maxCombo,
+            GoodCuts = results.goodCutsCount,
+            BadCuts = results.badCutsCount,
+            MissedNotes = results.missedCount,
+            Energy = results.energy,
+            EndSongTime = results.endSongTime,
+        };
     }
 
     /// <summary>
@@ -150,5 +244,11 @@ public sealed class LevelDataTracker(GameplayCoreSceneSetupData setupData, Netwo
     }
 
     /// <inheritdoc/>
-    public void Dispose() { }
+    public void Dispose() {
+        pauseController.didPauseEvent -= HandlePaused;
+        pauseController.didResumeEvent -= HandleResumed;
+        pauseController.didReturnToMenuEvent -= HandleQuit;
+        levelEndActions.levelFinishedEvent -= HandleFinished;
+        levelEndActions.levelFailedEvent -= HandleFailed;
+    }
 }

@@ -108,6 +108,7 @@ builder.Services.AddScoped<SocketBinaryDispatcher>();
 
 // Socket handlers
 builder.Services.AddSocketMessageHandler<MapStartMessage, MapStartHandler>();
+builder.Services.AddSocketMessageHandler<MapStateMessage, MapStateHandler>();
 builder.Services.AddSocketBinaryHandler<MapCoverImageHandler>(BinaryPacketTypes.MapCoverImage);
 
 // SignalR

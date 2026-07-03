@@ -7,6 +7,6 @@ namespace Shiron.BeatDash.Mod.Installers;
 [UsedImplicitly]
 public class MapTrackerInstaller : Installer {
     public override void InstallBindings() {
-        Container.BindInterfacesAndSelfTo<LevelDataTracker>().AsSingle();
+        Container.BindInterfacesAndSelfTo<GameplaySessionTracker>().AsSingle();
     }
 }

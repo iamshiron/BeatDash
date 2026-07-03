@@ -25,4 +25,10 @@ public interface IRealtimeClient {
     /// </summary>
     /// <param name="payload">The live map started event details.</param>
     Task ReceiveLiveMapStarted(LiveMapStartedEvent payload);
+
+    /// <summary>
+    /// Notifies the client that a beatmap's gameplay state changed.
+    /// </summary>
+    /// <param name="payload">The live map state changed event details.</param>
+    Task ReceiveLiveMapStateChanged(LiveMapStateChangedEvent payload);
 }

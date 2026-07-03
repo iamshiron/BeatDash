@@ -28,4 +28,11 @@ public interface IRealtimeBroadcaster {
     /// <param name="userId">The user whose clients should receive the event.</param>
     /// <param name="payload">The live map started event details.</param>
     Task SendLiveMapStartedAsync(Guid userId, LiveMapStartedEvent payload);
+
+    /// <summary>
+    /// Notifies a user's web clients that a beatmap's gameplay state changed.
+    /// </summary>
+    /// <param name="userId">The user whose clients should receive the event.</param>
+    /// <param name="payload">The live map state changed event details.</param>
+    Task SendLiveMapStateChangedAsync(Guid userId, LiveMapStateChangedEvent payload);
 }
