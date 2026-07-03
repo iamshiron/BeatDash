@@ -91,6 +91,7 @@ builder.Services.AddSingleton<IMapDataStore, MapDataStore>();
 builder.Services.AddSingleton<IStorageService, MinioStorageService>();
 builder.Services.AddScoped<IPinService, PinService>();
 builder.Services.AddScoped<IBeatmapPersistenceService, BeatmapPersistenceService>();
+builder.Services.AddHostedService<UdpSocketService>();
 
 // MinIO
 builder.Services.AddSingleton<IMinioClient>(sp => {

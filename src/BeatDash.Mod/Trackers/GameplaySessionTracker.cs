@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Shiron.BeatDash.Data.Socket;
 using Shiron.BeatDash.Mod.Network;
@@ -13,6 +14,7 @@ using Object = UnityEngine.Object;
 
 namespace Shiron.BeatDash.Mod.Trackers;
 
+[UsedImplicitly]
 public sealed class GameplaySessionTracker(
     GameplaySession session,
     GameplayCoreSceneSetupData setupData,
@@ -21,7 +23,6 @@ public sealed class GameplaySessionTracker(
     PrepareLevelCompletionResults prepareResults,
     NetworkManager networkManager
 ) : IAsyncInitializable, IDisposable {
-
     public async Task InitializeAsync(CancellationToken ct) {
         var level = setupData.beatmapLevel;
         var key = setupData.beatmapKey;
@@ -47,7 +48,7 @@ public sealed class GameplaySessionTracker(
             GameplayModifiers.SongSpeed.Slower => 0.85f,
             GameplayModifiers.SongSpeed.Faster => 1.2f,
             GameplayModifiers.SongSpeed.SuperFast => 1.5f,
-            _ => 1f,
+            _ => 1f
         };
 
         var mapPayload = new MapStartMessage {
@@ -75,7 +76,7 @@ public sealed class GameplaySessionTracker(
                 DescriptionLocalizationKey = characteristic.descriptionLocalizationKey,
                 LocalizationKey = characteristic.characteristicNameLocalizationKey,
                 ColorCount = characteristic.numberOfColors,
-                Requires360Movement = characteristic.requires360Movement,
+                Requires360Movement = characteristic.requires360Movement
             },
             ModifierFlags = PackModifierFlags(setupData.gameplayModifiers),
             SongSpeed = songSpeedMul,
@@ -83,13 +84,14 @@ public sealed class GameplaySessionTracker(
             NotesPerHandRight = notesRight,
             NpsCurve = npsCurve,
             WallTimeline = walls,
-            BombPositions = bombs,
+            BombPositions = bombs
         };
 
         var imageData = MapCoverImagePacket.Build(session.CorrelationId, coverPng);
         var imagePayload = new BinaryPacket(BinaryPacketTypes.MapCoverImage, imageData);
 
-        Plugin.Log.Info($"Sending map data: {mapPayload.SongName} - {mapPayload.SongAuthor} ({imagePayload.Payload.Length} bytes) [corr={session.CorrelationId}]");
+        Plugin.Log.Info(
+            $"Sending map data: {mapPayload.SongName} - {mapPayload.SongAuthor} ({imagePayload.Payload.Length} bytes) [corr={session.CorrelationId}]");
 
         await networkManager.PostMessageAsync(JsonConvert.SerializeObject(mapPayload));
         await networkManager.PostMessageAsync(imagePayload);
@@ -130,7 +132,7 @@ public sealed class GameplaySessionTracker(
                 CorrelationId = session.CorrelationId,
                 LevelId = session.LevelId,
                 State = state.ToString(),
-                Results = bsResults is not null ? ToMapResults(bsResults) : null,
+                Results = bsResults is not null ? ToMapResults(bsResults) : null
             };
 
             Plugin.Log.Info($"Sending map state: {state} [corr={session.CorrelationId}]");
@@ -157,7 +159,7 @@ public sealed class GameplaySessionTracker(
             BadCuts = results.badCutsCount,
             MissedNotes = results.missedCount,
             Energy = results.energy,
-            EndSongTime = results.endSongTime,
+            EndSongTime = results.endSongTime
         };
     }
 
@@ -177,7 +179,7 @@ public sealed class GameplaySessionTracker(
                     bombs.Add(new BombEntryDto {
                         SongTime = note.time,
                         LineIndex = note.lineIndex,
-                        NoteLineLayer = (int) note.noteLineLayer,
+                        NoteLineLayer = (int) note.noteLineLayer
                     });
                     break;
                 case NoteData note:
@@ -192,7 +194,7 @@ public sealed class GameplaySessionTracker(
                         Duration = obstacle.duration,
                         LineIndex = obstacle.lineIndex,
                         Width = obstacle.width,
-                        Height = obstacle.height,
+                        Height = obstacle.height
                     });
                     break;
             }
@@ -224,7 +226,7 @@ public sealed class GameplaySessionTracker(
         var obstacleBit = gm.enabledObstacleType switch {
             GameplayModifiers.EnabledObstacleType.FullHeightOnly => ModifierBit.Obstacles_FullHeightOnly,
             GameplayModifiers.EnabledObstacleType.NoObstacles => ModifierBit.Obstacles_NoObstacles,
-            _ => ModifierBit.Obstacles_All,
+            _ => ModifierBit.Obstacles_All
         };
         flags |= 1 << (int) obstacleBit;
 
@@ -232,7 +234,7 @@ public sealed class GameplaySessionTracker(
             GameplayModifiers.SongSpeed.Slower => ModifierBit.SongSpeed_Slower,
             GameplayModifiers.SongSpeed.Faster => ModifierBit.SongSpeed_Faster,
             GameplayModifiers.SongSpeed.SuperFast => ModifierBit.SongSpeed_SuperFast,
-            _ => ModifierBit.SongSpeed_Normal,
+            _ => ModifierBit.SongSpeed_Normal
         };
         flags |= 1 << (int) speedBit;
 
@@ -262,7 +264,7 @@ public sealed class GameplaySessionTracker(
             RenderTextureReadWrite.Linear
         );
 
-        UnityEngine.Graphics.Blit(sourceTex, tmp);
+        Graphics.Blit(sourceTex, tmp);
 
         var previous = RenderTexture.active;
         RenderTexture.active = tmp;
@@ -285,7 +287,7 @@ public sealed class GameplaySessionTracker(
             BeatmapDifficulty.Easy or BeatmapDifficulty.Normal or BeatmapDifficulty.Hard => 10f,
             BeatmapDifficulty.Expert => 12f,
             BeatmapDifficulty.ExpertPlus => 16f,
-            _ => null,
+            _ => null
         };
     }
 
