@@ -35,6 +35,7 @@ export interface LiveMapStartedEvent {
 	cuttableObjectCount: number;
 	laneCount: number;
 	characteristic: string;
+	songSpeed: number;
 	timestamp: string;
 }
 

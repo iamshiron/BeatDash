@@ -172,7 +172,7 @@ function MapHeader({
 	onCoverError: () => void;
 }) {
 	const maxSeconds = Math.floor(map.durationMs / 1000);
-	const elapsed = useElapsedTime(map.timestamp, maxSeconds);
+	const elapsed = useElapsedTime(map.timestamp, maxSeconds, map.songSpeed);
 	const elapsedStr = formatClock(elapsed);
 	const progress =
 		maxSeconds > 0 ? Math.min((elapsed / maxSeconds) * 100, 100) : 0;
@@ -274,19 +274,24 @@ function formatClock(totalSeconds: number): string {
 	return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-function useElapsedTime(startTimestamp: string, maxSeconds: number): number {
+function useElapsedTime(
+	startTimestamp: string,
+	maxSeconds: number,
+	songSpeed: number,
+): number {
 	const [elapsed, setElapsed] = useState(0);
 
 	useEffect(() => {
 		const start = new Date(startTimestamp).getTime();
 		const update = () => {
-			const seconds = Math.floor((Date.now() - start) / 1000);
-			setElapsed(Math.min(Math.max(0, seconds), maxSeconds));
+			const realSeconds = (Date.now() - start) / 1000;
+			const songSeconds = realSeconds * songSpeed;
+			setElapsed(Math.min(Math.max(0, Math.floor(songSeconds)), maxSeconds));
 		};
 		update();
-		const id = setInterval(update, 1000);
+		const id = setInterval(update, 200);
 		return () => clearInterval(id);
-	}, [startTimestamp, maxSeconds]);
+	}, [startTimestamp, maxSeconds, songSpeed]);
 
 	return elapsed;
 }
