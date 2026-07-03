@@ -12,7 +12,10 @@ namespace Shiron.BeatDash.API.Services.Socket.Handlers;
 public sealed class MapStateHandler(
     ILogger<MapStateHandler> logger,
     IRealtimeBroadcaster broadcaster
-) : SocketMessageHandler<MapStateMessage> {
+) : SocketBinaryMessageHandler<MapStateMessage> {
+
+    /// <inheritdoc/>
+    public override BinaryPacketTypes PacketType => BinaryPacketTypes.MapState;
 
     protected override async Task HandleMessageAsync(
         SocketContext context, MapStateMessage message, CancellationToken ct) {

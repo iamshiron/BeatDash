@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
-using Newtonsoft.Json;
 using Shiron.BeatDash.Data.Socket;
 using Shiron.BeatDash.Mod.Network;
 using SiraUtil.Zenject;
@@ -88,13 +87,12 @@ public sealed class GameplaySessionTracker(
         };
 
         var imageData = MapCoverImagePacket.Build(session.CorrelationId, coverPng);
-        var imagePayload = new BinaryPacket(BinaryPacketTypes.MapCoverImage, imageData);
 
         Plugin.Log.Info(
-            $"Sending map data: {mapPayload.SongName} - {mapPayload.SongAuthor} ({imagePayload.Payload.Length} bytes) [corr={session.CorrelationId}]");
+            $"Sending map data: {mapPayload.SongName} - {mapPayload.SongAuthor} ({imageData.Length} bytes) [corr={session.CorrelationId}]");
 
-        await networkManager.PostMessageAsync(JsonConvert.SerializeObject(mapPayload));
-        await networkManager.PostMessageAsync(imagePayload);
+        await networkManager.PostJsonBinaryAsync(BinaryPacketTypes.MapStart, mapPayload, forceTcp: true);
+        await networkManager.PostBinaryAsync(BinaryPacketTypes.MapCoverImage, imageData, forceTcp: true);
     }
 
     private async void HandlePaused() {
@@ -136,7 +134,7 @@ public sealed class GameplaySessionTracker(
             };
 
             Plugin.Log.Info($"Sending map state: {state} [corr={session.CorrelationId}]");
-            await networkManager.PostMessageAsync(JsonConvert.SerializeObject(message));
+            await networkManager.PostJsonBinaryAsync(BinaryPacketTypes.MapState, message, forceTcp: true);
         } catch (Exception e) {
             Plugin.Log.Error($"Failed to send MapState.{state}: {e.Message}");
         }

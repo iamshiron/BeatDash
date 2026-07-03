@@ -17,7 +17,10 @@ public sealed class MapStartHandler(
     IBeatmapPersistenceService persistence,
     IRealtimeBroadcaster broadcaster,
     IDbContextFactory<BeatDashDbContext> dbFactory
-) : SocketMessageHandler<MapStartMessage> {
+) : SocketBinaryMessageHandler<MapStartMessage> {
+
+    /// <inheritdoc/>
+    public override BinaryPacketTypes PacketType => BinaryPacketTypes.MapStart;
 
     protected override async Task HandleMessageAsync(
         SocketContext context, MapStartMessage message, CancellationToken ct) {

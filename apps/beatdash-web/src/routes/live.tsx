@@ -48,9 +48,7 @@ function LivePage() {
 	const [currentMap, setCurrentMap] = useState<LiveMapStartedEvent | null>(
 		null,
 	);
-	const [scoreUpdate, setScoreUpdate] = useState<ScoreUpdateEvent | null>(
-		null,
-	);
+	const [scoreUpdate, setScoreUpdate] = useState<ScoreUpdateEvent | null>(null);
 	const [coverFailed, setCoverFailed] = useState(false);
 	const { data, isLoading } = useGetApiDevice();
 	const devices = data?.status === 200 ? data.data : [];
@@ -379,7 +377,9 @@ function ScoreOverlay({ data }: { data: ScoreUpdateEvent | null }) {
 						ref={scoreRef}
 						className="inline-block font-heading text-8xl font-bold tracking-normal tabular-nums md:text-9xl"
 					>
-						<span className="text-transparent">{scoreStr.slice(0, splitAt)}</span>
+						<span className="text-transparent">
+							{scoreStr.slice(0, splitAt)}
+						</span>
 						{scoreStr.slice(splitAt)}
 					</span>
 					<MultiplierRing combo={combo} pulseRef={multiplierRef} />
@@ -458,8 +458,16 @@ const MULTIPLIER_TIERS = [
 	{ threshold: 8, multiplier: 8, next: null },
 ] as const;
 
-function MultiplierRing({ combo, pulseRef }: { combo: number; pulseRef: React.RefObject<HTMLSpanElement | null> }) {
-	const tier = [...MULTIPLIER_TIERS].reverse().find((t) => combo >= t.threshold)!;
+function MultiplierRing({
+	combo,
+	pulseRef,
+}: {
+	combo: number;
+	pulseRef: React.RefObject<HTMLSpanElement | null>;
+}) {
+	const tier = [...MULTIPLIER_TIERS]
+		.reverse()
+		.find((t) => combo >= t.threshold)!;
 	const progress =
 		tier.next !== null
 			? (combo - tier.threshold) / (tier.next - tier.threshold)
@@ -469,7 +477,11 @@ function MultiplierRing({ combo, pulseRef }: { combo: number; pulseRef: React.Re
 
 	return (
 		<div className="relative flex size-28 shrink-0 items-center justify-center">
-			<svg className="absolute size-full -rotate-90" viewBox="0 0 64 64" aria-hidden="true">
+			<svg
+				className="absolute size-full -rotate-90"
+				viewBox="0 0 64 64"
+				aria-hidden="true"
+			>
 				<circle
 					cx="32"
 					cy="32"

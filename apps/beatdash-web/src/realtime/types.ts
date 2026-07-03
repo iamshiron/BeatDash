@@ -52,3 +52,28 @@ export interface ScoreUpdateEvent {
 	misses: number;
 	timestamp: string;
 }
+
+/** Mirrors `Shiron.BeatDash.Data.Socket.MapResults`. */
+export interface MapResults {
+	score: number;
+	multipliedScore: number;
+	maxMultipliedScore: number;
+	accuracy: number;
+	rank: string;
+	fullCombo: boolean;
+	maxCombo: number;
+	goodCuts: number;
+	badCuts: number;
+	missedNotes: number;
+	energy: number;
+	endSongTime: number;
+}
+
+/** Mirrors `Shiron.BeatDash.Data.Realtime.Events.LiveMapStateChangedEvent`. */
+export interface LiveMapStateChangedEvent {
+	mapId: string | null;
+	correlationId: number;
+	state: string;
+	results: MapResults | null;
+	timestamp: string;
+}

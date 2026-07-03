@@ -2,6 +2,7 @@ import type {
 	DevicePairedEvent,
 	DeviceStatusEvent,
 	LiveMapStartedEvent,
+	LiveMapStateChangedEvent,
 	ScoreUpdateEvent,
 } from "./types";
 
@@ -20,5 +21,6 @@ export interface RealtimeEvents {
 	receiveDeviceStatus: DeviceStatusEvent;
 	receiveDevicePaired: DevicePairedEvent;
 	receiveLiveMapStarted: LiveMapStartedEvent;
+	receiveLiveMapStateChanged: LiveMapStateChangedEvent;
 	receiveScoreUpdate: ScoreUpdateEvent;
 }

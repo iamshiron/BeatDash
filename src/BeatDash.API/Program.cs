@@ -52,6 +52,8 @@ builder.Services.Configure<StorageOptions>(options => {
     options.BucketUserData = builder.Configuration["MINIO_BUCKET_USER_DATA"] ?? "beatdash-user-data";
 });
 
+builder.Services.Configure<UdpSocketOptions>(builder.Configuration.GetSection("UdpSocket"));
+
 builder.Services.ConfigureApplicationCookie(o => {
     o.LoginPath = "/auth/login";
     o.Cookie.Name = "BeatDashAuth";
@@ -108,10 +110,10 @@ builder.Services.AddScoped<SocketMessageDispatcher>();
 builder.Services.AddScoped<SocketBinaryDispatcher>();
 
 // Socket handlers
-builder.Services.AddSocketMessageHandler<MapStartMessage, MapStartHandler>();
-builder.Services.AddSocketMessageHandler<MapStateMessage, MapStateHandler>();
+builder.Services.AddSocketBinaryHandler<MapStartHandler>(BinaryPacketTypes.MapStart);
+builder.Services.AddSocketBinaryHandler<MapStateHandler>(BinaryPacketTypes.MapState);
 builder.Services.AddSocketMessageHandler<LiveStatsMessage, LiveStatsHandler>();
-builder.Services.AddSocketMessageHandler<ScoreUpdateMessage, ScoreUpdateHandler>();
+builder.Services.AddSocketBinaryHandler<ScoreUpdateHandler>(BinaryPacketTypes.ScoreUpdate);
 builder.Services.AddSocketBinaryHandler<MapCoverImageHandler>(BinaryPacketTypes.MapCoverImage);
 builder.Services.AddSocketBinaryHandler<MotionFrameHandler>(BinaryPacketTypes.MotionFrameBatch);
 

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Shiron.BeatDash.Data.Socket;
 
 namespace Shiron.BeatDash.API.Services.Socket;
@@ -19,4 +20,35 @@ public interface ISocketBinaryHandler {
     /// <param name="data">The packet data (after the header).</param>
     /// <param name="ct">Cancellation token for the operation.</param>
     Task HandleAsync(SocketContext context, ReadOnlyMemory<byte> data, CancellationToken ct);
+}
+
+/// <summary>
+/// Base class for binary packets whose payload is a UTF-8 JSON message.
+/// Automatically deserializes the payload before invoking the handler logic.
+/// </summary>
+/// <typeparam name="T">The message type to deserialize.</typeparam>
+/// <remarks>
+/// Register with <c>services.AddSocketBinaryHandler&lt;THandler&gt;(packetType)</c>.
+/// </remarks>
+public abstract class SocketBinaryMessageHandler<T> : ISocketBinaryHandler where T : class {
+    private static readonly JsonSerializerOptions SerializerOptions = new() {
+        PropertyNameCaseInsensitive = true
+    };
+
+    /// <inheritdoc/>
+    public abstract BinaryPacketTypes PacketType { get; }
+
+    async Task ISocketBinaryHandler.HandleAsync(SocketContext context, ReadOnlyMemory<byte> data, CancellationToken ct) {
+        var message = JsonSerializer.Deserialize<T>(data.Span, SerializerOptions);
+        if (message is null) return;
+        await HandleMessageAsync(context, message, ct);
+    }
+
+    /// <summary>
+    /// Handles the deserialized message.
+    /// </summary>
+    /// <param name="context">The active connection context.</param>
+    /// <param name="message">The deserialized message.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    protected abstract Task HandleMessageAsync(SocketContext context, T message, CancellationToken ct);
 }

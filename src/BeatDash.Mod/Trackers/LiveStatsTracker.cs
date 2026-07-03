@@ -215,19 +215,12 @@ public sealed class LiveStatsTracker(
             var maxModifiedScore = scoreController.immediateMaxPossibleModifiedScore;
             var accuracy = maxModifiedScore > 0 ? modifiedScore / (float) maxModifiedScore : 0f;
 
-            var message = new ScoreUpdateMessage {
-                CorrelationId = session.CorrelationId,
-                SongTime = songTime,
-                Score = modifiedScore,
-                MaxScore = maxModifiedScore,
-                Accuracy = accuracy,
-                Rank = ScoreRank.FromAccuracy(accuracy),
-                Energy = energyCounter.energy,
-                Combo = _currentCombo,
-                Misses = _left.Misses + _right.Misses,
-            };
+            var packet = new ScoreUpdatePacket(
+                session.CorrelationId, songTime, modifiedScore, maxModifiedScore,
+                accuracy, ScoreUpdatePacket.GradeFromAccuracy(accuracy),
+                energyCounter.energy, _currentCombo, _left.Misses + _right.Misses);
 
-            await networkManager.PostMessageAsync(JsonConvert.SerializeObject(message));
+            await networkManager.PostBinaryAsync(BinaryPacketTypes.ScoreUpdate, packet.ToBytes());
         } catch (Exception e) {
             Plugin.Log.Error($"Failed to send score update: {e.Message}");
         }
@@ -265,8 +258,7 @@ public sealed class LiveStatsTracker(
 
             if (motionFrames.Length > 0) {
                 var binaryPayload = PackMotionFrames(session.CorrelationId, motionFrames);
-                var packet = new BinaryPacket(BinaryPacketTypes.MotionFrameBatch, binaryPayload);
-                await networkManager.PostMessageAsync(packet);
+                await networkManager.PostBinaryAsync(BinaryPacketTypes.MotionFrameBatch, binaryPayload);
             }
         } catch (Exception e) {
             Plugin.Log.Error($"Failed to send live stats batch: {e.Message}");

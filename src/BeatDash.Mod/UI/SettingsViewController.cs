@@ -33,11 +33,18 @@ internal class SettingsViewController : BSMLAutomaticViewController {
     [UsedImplicitly]
     public StringSetting Pin = null!;
 
+    [UIComponent("disableUdp")]
+    [UsedImplicitly]
+    public ToggleSetting DisableUdp = null!;
+
     public override void __Activate(bool addedToHierarchy, bool screenSystemEnabling) {
         base.__Activate(addedToHierarchy, screenSystemEnabling);
 
         Host.Text = _config.Host;
         Host.ApplyValue();
+
+        DisableUdp.Value = _config.DisableUdp;
+        DisableUdp.ApplyValue();
     }
 
     public async Task OnSubmitPin() {
@@ -73,6 +80,7 @@ internal class SettingsViewController : BSMLAutomaticViewController {
         base.__Deactivate(removedFromHierarchy, deactivateGameObject, screenSystemDisabling);
 
         _config.Host = Host.Text;
+        _config.DisableUdp = DisableUdp.Value;
         Plugin.Log.Info($"Saving Config!");
         Plugin.Log.Info($"Host: {_config.Host}");
     }

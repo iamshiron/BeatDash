@@ -2,6 +2,8 @@ using System.Buffers;
 using System.Net.WebSockets;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Shiron.BeatDash.API.Configuration;
 using Shiron.BeatDash.API.Services;
 using Shiron.BeatDash.API.Services.Realtime;
 using Shiron.BeatDash.API.Services.Socket;
@@ -25,6 +27,7 @@ public static class ClientEndpoints {
             SocketMessageDispatcher messageDispatcher,
             SocketBinaryDispatcher binaryDispatcher,
             BeatDashDbContext db,
+            IOptions<UdpSocketOptions> udpOptions,
             CancellationToken ct) => {
                 if (!context.WebSockets.IsWebSocketRequest) {
                     return Results.BadRequest();
@@ -49,6 +52,9 @@ public static class ClientEndpoints {
                     );
 
                 await broadcaster.SendDeviceStatusAsync(userId.Value, new DeviceStatusEvent(clientId, true, DateTime.UtcNow));
+
+                var udpTicket = sessionManager.GenerateUdpTicket(session.Id);
+                await sessionManager.SendMessageAsync(session.Id, new UdpHandshakeMessage { Ticket = udpTicket, Port = udpOptions.Value.Port }, ct);
 
                 var socketContext = new SocketContext(userId.Value, clientId, session.Id, sessionManager);
 

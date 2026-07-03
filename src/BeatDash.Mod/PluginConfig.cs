@@ -15,4 +15,9 @@ public class PluginConfig {
     public virtual string ClientId { get; set; } = Guid.NewGuid().ToString();
     public virtual string? AccessToken { get; set; } = null;
     public virtual string? RefreshToken { get; set; } = null;
+
+    /// <summary>
+    /// When false (default), UDP is enabled and live traffic is sent over UDP.
+    /// </summary>
+    public virtual bool DisableUdp { get; set; } = false;
 }
