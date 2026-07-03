@@ -12,6 +12,7 @@ using Shiron.BeatDash.API.Configuration;
 using Shiron.BeatDash.API.Endpoints;
 using Shiron.BeatDash.API.Seeders;
 using Shiron.BeatDash.API.Services;
+using Shiron.BeatDash.API.Services.Realtime;
 using Shiron.BeatDash.API.Services.Socket;
 using Shiron.BeatDash.API.Services.Socket.Handlers;
 using Shiron.BeatDash.Data.Socket;
@@ -109,6 +110,10 @@ builder.Services.AddScoped<SocketBinaryDispatcher>();
 builder.Services.AddSocketMessageHandler<MapStartMessage, MapStartHandler>();
 builder.Services.AddSocketBinaryHandler<MapCoverImageHandler>(BinaryPacketTypes.MapCoverImage);
 
+// SignalR
+builder.Services.AddSignalR();
+builder.Services.AddScoped<IRealtimeBroadcaster, RealtimeBroadcaster>();
+
 var app = builder.Build();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -141,5 +146,6 @@ api.MapIdentityEndpoints();
 api.MapDeviceEndpoints();
 api.MapClientEndpoints();
 api.MapMapEndpoints();
+api.MapHub<RealtimeHub>("/realtime");
 
 app.Run();

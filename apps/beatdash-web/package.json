@@ -19,6 +19,7 @@
         "@fontsource-variable/fredoka": "^5.2.10",
         "@hugeicons/core-free-icons": "^4.0.0",
         "@hugeicons/react": "^1.1.6",
+        "@microsoft/signalr": "^10.0.0",
         "@phosphor-icons/react": "^2.1.7",
         "@shiron/ui": "workspace:*",
         "@tanstack/react-query": "^5.62.0",

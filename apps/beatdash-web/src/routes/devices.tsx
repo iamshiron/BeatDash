@@ -1,23 +1,19 @@
-import { useState } from "react";
-import { createFileRoute, redirect } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
-import { formatDistanceToNow } from "date-fns";
-import { toast } from "sonner";
 import {
 	MonitorIcon,
 	PencilSimpleIcon,
 	PlusIcon,
 	TrashIcon,
 } from "@phosphor-icons/react";
-import { AppShell } from "@/components/layout/AppShell";
-import { AddDeviceDialog } from "@/components/devices/AddDeviceDialog";
 import {
-	getGetApiDeviceQueryKey,
-	useDeleteApiDeviceClientId,
-	useGetApiDevice,
-	usePatchApiDeviceClientId,
-} from "@/api/device/device";
-import type { DeviceResponseDto } from "@/api/model";
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "@shiron/ui/components/ui/alert-dialog";
 import { Badge } from "@shiron/ui/components/ui/badge";
 import { Button } from "@shiron/ui/components/ui/button";
 import {
@@ -36,18 +32,6 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@shiron/ui/components/ui/dialog";
-import { Field, FieldGroup, FieldLabel } from "@shiron/ui/components/ui/field";
-import { Input } from "@shiron/ui/components/ui/input";
-import {
-	AlertDialog,
-	AlertDialogAction,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogDescription,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogTitle,
-} from "@shiron/ui/components/ui/alert-dialog";
 import {
 	Empty,
 	EmptyContent,
@@ -56,8 +40,25 @@ import {
 	EmptyMedia,
 	EmptyTitle,
 } from "@shiron/ui/components/ui/empty";
+import { Field, FieldGroup, FieldLabel } from "@shiron/ui/components/ui/field";
+import { Input } from "@shiron/ui/components/ui/input";
 import { Skeleton } from "@shiron/ui/components/ui/skeleton";
 import { cn } from "@shiron/ui/lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { formatDistanceToNow } from "date-fns";
+import { useState } from "react";
+import { toast } from "sonner";
+import {
+	getGetApiDeviceQueryKey,
+	useDeleteApiDeviceClientId,
+	useGetApiDevice,
+	usePatchApiDeviceClientId,
+} from "@/api/device/device";
+import type { DeviceResponseDto } from "@/api/model";
+import { AddDeviceDialog } from "@/components/devices/AddDeviceDialog";
+import { AppShell } from "@/components/layout/AppShell";
+import { useRealtimeEvent } from "@/realtime";
 
 export const Route = createFileRoute("/devices")({
 	beforeLoad: ({ context }) => {
@@ -79,6 +80,20 @@ function DevicesPage() {
 
 	const { data, isLoading } = useGetApiDevice();
 	const devices = data?.status === 200 ? data.data : [];
+
+	const queryClient = useQueryClient();
+	useRealtimeEvent("receiveDeviceStatus", () => {
+		queryClient.invalidateQueries({
+			queryKey: getGetApiDeviceQueryKey(),
+		});
+	});
+	useRealtimeEvent("receiveDevicePaired", () => {
+		setPairDialogOpen(false);
+		queryClient.invalidateQueries({
+			queryKey: getGetApiDeviceQueryKey(),
+		});
+		toast.success("Device paired successfully.");
+	});
 
 	return (
 		<AppShell>

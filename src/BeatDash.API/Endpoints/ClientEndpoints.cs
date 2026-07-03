@@ -3,7 +3,9 @@ using System.Net.WebSockets;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using Shiron.BeatDash.API.Services;
+using Shiron.BeatDash.API.Services.Realtime;
 using Shiron.BeatDash.API.Services.Socket;
+using Shiron.BeatDash.Data.Realtime.Events;
 using Shiron.BeatDash.Data.Socket;
 using Shiron.BeatDash.DB;
 
@@ -18,6 +20,7 @@ public static class ClientEndpoints {
         group.MapGet("/ws", async (
             HttpContext context,
             ISessionManager sessionManager,
+            IRealtimeBroadcaster broadcaster,
             IHostApplicationLifetime appLifetime,
             SocketMessageDispatcher messageDispatcher,
             SocketBinaryDispatcher binaryDispatcher,
@@ -45,6 +48,8 @@ public static class ClientEndpoints {
                             .SetProperty(p => p.LastSeenAt, DateTime.UtcNow), ct
                     );
 
+                await broadcaster.SendDeviceStatusAsync(userId.Value, new DeviceStatusEvent(clientId, true, DateTime.UtcNow));
+
                 var socketContext = new SocketContext(userId.Value, clientId, session.Id, sessionManager);
 
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(
@@ -60,6 +65,7 @@ public static class ClientEndpoints {
                     // Connection cancelled — normal shutdown
                 } finally {
                     sessionManager.TryRemoveSession(session.Id);
+                    await broadcaster.SendDeviceStatusAsync(userId.Value, new DeviceStatusEvent(clientId, false, DateTime.UtcNow));
                 }
 
                 return Results.Empty;

@@ -1,9 +1,11 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Shiron.BeatDash.Data.Socket;
 using Shiron.BeatDash.API.Services;
+using Shiron.BeatDash.API.Services.Realtime;
 using Shiron.BeatDash.Data;
+using Shiron.BeatDash.Data.Realtime.Events;
+using Shiron.BeatDash.Data.Socket;
 using Shiron.BeatDash.DB;
 using Shiron.BeatDash.DB.Schema;
 
@@ -22,6 +24,7 @@ public static class DeviceEndpoints {
         group.MapPost("/authenticate", async (
             IPinService pinService,
             ITokenService tokenService,
+            IRealtimeBroadcaster broadcaster,
             BeatDashDbContext db,
             [FromBody] AuthenticateDeviceDto body,
             CancellationToken ct) => {
@@ -54,6 +57,8 @@ public static class DeviceEndpoints {
                 }, ct);
 
                 await db.SaveChangesAsync(ct);
+
+                await broadcaster.SendDevicePairedAsync(userId, new DevicePairedEvent(device.ClientId, device.Name, DateTime.UtcNow));
 
                 return Results.Ok(tokenPair);
             }).AllowAnonymous().Produces<TokenPairExpiryDto>();

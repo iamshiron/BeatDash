@@ -1,10 +1,11 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { RouterProvider, createRouter } from "@tanstack/react-router";
+import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { ThemeProvider } from "next-themes";
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
 import { AuthProvider, useAuth } from "@/contexts/auth";
+import { RealtimeProvider } from "@/realtime";
 import type { RouterContext } from "@/routes/__root";
 import "@/styles/globals.css";
 import { routeTree } from "./routeTree.gen";
@@ -55,9 +56,11 @@ createRoot(document.getElementById("root")!).render(
 		>
 			<QueryClientProvider client={queryClient}>
 				<AuthProvider>
-					<App />
+					<RealtimeProvider>
+						<App />
+					</RealtimeProvider>
+					<ReactQueryDevtools buttonPosition="bottom-right" />
 				</AuthProvider>
-				<ReactQueryDevtools buttonPosition="bottom-right" />
 			</QueryClientProvider>
 		</ThemeProvider>
 	</StrictMode>,
