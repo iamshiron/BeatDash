@@ -42,4 +42,11 @@ public sealed class RealtimeBroadcaster(
             .Group(RealtimeHub.GroupForUser(userId))
             .ReceiveLiveStats(payload);
     }
+
+    /// <inheritdoc/>
+    public Task SendScoreUpdateAsync(Guid userId, ScoreUpdateEvent payload) {
+        return hubContext.Clients
+            .Group(RealtimeHub.GroupForUser(userId))
+            .ReceiveScoreUpdate(payload);
+    }
 }

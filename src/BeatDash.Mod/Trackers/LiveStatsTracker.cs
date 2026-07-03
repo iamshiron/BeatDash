@@ -173,6 +173,8 @@ public sealed class LiveStatsTracker(
             SaberSpeed = hasKinematics ? kin.SaberSpeed : 0f,
             CutPointDistance = hasKinematics ? kin.CutPointDist : 0f,
         });
+
+        _ = SendScoreUpdateAsync(atsc.songTime);
     }
 
     private void OnComboChanged(int combo) {
@@ -205,6 +207,29 @@ public sealed class LiveStatsTracker(
         if (_flushed) return;
         _flushed = true;
         _ = SendBatchAsync(atsc.songTime);
+    }
+
+    private async Task SendScoreUpdateAsync(float songTime) {
+        try {
+            var modifiedScore = scoreController.modifiedScore;
+            var maxModifiedScore = scoreController.immediateMaxPossibleModifiedScore;
+            var accuracy = maxModifiedScore > 0 ? modifiedScore / (float) maxModifiedScore : 0f;
+
+            var message = new ScoreUpdateMessage {
+                CorrelationId = session.CorrelationId,
+                SongTime = songTime,
+                Score = modifiedScore,
+                MaxScore = maxModifiedScore,
+                Accuracy = accuracy,
+                Rank = ScoreRank.FromAccuracy(accuracy),
+                Energy = energyCounter.energy,
+                Combo = _currentCombo,
+            };
+
+            await networkManager.PostMessageAsync(JsonConvert.SerializeObject(message));
+        } catch (Exception e) {
+            Plugin.Log.Error($"Failed to send score update: {e.Message}");
+        }
     }
 
     private async Task SendBatchAsync(float songTime) {

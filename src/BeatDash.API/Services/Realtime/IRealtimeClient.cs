@@ -33,4 +33,9 @@ public interface IRealtimeClient {
     Task ReceiveLiveMapStateChanged(LiveMapStateChangedEvent payload);
 
     Task ReceiveLiveStats(LiveStatsEvent payload);
+
+    /// <summary>
+    /// Notifies the client that a score-relevant event occurred during gameplay.
+    /// </summary>
+    Task ReceiveScoreUpdate(ScoreUpdateEvent payload);
 }

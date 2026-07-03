@@ -37,4 +37,9 @@ public interface IRealtimeBroadcaster {
     Task SendLiveMapStateChangedAsync(Guid userId, LiveMapStateChangedEvent payload);
 
     Task SendLiveStatsAsync(Guid userId, LiveStatsEvent payload);
+
+    /// <summary>
+    /// Notifies a user's web clients that a score-relevant event occurred during gameplay.
+    /// </summary>
+    Task SendScoreUpdateAsync(Guid userId, ScoreUpdateEvent payload);
 }

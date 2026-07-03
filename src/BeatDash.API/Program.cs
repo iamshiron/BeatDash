@@ -110,6 +110,7 @@ builder.Services.AddScoped<SocketBinaryDispatcher>();
 builder.Services.AddSocketMessageHandler<MapStartMessage, MapStartHandler>();
 builder.Services.AddSocketMessageHandler<MapStateMessage, MapStateHandler>();
 builder.Services.AddSocketMessageHandler<LiveStatsMessage, LiveStatsHandler>();
+builder.Services.AddSocketMessageHandler<ScoreUpdateMessage, ScoreUpdateHandler>();
 builder.Services.AddSocketBinaryHandler<MapCoverImageHandler>(BinaryPacketTypes.MapCoverImage);
 builder.Services.AddSocketBinaryHandler<MotionFrameHandler>(BinaryPacketTypes.MotionFrameBatch);
 
