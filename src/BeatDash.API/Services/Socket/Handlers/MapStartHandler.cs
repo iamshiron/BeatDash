@@ -55,6 +55,13 @@ public sealed class MapStartHandler(
             message.CuttableObjectCount,
             message.LaneCount,
             message.Characteristic.SerializedName,
+            message.ModifierFlags,
+            message.SongSpeed,
+            message.NotesPerHandLeft,
+            message.NotesPerHandRight,
+            message.NpsCurve ?? [],
+            message.WallTimeline ?? [],
+            message.BombPositions ?? [],
             DateTime.UtcNow
         ));
     }

@@ -1,4 +1,5 @@
 using System;
+using Shiron.BeatDash.Data.Socket;
 
 namespace Shiron.BeatDash.Data.Realtime.Events;
 
@@ -22,6 +23,13 @@ namespace Shiron.BeatDash.Data.Realtime.Events;
 /// <param name="CuttableObjectCount">Total cuttable notes.</param>
 /// <param name="LaneCount">Number of lanes.</param>
 /// <param name="Characteristic">The beatmap characteristic serialized name (e.g. "Standard").</param>
+/// <param name="ModifierFlags">Packed bitmask of gameplay modifiers. See <see cref="Shiron.BeatDash.Data.Socket.ModifierBit"/>.</param>
+/// <param name="SongSpeed">Actual playback speed multiplier (e.g. 1.0, 1.5).</param>
+/// <param name="NotesPerHandLeft">Total ColorA (left saber) note count.</param>
+/// <param name="NotesPerHandRight">Total ColorB (right saber) note count.</param>
+/// <param name="NpsCurve">Notes per second, one int per second of song time.</param>
+/// <param name="WallTimeline">All walls/obstacles with start time, duration, and position.</param>
+/// <param name="BombPositions">All bomb positions in the song timeline.</param>
 /// <param name="Timestamp">When the event occurred (UTC).</param>
 public sealed record LiveMapStartedEvent(
     Guid? MapId,
@@ -40,5 +48,12 @@ public sealed record LiveMapStartedEvent(
     int CuttableObjectCount,
     int LaneCount,
     string Characteristic,
+    int ModifierFlags,
+    float SongSpeed,
+    int NotesPerHandLeft,
+    int NotesPerHandRight,
+    int[] NpsCurve,
+    WallEntryDto[] WallTimeline,
+    BombEntryDto[] BombPositions,
     DateTime Timestamp
 );

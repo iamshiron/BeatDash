@@ -1,0 +1,33 @@
+namespace Shiron.BeatDash.Data.Socket;
+
+public sealed class NoteEventDto {
+    public required float SongTime { get; init; }
+    public required int ColorType { get; init; }
+    public required int NoteType { get; init; }
+    public required int CutDirection { get; init; }
+    public required int LineIndex { get; init; }
+    public required int NoteLineLayer { get; init; }
+    public required int Result { get; init; }
+
+    public required int MaxScore { get; init; }
+
+    public required int BeforeCutScore { get; init; }
+    public required int CenterDistanceScore { get; init; }
+    public required int AfterCutScore { get; init; }
+
+    public required float BeforeCutSwing { get; init; }
+    public required float AfterCutSwing { get; init; }
+
+    public required float SaberSpeed { get; init; }
+    public required float CutPointDistance { get; init; }
+}
+
+public sealed class ComboBreakDto {
+    public required float SongTime { get; init; }
+    public required int ComboBefore { get; init; }
+}
+
+public sealed class EnergyChangeDto {
+    public required float SongTime { get; init; }
+    public required float Energy { get; init; }
+}

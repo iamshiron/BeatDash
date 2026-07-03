@@ -109,7 +109,9 @@ builder.Services.AddScoped<SocketBinaryDispatcher>();
 // Socket handlers
 builder.Services.AddSocketMessageHandler<MapStartMessage, MapStartHandler>();
 builder.Services.AddSocketMessageHandler<MapStateMessage, MapStateHandler>();
+builder.Services.AddSocketMessageHandler<LiveStatsMessage, LiveStatsHandler>();
 builder.Services.AddSocketBinaryHandler<MapCoverImageHandler>(BinaryPacketTypes.MapCoverImage);
+builder.Services.AddSocketBinaryHandler<MotionFrameHandler>(BinaryPacketTypes.MotionFrameBatch);
 
 // SignalR
 builder.Services.AddSignalR();

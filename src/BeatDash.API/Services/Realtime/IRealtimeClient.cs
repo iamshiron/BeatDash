@@ -31,4 +31,6 @@ public interface IRealtimeClient {
     /// </summary>
     /// <param name="payload">The live map state changed event details.</param>
     Task ReceiveLiveMapStateChanged(LiveMapStateChangedEvent payload);
+
+    Task ReceiveLiveStats(LiveStatsEvent payload);
 }

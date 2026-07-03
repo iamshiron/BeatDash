@@ -21,6 +21,18 @@ public sealed class MapStartMessage : SocketMessage<MapStartMessage> {
     public required int CuttableObjectCount { get; init; }
     public required int LaneCount { get; init; }
     public required BeatmapCharacteristic Characteristic { get; init; }
+
+    /// <summary>
+    /// Packed bitmask of all gameplay modifiers. See <see cref="ModifierBit"/> for bit positions.
+    /// </summary>
+    public required int ModifierFlags { get; init; }
+
+    public required float SongSpeed { get; init; }
+    public required int NotesPerHandLeft { get; init; }
+    public required int NotesPerHandRight { get; init; }
+    public required int[] NpsCurve { get; init; }
+    public required WallEntryDto[] WallTimeline { get; init; }
+    public required BombEntryDto[] BombPositions { get; init; }
 }
 
 /// <summary>

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,12 +13,8 @@ using Object = UnityEngine.Object;
 
 namespace Shiron.BeatDash.Mod.Trackers;
 
-/// <summary>
-/// Tracks the full lifecycle of a beatmap gameplay session: start, pause, resume,
-/// finish, fail, and quit. Collects beatmap metadata and cover art at scene load,
-/// subscribes to gameplay events, and transmits state changes over the socket.
-/// </summary>
 public sealed class GameplaySessionTracker(
+    GameplaySession session,
     GameplayCoreSceneSetupData setupData,
     PauseController pauseController,
     ILevelEndActions levelEndActions,
@@ -25,14 +22,6 @@ public sealed class GameplaySessionTracker(
     NetworkManager networkManager
 ) : IAsyncInitializable, IDisposable {
 
-    private int _correlationId;
-    private string _levelId = null!;
-    private int _maxMultipliedScore;
-
-    /// <summary>
-    /// Subscribes to gameplay lifecycle events, computes derived data, and sends
-    /// the initial map-start message with metadata and cover art.
-    /// </summary>
     public async Task InitializeAsync(CancellationToken ct) {
         var level = setupData.beatmapLevel;
         var key = setupData.beatmapKey;
@@ -40,9 +29,10 @@ public sealed class GameplaySessionTracker(
         var transformedData = setupData.transformedBeatmapData;
         var characteristic = key.beatmapCharacteristic;
 
-        _levelId = level.levelID;
-        _correlationId = UnityEngine.Random.Range(0, int.MaxValue);
-        _maxMultipliedScore = ScoreModel.ComputeMaxMultipliedScoreForBeatmap(transformedData);
+        session.LevelId = level.levelID;
+        session.CorrelationId = UnityEngine.Random.Range(0, int.MaxValue);
+        session.MaxMultipliedScore = ScoreModel.ComputeMaxMultipliedScoreForBeatmap(transformedData);
+        session.IsInitialized = true;
 
         pauseController.didPauseEvent += HandlePaused;
         pauseController.didResumeEvent += HandleResumed;
@@ -52,8 +42,16 @@ public sealed class GameplaySessionTracker(
 
         var coverPng = await GetCoverPngAsync(level);
 
+        var (notesLeft, notesRight, npsCurve, walls, bombs) = ComputeMapDetails(transformedData, level.songDuration);
+        var songSpeedMul = setupData.gameplayModifiers.songSpeed switch {
+            GameplayModifiers.SongSpeed.Slower => 0.85f,
+            GameplayModifiers.SongSpeed.Faster => 1.2f,
+            GameplayModifiers.SongSpeed.SuperFast => 1.5f,
+            _ => 1f,
+        };
+
         var mapPayload = new MapStartMessage {
-            CorrelationId = _correlationId,
+            CorrelationId = session.CorrelationId,
             LevelId = level.levelID,
             DurationMs = (int) (level.songDuration * 1000f),
             NotesPerSecond = transformedData.cuttableNotesCount / level.songDuration,
@@ -79,12 +77,19 @@ public sealed class GameplaySessionTracker(
                 ColorCount = characteristic.numberOfColors,
                 Requires360Movement = characteristic.requires360Movement,
             },
+            ModifierFlags = PackModifierFlags(setupData.gameplayModifiers),
+            SongSpeed = songSpeedMul,
+            NotesPerHandLeft = notesLeft,
+            NotesPerHandRight = notesRight,
+            NpsCurve = npsCurve,
+            WallTimeline = walls,
+            BombPositions = bombs,
         };
 
-        var imageData = MapCoverImagePacket.Build(_correlationId, coverPng);
+        var imageData = MapCoverImagePacket.Build(session.CorrelationId, coverPng);
         var imagePayload = new BinaryPacket(BinaryPacketTypes.MapCoverImage, imageData);
 
-        Plugin.Log.Info($"Sending map data: {mapPayload.SongName} - {mapPayload.SongAuthor} ({imagePayload.Payload.Length} bytes) [corr={_correlationId}]");
+        Plugin.Log.Info($"Sending map data: {mapPayload.SongName} - {mapPayload.SongAuthor} ({imagePayload.Payload.Length} bytes) [corr={session.CorrelationId}]");
 
         await networkManager.PostMessageAsync(JsonConvert.SerializeObject(mapPayload));
         await networkManager.PostMessageAsync(imagePayload);
@@ -119,39 +124,31 @@ public sealed class GameplaySessionTracker(
         await SendStateAsync(MapState.Quit, results);
     }
 
-    /// <summary>
-    /// Builds and sends a <see cref="MapStateMessage"/> over the socket.
-    /// All exceptions are caught to prevent crashing the Unity main thread.
-    /// </summary>
     private async Task SendStateAsync(MapState state, LevelCompletionResults? bsResults = null) {
         try {
             var message = new MapStateMessage {
-                CorrelationId = _correlationId,
-                LevelId = _levelId,
+                CorrelationId = session.CorrelationId,
+                LevelId = session.LevelId,
                 State = state.ToString(),
                 Results = bsResults is not null ? ToMapResults(bsResults) : null,
             };
 
-            Plugin.Log.Info($"Sending map state: {state} [corr={_correlationId}]");
+            Plugin.Log.Info($"Sending map state: {state} [corr={session.CorrelationId}]");
             await networkManager.PostMessageAsync(JsonConvert.SerializeObject(message));
         } catch (Exception e) {
             Plugin.Log.Error($"Failed to send MapState.{state}: {e.Message}");
         }
     }
 
-    /// <summary>
-    /// Converts Beat Saber's <see cref="LevelCompletionResults"/> into the
-    /// serializable <see cref="MapResults"/> DTO.
-    /// </summary>
     private MapResults ToMapResults(LevelCompletionResults results) {
-        var accuracy = _maxMultipliedScore > 0
-            ? results.multipliedScore / (float) _maxMultipliedScore
+        var accuracy = session.MaxMultipliedScore > 0
+            ? results.multipliedScore / (float) session.MaxMultipliedScore
             : 0f;
 
         return new MapResults {
             Score = results.modifiedScore,
             MultipliedScore = results.multipliedScore,
-            MaxMultipliedScore = _maxMultipliedScore,
+            MaxMultipliedScore = session.MaxMultipliedScore,
             Accuracy = accuracy,
             Rank = results.rank.ToString(),
             FullCombo = results.fullCombo,
@@ -164,9 +161,84 @@ public sealed class GameplaySessionTracker(
         };
     }
 
-    /// <summary>
-    /// Encodes the level's cover image to PNG bytes.
-    /// </summary>
+    private static (int NotesLeft, int NotesRight, int[] NpsCurve, WallEntryDto[] Walls, BombEntryDto[] Bombs)
+        ComputeMapDetails(IReadonlyBeatmapData data, float songDuration) {
+
+        var bucketCount = Math.Max(1, (int) Math.Ceiling(songDuration) + 1);
+        var nps = new int[bucketCount];
+        var walls = new List<WallEntryDto>();
+        var bombs = new List<BombEntryDto>();
+        var notesLeft = 0;
+        var notesRight = 0;
+
+        foreach (var item in data.allBeatmapDataItems) {
+            switch (item) {
+                case NoteData note when note.gameplayType == NoteData.GameplayType.Bomb:
+                    bombs.Add(new BombEntryDto {
+                        SongTime = note.time,
+                        LineIndex = note.lineIndex,
+                        NoteLineLayer = (int) note.noteLineLayer,
+                    });
+                    break;
+                case NoteData note:
+                    if (note.colorType == ColorType.ColorA) notesLeft++;
+                    else if (note.colorType == ColorType.ColorB) notesRight++;
+                    var bucket = (int) note.time;
+                    if (bucket >= 0 && bucket < nps.Length) nps[bucket]++;
+                    break;
+                case ObstacleData obstacle:
+                    walls.Add(new WallEntryDto {
+                        StartTime = obstacle.time,
+                        Duration = obstacle.duration,
+                        LineIndex = obstacle.lineIndex,
+                        Width = obstacle.width,
+                        Height = obstacle.height,
+                    });
+                    break;
+            }
+        }
+
+        return (notesLeft, notesRight, nps, walls.ToArray(), bombs.ToArray());
+    }
+
+    private static int PackModifierFlags(GameplayModifiers gm) {
+        var flags = 0;
+
+        if (gm.noFailOn0Energy) flags |= 1 << (int) ModifierBit.NoFailOn0Energy;
+        if (gm.instaFail) flags |= 1 << (int) ModifierBit.InstaFail;
+        if (gm.failOnSaberClash) flags |= 1 << (int) ModifierBit.FailOnSaberClash;
+        if (gm.noBombs) flags |= 1 << (int) ModifierBit.NoBombs;
+        if (gm.fastNotes) flags |= 1 << (int) ModifierBit.FastNotes;
+        if (gm.strictAngles) flags |= 1 << (int) ModifierBit.StrictAngles;
+        if (gm.disappearingArrows) flags |= 1 << (int) ModifierBit.DisappearingArrows;
+        if (gm.ghostNotes) flags |= 1 << (int) ModifierBit.GhostNotes;
+        if (gm.noArrows) flags |= 1 << (int) ModifierBit.NoArrows;
+        if (gm.proMode) flags |= 1 << (int) ModifierBit.ProMode;
+        if (gm.zenMode) flags |= 1 << (int) ModifierBit.ZenMode;
+        if (gm.smallCubes) flags |= 1 << (int) ModifierBit.SmallCubes;
+
+        flags |= 1 << (int) (gm.energyType == GameplayModifiers.EnergyType.Battery
+            ? ModifierBit.EnergyType_Battery
+            : ModifierBit.EnergyType_Bar);
+
+        var obstacleBit = gm.enabledObstacleType switch {
+            GameplayModifiers.EnabledObstacleType.FullHeightOnly => ModifierBit.Obstacles_FullHeightOnly,
+            GameplayModifiers.EnabledObstacleType.NoObstacles => ModifierBit.Obstacles_NoObstacles,
+            _ => ModifierBit.Obstacles_All,
+        };
+        flags |= 1 << (int) obstacleBit;
+
+        var speedBit = gm.songSpeed switch {
+            GameplayModifiers.SongSpeed.Slower => ModifierBit.SongSpeed_Slower,
+            GameplayModifiers.SongSpeed.Faster => ModifierBit.SongSpeed_Faster,
+            GameplayModifiers.SongSpeed.SuperFast => ModifierBit.SongSpeed_SuperFast,
+            _ => ModifierBit.SongSpeed_Normal,
+        };
+        flags |= 1 << (int) speedBit;
+
+        return flags;
+    }
+
     private static async Task<byte[]> GetCoverPngAsync(BeatmapLevel level) {
         var sprite = await level.previewMediaData.GetCoverSpriteAsync()
             ?? throw new InvalidOperationException("Cover sprite is null.");
@@ -178,9 +250,6 @@ public sealed class GameplaySessionTracker(
         return png;
     }
 
-    /// <summary>
-    /// Creates a CPU-readable copy of a sprite's texture via a render-to-texture blit.
-    /// </summary>
     private static Texture2D ExtractReadableTexture(Sprite sprite) {
         var sourceTex = sprite.texture;
         var rect = sprite.textureRect;
@@ -208,9 +277,6 @@ public sealed class GameplaySessionTracker(
         return readableTex;
     }
 
-    /// <summary>
-    /// Returns the note-jump speed, falling back to difficulty-based defaults when unset.
-    /// </summary>
     private static float? GetNoteJumpSpeed(BeatmapDifficulty difficulty, BeatmapBasicData data) {
         var njs = data.noteJumpMovementSpeed;
         if (njs > 0) return njs;
@@ -223,9 +289,6 @@ public sealed class GameplaySessionTracker(
         };
     }
 
-    /// <summary>
-    /// Resolves the display difficulty name, preferring custom labels for custom levels.
-    /// </summary>
     private static string ExtractDifficultyName(BeatmapLevel level, BeatmapKey key) {
         var difficultyName = key.difficulty.ToString("g");
 
@@ -243,7 +306,6 @@ public sealed class GameplaySessionTracker(
         return difficultyName;
     }
 
-    /// <inheritdoc/>
     public void Dispose() {
         pauseController.didPauseEvent -= HandlePaused;
         pauseController.didResumeEvent -= HandleResumed;

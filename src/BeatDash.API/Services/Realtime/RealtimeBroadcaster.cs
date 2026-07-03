@@ -36,4 +36,10 @@ public sealed class RealtimeBroadcaster(
             .Group(RealtimeHub.GroupForUser(userId))
             .ReceiveLiveMapStateChanged(payload);
     }
+
+    public Task SendLiveStatsAsync(Guid userId, LiveStatsEvent payload) {
+        return hubContext.Clients
+            .Group(RealtimeHub.GroupForUser(userId))
+            .ReceiveLiveStats(payload);
+    }
 }

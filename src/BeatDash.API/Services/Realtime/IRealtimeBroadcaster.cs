@@ -35,4 +35,6 @@ public interface IRealtimeBroadcaster {
     /// <param name="userId">The user whose clients should receive the event.</param>
     /// <param name="payload">The live map state changed event details.</param>
     Task SendLiveMapStateChangedAsync(Guid userId, LiveMapStateChangedEvent payload);
+
+    Task SendLiveStatsAsync(Guid userId, LiveStatsEvent payload);
 }
