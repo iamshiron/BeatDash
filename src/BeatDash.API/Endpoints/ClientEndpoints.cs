@@ -17,7 +17,7 @@ public static class ClientEndpoints {
     public static void MapClientEndpoints(this IEndpointRouteBuilder endpoints) {
         var group = endpoints.MapGroup("/client").WithTags("Client");
 
-        group.MapGet("/ws", async (
+        group.MapGet("/game", async (
             HttpContext context,
             ISessionManager sessionManager,
             IRealtimeBroadcaster broadcaster,

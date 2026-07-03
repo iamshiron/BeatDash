@@ -38,7 +38,7 @@ public class NetworkManager : IDisposable {
 
         _cancellationTokenSource = new CancellationTokenSource();
 
-        await _socket.ConnectAsync(new Uri($"{(Config.UseSsl ? "wss" : "ws")}://{Config.Host}/api/client/ws"), _cancellationTokenSource.Token);
+        await _socket.ConnectAsync(new Uri($"{(Config.UseSsl ? "wss" : "ws")}://{Config.Host}/api/client/game"), _cancellationTokenSource.Token);
         _ = Task.Run(ReceiveLoopAsync, _cancellationTokenSource.Token);
     }
 

@@ -8,7 +8,7 @@ import {
 } from "react";
 import { useAuth } from "@/contexts/auth";
 
-const HUB_URL = "/api/realtime";
+const HUB_URL = "/api/client/web";
 
 const RECONNECT_DELAYS = [0, 2000, 5000, 10000, 30000];
 
