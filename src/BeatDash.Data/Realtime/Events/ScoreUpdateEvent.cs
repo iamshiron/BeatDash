@@ -24,5 +24,6 @@ public sealed record ScoreUpdateEvent(
     string Rank,
     float Energy,
     int Combo,
+    int Misses,
     DateTime Timestamp
 );

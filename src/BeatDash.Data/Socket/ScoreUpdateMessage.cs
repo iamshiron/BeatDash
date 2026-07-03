@@ -27,4 +27,7 @@ public sealed class ScoreUpdateMessage : SocketMessage<ScoreUpdateMessage> {
 
     /// <summary>Current active combo (resets on miss/bad cut).</summary>
     public required int Combo { get; init; }
+
+    /// <summary>Total missed notes so far.</summary>
+    public required int Misses { get; init; }
 }

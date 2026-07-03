@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -9,9 +9,17 @@ import {
 	GuitarIcon,
 	BarbellIcon,
 	WallIcon,
+	HeartbeatIcon,
+	LightningIcon,
+	TargetIcon,
+	ScalesIcon,
 } from "@phosphor-icons/react";
 import { AppShell } from "@/components/layout/AppShell";
-import { useRealtimeEvent, type LiveMapStartedEvent } from "@/realtime";
+import {
+	useRealtimeEvent,
+	type LiveMapStartedEvent,
+	type ScoreUpdateEvent,
+} from "@/realtime";
 import { getGetApiDeviceQueryKey, useGetApiDevice } from "@/api/device/device";
 import { getGetApiMapsMapIdCoverUrl } from "@/api/maps/maps";
 import { Badge } from "@shiron/ui/components/ui/badge";
@@ -40,6 +48,9 @@ function LivePage() {
 	const [currentMap, setCurrentMap] = useState<LiveMapStartedEvent | null>(
 		null,
 	);
+	const [scoreUpdate, setScoreUpdate] = useState<ScoreUpdateEvent | null>(
+		null,
+	);
 	const [coverFailed, setCoverFailed] = useState(false);
 	const { data, isLoading } = useGetApiDevice();
 	const devices = data?.status === 200 ? data.data : [];
@@ -49,6 +60,7 @@ function LivePage() {
 	useRealtimeEvent("receiveDeviceStatus", (event) => {
 		if (!event.isOnline) {
 			setCurrentMap(null);
+			setScoreUpdate(null);
 		}
 		queryClient.invalidateQueries({
 			queryKey: getGetApiDeviceQueryKey(),
@@ -57,6 +69,10 @@ function LivePage() {
 	useRealtimeEvent("receiveLiveMapStarted", (event) => {
 		setCurrentMap(event);
 		setCoverFailed(false);
+		setScoreUpdate(null);
+	});
+	useRealtimeEvent("receiveScoreUpdate", (event) => {
+		setScoreUpdate(event);
 	});
 
 	if (isLoading) {
@@ -130,10 +146,7 @@ function LivePage() {
 					onCoverError={() => setCoverFailed(true)}
 				/>
 
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-					<PlaceholderCard title="Performance Charts" />
-					<PlaceholderCard title="Current Rank" />
-				</div>
+				<ScoreOverlay data={scoreUpdate} />
 			</div>
 		</AppShell>
 	);
@@ -304,11 +317,180 @@ function MusicPlaceholder() {
 	);
 }
 
-function PlaceholderCard({ title }: { title: string }) {
+const RANK_STYLES: Record<string, string> = {
+	SS: "text-amber-400",
+	S: "text-fuchsia-400",
+	A: "text-sky-400",
+	B: "text-emerald-400",
+	C: "text-yellow-400",
+	D: "text-orange-400",
+	E: "text-red-400",
+};
+
+function usePulseAnimation(
+	value: string | number,
+	animationName: string,
+	duration: number,
+) {
+	const ref = useRef<HTMLSpanElement>(null);
+	const prev = useRef(value);
+
+	useEffect(() => {
+		if (value === prev.current) return;
+		prev.current = value;
+		const el = ref.current;
+		if (!el) return;
+		el.style.animation = "none";
+		void el.offsetHeight;
+		el.style.animation = `${animationName} ${duration}ms ease-out`;
+	}, [value, animationName, duration]);
+
+	return ref;
+}
+
+const scoreFmt = new Intl.NumberFormat("en-US", { minimumIntegerDigits: 7 });
+
+function ScoreOverlay({ data }: { data: ScoreUpdateEvent | null }) {
+	const score = data?.score ?? 0;
+	const rank = data?.rank ?? "—";
+	const accuracy = data?.accuracy ?? 0;
+	const energy = data?.energy ?? 1;
+	const combo = data?.combo ?? 0;
+	const misses = data?.misses ?? 0;
+	const scoreRef = usePulseAnimation(score, "score-pulse", 150);
+	const rankRef = usePulseAnimation(rank, "rank-pulse", 500);
+	const multiplier = combo >= 8 ? 8 : combo >= 4 ? 4 : combo >= 2 ? 2 : 1;
+	const multiplierRef = usePulseAnimation(multiplier, "rank-pulse", 500);
+
+	const scoreStr = scoreFmt.format(score);
+	const scoreReal = score.toLocaleString("en-US");
+	const splitAt = scoreStr.length - scoreReal.length;
+
 	return (
-		<div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card/30 p-12">
-			<p className="text-sm font-medium text-muted-foreground">{title}</p>
-			<p className="mt-1 text-xs text-muted-foreground/60">Coming soon</p>
+		<div className="flex flex-col items-center gap-8 py-8">
+			<div className="mx-auto grid w-fit grid-cols-2 items-center gap-x-8 gap-y-6 px-4 sm:grid-cols-3 md:grid-cols-5">
+				<div className="col-span-full flex items-center justify-between px-4 py-2">
+					<span
+						ref={scoreRef}
+						className="inline-block font-heading text-8xl font-bold tracking-normal tabular-nums md:text-9xl"
+					>
+						<span className="text-transparent">{scoreStr.slice(0, splitAt)}</span>
+						{scoreStr.slice(splitAt)}
+					</span>
+					<MultiplierRing combo={combo} pulseRef={multiplierRef} />
+				</div>
+				<div className="flex flex-col items-center gap-1">
+					<span
+						ref={rankRef}
+						className={cn(
+							"inline-block text-6xl font-bold",
+							RANK_STYLES[rank] ?? "text-muted-foreground",
+						)}
+					>
+						{rank}
+					</span>
+					<span className="text-xs uppercase tracking-wider text-muted-foreground/60">
+						Rank
+					</span>
+				</div>
+				<div className="flex flex-col items-center gap-1">
+					<span className="flex items-center gap-2 font-mono text-xl tabular-nums">
+						<ScalesIcon className="size-5 text-muted-foreground" />
+						{(accuracy * 100).toFixed(1)}%
+					</span>
+					<span className="text-xs uppercase tracking-wider text-muted-foreground/60">
+						Accuracy
+					</span>
+				</div>
+				<div className="flex flex-col items-center gap-1">
+					<div className="flex items-center gap-2">
+						<HeartbeatIcon className="size-5 text-muted-foreground" />
+						<div className="h-2.5 w-24 overflow-hidden rounded-full bg-muted">
+							<div
+								className={cn(
+									"h-full rounded-full transition-all duration-150",
+									energy > 0.5
+										? "bg-emerald-500"
+										: energy > 0.25
+											? "bg-amber-500"
+											: "bg-red-500",
+								)}
+								style={{ width: `${energy * 100}%` }}
+							/>
+						</div>
+					</div>
+					<span className="text-xs uppercase tracking-wider text-muted-foreground/60">
+						Health
+					</span>
+				</div>
+				<div className="flex flex-col items-center gap-1">
+					<span className="flex items-center gap-2 font-mono text-xl tabular-nums">
+						<LightningIcon className="size-5 text-muted-foreground" />
+						{combo}x
+					</span>
+					<span className="text-xs uppercase tracking-wider text-muted-foreground/60">
+						Combo
+					</span>
+				</div>
+				<div className="flex flex-col items-center gap-1">
+					<span className="flex items-center gap-2 font-mono text-xl tabular-nums">
+						<TargetIcon className="size-5 text-muted-foreground" />
+						{misses}
+					</span>
+					<span className="text-xs uppercase tracking-wider text-muted-foreground/60">
+						Misses
+					</span>
+				</div>
+			</div>
+		</div>
+	);
+}
+
+const MULTIPLIER_TIERS = [
+	{ threshold: 0, multiplier: 1, next: 2 },
+	{ threshold: 2, multiplier: 2, next: 4 },
+	{ threshold: 4, multiplier: 4, next: 8 },
+	{ threshold: 8, multiplier: 8, next: null },
+] as const;
+
+function MultiplierRing({ combo, pulseRef }: { combo: number; pulseRef: React.RefObject<HTMLSpanElement | null> }) {
+	const tier = [...MULTIPLIER_TIERS].reverse().find((t) => combo >= t.threshold)!;
+	const progress =
+		tier.next !== null
+			? (combo - tier.threshold) / (tier.next - tier.threshold)
+			: 1;
+	const r = 28;
+	const c = 2 * Math.PI * r;
+
+	return (
+		<div className="relative flex size-28 shrink-0 items-center justify-center">
+			<svg className="absolute size-full -rotate-90" viewBox="0 0 64 64" aria-hidden="true">
+				<circle
+					cx="32"
+					cy="32"
+					r={r}
+					fill="none"
+					strokeWidth="3"
+					className="stroke-muted/30"
+				/>
+				<circle
+					cx="32"
+					cy="32"
+					r={r}
+					fill="none"
+					strokeWidth="3"
+					strokeLinecap="round"
+					strokeDasharray={c}
+					strokeDashoffset={c * (1 - progress)}
+					className="stroke-primary duration-300 ease-out [transition:stroke-dashoffset]"
+				/>
+			</svg>
+			<span
+				ref={pulseRef}
+				className="inline-block font-heading text-5xl font-bold tabular-nums text-primary"
+			>
+				{tier.multiplier}x
+			</span>
 		</div>
 	);
 }

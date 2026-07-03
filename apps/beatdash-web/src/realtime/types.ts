@@ -37,3 +37,17 @@ export interface LiveMapStartedEvent {
 	characteristic: string;
 	timestamp: string;
 }
+
+/** Mirrors `Shiron.BeatDash.Data.Realtime.Events.ScoreUpdateEvent`. */
+export interface ScoreUpdateEvent {
+	correlationId: number;
+	songTime: number;
+	score: number;
+	maxScore: number;
+	accuracy: number;
+	rank: string;
+	energy: number;
+	combo: number;
+	misses: number;
+	timestamp: string;
+}

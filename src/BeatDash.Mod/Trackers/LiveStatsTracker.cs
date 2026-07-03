@@ -224,6 +224,7 @@ public sealed class LiveStatsTracker(
                 Rank = ScoreRank.FromAccuracy(accuracy),
                 Energy = energyCounter.energy,
                 Combo = _currentCombo,
+                Misses = _left.Misses + _right.Misses,
             };
 
             await networkManager.PostMessageAsync(JsonConvert.SerializeObject(message));

@@ -11,5 +11,6 @@ export type {
 	DevicePairedEvent,
 	DeviceStatusEvent,
 	LiveMapStartedEvent,
+	ScoreUpdateEvent,
 } from "./types";
 export { useRealtimeEvent } from "./useRealtimeEvent";

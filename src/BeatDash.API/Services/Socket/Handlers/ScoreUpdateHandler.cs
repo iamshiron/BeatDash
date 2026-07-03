@@ -24,6 +24,7 @@ public sealed class ScoreUpdateHandler(
             message.Rank,
             message.Energy,
             message.Combo,
+            message.Misses,
             DateTime.UtcNow
         ));
     }
