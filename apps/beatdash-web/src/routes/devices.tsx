@@ -58,6 +58,7 @@ import {
 import type { DeviceResponseDto } from "@/api/model";
 import { AddDeviceDialog } from "@/components/devices/AddDeviceDialog";
 import { AppShell } from "@/components/layout/AppShell";
+import { useNow } from "@/hooks/useNow";
 import { useRealtimeEvent } from "@/realtime";
 
 export const Route = createFileRoute("/devices")({
@@ -180,12 +181,13 @@ function DeviceRow({
 }) {
 	const session = device.session;
 	const isOnline = session != null;
+	useNow();
 	const lastSeen = formatDistanceToNow(new Date(device.lastSeenAt), {
 		addSuffix: true,
 	});
 	const statusText =
 		isOnline && session
-			? `Connected ${formatDistanceToNow(new Date(session.onlineSince), { addSuffix: true })}`
+			? `Online for ${formatDistanceToNow(new Date(session.onlineSince), { addSuffix: false })}`
 			: `Last seen ${lastSeen}`;
 
 	return (
