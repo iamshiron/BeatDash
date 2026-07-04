@@ -27,5 +27,12 @@ export interface PlaySessionListItemDto {
   difficultyRank: string;
   difficultyName: string;
   autoMode: boolean;
+  /** @nullable */
+  endReason: string | null;
+  /**
+     * @nullable
+     * @pattern ^-?(?:0|[1-9]\d*)$
+     */
+  modifierFlags: number | string | null;
   results: null | PlaySessionResultsDto;
 }

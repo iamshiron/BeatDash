@@ -19,6 +19,13 @@ export interface PlaySessionDetailDto {
   duration: string | null;
   beatmap: BeatmapInfoDto;
   autoMode: boolean;
+  /** @nullable */
+  endReason: string | null;
+  /**
+     * @nullable
+     * @pattern ^-?(?:0|[1-9]\d*)$
+     */
+  modifierFlags: number | string | null;
   results: null | PlaySessionResultsDto;
   /** @pattern ^-?(?:0|[1-9]\d*)$ */
   noteCount: number | string;

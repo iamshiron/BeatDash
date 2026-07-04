@@ -13,6 +13,8 @@ export interface NoteItemDto {
   /** @pattern ^-?(?:0|[1-9]\d*)$ */
   noteType: number | string;
   /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  scoringType: number | string;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
   cutDirection: number | string;
   /** @pattern ^-?(?:0|[1-9]\d*)$ */
   lineIndex: number | string;
@@ -22,6 +24,12 @@ export interface NoteItemDto {
   result: number | string;
   /** @pattern ^-?(?:0|[1-9]\d*)$ */
   maxScore: number | string;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  beforeCutScore: number | string;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  centerDistanceScore: number | string;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  afterCutScore: number | string;
   /** @pattern ^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$ */
   preCutSwing: number | string;
   /** @pattern ^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$ */

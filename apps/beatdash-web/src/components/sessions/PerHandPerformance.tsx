@@ -32,7 +32,7 @@ interface HandStats {
 	noteCount: number;
 	comboBreaks: number;
 	avgSpeed: number;
-	avgDistance: number;
+	avgAccuracy: number;
 	avgPreSwing: number;
 	avgPostSwing: number;
 }
@@ -46,19 +46,19 @@ function computeHandStats(
 			noteCount: 0,
 			comboBreaks: 0,
 			avgSpeed: 0,
-			avgDistance: 0,
+			avgAccuracy: 0,
 			avgPreSwing: 0,
 			avgPostSwing: 0,
 		};
 	}
 	let speed = 0;
-	let dist = 0;
+	let accuracy = 0;
 	let pre = 0;
 	let post = 0;
 	let breaks = 0;
 	for (const n of notes) {
 		speed += Number(n.saberSpeed);
-		dist += Number(n.cutPointDistance);
+		accuracy += Number(n.centerDistanceScore);
 		pre += Number(n.preCutSwing);
 		post += Number(n.postCutSwing);
 		if (breakTimes.has(Number(n.songTimeMs))) breaks++;
@@ -68,7 +68,7 @@ function computeHandStats(
 		noteCount: count,
 		comboBreaks: breaks,
 		avgSpeed: speed / count,
-		avgDistance: dist / count,
+		avgAccuracy: accuracy / count,
 		avgPreSwing: pre / count,
 		avgPostSwing: post / count,
 	};
@@ -94,13 +94,13 @@ export function PerHandPerformance({
 		const radarData = [
 			{
 				metric: "Speed",
-				left: clamp01(left.avgSpeed / 4),
-				right: clamp01(right.avgSpeed / 4),
+				left: clamp01(left.avgSpeed / 20),
+				right: clamp01(right.avgSpeed / 20),
 			},
 			{
-				metric: "Centering",
-				left: clamp01(1 - left.avgDistance / 0.15),
-				right: clamp01(1 - right.avgDistance / 0.15),
+				metric: "Accuracy",
+				left: clamp01(left.avgAccuracy / 15),
+				right: clamp01(right.avgAccuracy / 15),
 			},
 			{
 				metric: "Pre-Swing",
@@ -211,9 +211,9 @@ function HandStatsColumn({
 				<span className="text-right font-mono tabular-nums">
 					{stats.avgSpeed.toFixed(1)} m/s
 				</span>
-				<span className="text-muted-foreground">Avg Distance</span>
+				<span className="text-muted-foreground">Avg Accuracy</span>
 				<span className="text-right font-mono tabular-nums">
-					{stats.avgDistance.toFixed(3)} m
+					{stats.avgAccuracy.toFixed(1)}/15
 				</span>
 			</div>
 		</div>

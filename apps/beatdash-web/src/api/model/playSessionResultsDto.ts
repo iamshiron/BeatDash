@@ -9,6 +9,8 @@ export interface PlaySessionResultsDto {
   /** @pattern ^-?(?:0|[1-9]\d*)$ */
   score: number | string;
   /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  multipliedScore: number | string;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
   maxPossibleScore: number | string;
   /** @pattern ^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$ */
   accuracy: number | string;
@@ -24,4 +26,6 @@ export interface PlaySessionResultsDto {
   misses: number | string;
   /** @pattern ^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$ */
   finalEnergy: number | string;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  endSongTimeMs: number | string;
 }

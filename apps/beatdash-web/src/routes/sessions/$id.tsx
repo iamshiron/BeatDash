@@ -20,11 +20,11 @@ import { formatDistanceToNow } from "date-fns";
 import { useMemo, useState } from "react";
 import {
 	Area,
-	AreaChart,
+	Bar,
+	BarChart,
 	CartesianGrid,
 	ComposedChart,
 	Line,
-	LineChart,
 	XAxis,
 	YAxis,
 } from "recharts";
@@ -36,7 +36,8 @@ import {
 } from "@/api/sessions/sessions";
 import { AppShell } from "@/components/layout/AppShell";
 import { NoteGridHeatmap } from "@/components/sessions/NoteGridHeatmap";
-import { PerHandPerformance } from "@/components/sessions/PerHandPerformance";
+import { ScoreBreakdown } from "@/components/sessions/ScoreBreakdown";
+import { SwingAnalysis } from "@/components/sessions/SwingAnalysis";
 import {
 	DIFFICULTY_STYLES,
 	formatAccuracy,
@@ -47,12 +48,8 @@ import {
 	type SessionSearchParams,
 } from "@/lib/sessions";
 
-const scoreChartConfig = {
-	score: { label: "Score", color: "var(--chart-2)" },
-} satisfies ChartConfig;
-
-const energyChartConfig = {
-	energy: { label: "Energy", color: "var(--chart-3)" },
+const npsChartConfig = {
+	nps: { label: "Notes/sec", color: "oklch(0.62 0.19 255)" },
 } satisfies ChartConfig;
 
 const comboMissesChartConfig = {
@@ -103,45 +100,49 @@ function SessionDetailPage() {
 
 	const comboMissesData = useMemo(() => {
 		if (!notes || notes.length === 0) return [];
-		const sorted = [...notes].sort(
-			(a, b) => Number(a.songTimeMs) - Number(b.songTimeMs),
-		);
-		const breakTimes = new Set(
-			(timeline?.comboBreaks ?? []).map((cb) => Number(cb.songTimeMs)),
-		);
+		type Event = { time: number; isBreak: boolean };
+		const events: Event[] = [];
+		for (const n of notes) {
+			events.push({ time: Number(n.songTimeMs), isBreak: false });
+		}
+		for (const cb of timeline?.comboBreaks ?? []) {
+			events.push({ time: Number(cb.songTimeMs), isBreak: true });
+		}
+		events.sort((a, b) => a.time - b.time);
 		let combo = 0;
-		let misses = 0;
-		return sorted.map((note) => {
-			const time = Number(note.songTimeMs);
-			if (breakTimes.has(time)) {
+		let missCount = 0;
+		return events.map((e) => {
+			if (e.isBreak) {
 				combo = 0;
-				misses++;
+				missCount++;
 			} else {
 				combo++;
 			}
 			return {
-				time: Math.floor(time / 1000),
+				time: Math.floor(e.time / 1000),
 				combo,
-				misses,
+				misses: missCount,
 			};
 		});
 	}, [notes, timeline]);
 
-	const energyData = useMemo(() => {
-		if (!timeline || timeline.energy.length === 0) return [];
-		const mapped = timeline.energy.map((p) => ({
-			time: Math.floor(Number(p.songTimeMs) / 1000),
-			energy: Number(p.energy),
-		}));
-		if (beatmap && mapped.length > 0) {
-			const songEnd = Math.floor(Number(beatmap.durationMs) / 1000);
-			const last = mapped[mapped.length - 1];
-			if (last.time < songEnd) {
-				mapped.push({ time: songEnd, energy: last.energy });
-			}
+	const npsData = useMemo(() => {
+		if (!notes || notes.length === 0) return [];
+		const binSize = 3;
+		const songEnd = beatmap
+			? Math.floor(Number(beatmap.durationMs) / 1000)
+			: Math.ceil(Number(notes[notes.length - 1].songTimeMs) / 1000);
+		const numBins = Math.ceil((songEnd + 1) / binSize);
+		const bins = new Map<number, number>();
+		for (const note of notes) {
+			const idx = Math.floor(Number(note.songTimeMs) / 1000 / binSize);
+			bins.set(idx, (bins.get(idx) ?? 0) + 1);
 		}
-		return mapped;
-	}, [timeline, beatmap]);
+		return Array.from({ length: numBins }, (_, i) => ({
+			time: i * binSize,
+			nps: Math.round(((bins.get(i) ?? 0) / binSize) * 10) / 10,
+		}));
+	}, [notes, beatmap]);
 
 	return (
 		<AppShell wide>
@@ -155,8 +156,8 @@ function SessionDetailPage() {
 			{detailQuery.isLoading && <Skeleton className="h-32 rounded-xl" />}
 
 			{detail && (
-				<Card className="mb-4">
-					<CardContent className="flex items-start gap-4 p-4">
+				<Card className="mb-4 py-0">
+					<CardContent className="flex items-center gap-4 p-3">
 						<div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-md bg-gradient-to-br from-primary/40 to-[oklch(0.62_0.19_255)]/40">
 							{beatmap && !coverFailed ? (
 								<img
@@ -209,20 +210,22 @@ function SessionDetailPage() {
 						</div>
 
 						{results ? (
-							<div className="shrink-0 text-right">
-								<span
-									className={cn(
-										"font-heading text-2xl font-bold",
-										RANK_STYLES[results.rank] ?? "text-muted-foreground",
-									)}
-								>
-									{results.rank}
-								</span>
-								<div className="font-mono text-sm tabular-nums">
+							<div className="flex shrink-0 flex-col items-stretch pl-4">
+								<span className="self-end font-heading text-3xl font-bold tabular-nums">
 									{formatScore(results.score)}
-								</div>
-								<div className="font-mono text-xs tabular-nums text-muted-foreground">
-									{formatAccuracy(results.accuracy)}
+								</span>
+								<div className="mt-1 flex w-full items-center justify-between">
+									<span
+										className={cn(
+											"font-heading text-lg font-bold",
+											RANK_STYLES[results.rank] ?? "text-muted-foreground",
+										)}
+									>
+										{results.rank}
+									</span>
+									<span className="text-xs tabular-nums text-muted-foreground">
+										{formatAccuracy(results.accuracy)}
+									</span>
 								</div>
 							</div>
 						) : (
@@ -241,103 +244,23 @@ function SessionDetailPage() {
 				</div>
 			)}
 
-			{results && (
-				<Card className="mb-4">
-					<CardHeader>
-						<CardTitle>Score Timeline</CardTitle>
-					</CardHeader>
-					<CardContent>
-						{timelineQuery.isLoading && (
-							<Skeleton className="h-40 w-full rounded-lg" />
-						)}
-						{timeline && timeline.score.length > 0 && (
-							<ChartContainer config={scoreChartConfig} className="h-40 w-full">
-								<LineChart
-									data={timeline.score.map((p) => ({
-										time: Math.floor(Number(p.songTimeMs) / 1000),
-										score: Number(p.score),
-									}))}
-									margin={{ left: 4, right: 4, top: 4, bottom: 4 }}
-								>
-									<CartesianGrid strokeDasharray="3 3" vertical={false} />
-									<XAxis
-										dataKey="time"
-										tickFormatter={(v: number) => formatSongTimeMs(v * 1000)}
-										tickLine={false}
-										axisLine={false}
-										tickMargin={8}
-									/>
-									<YAxis
-										tickFormatter={(v: number) =>
-											v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)
-										}
-										tickLine={false}
-										axisLine={false}
-										width={36}
-									/>
-									<ChartTooltip
-										content={
-											<ChartTooltipContent
-												labelFormatter={(_, payload) => {
-													const time = payload?.[0]?.payload?.time;
-													return time != null
-														? formatSongTimeMs(time * 1000)
-														: "";
-												}}
-											/>
-										}
-									/>
-									<Line
-										dataKey="score"
-										stroke="var(--color-score)"
-										strokeWidth={2}
-										dot={false}
-										type="monotone"
-									/>
-								</LineChart>
-							</ChartContainer>
-						)}
-						{timeline && timeline.score.length === 0 && (
-							<p className="py-8 text-center text-xs text-muted-foreground">
-								No score timeline data available
-							</p>
-						)}
-					</CardContent>
-				</Card>
-			)}
+			{results && notes && notes.length > 0 && <ScoreBreakdown notes={notes} />}
 
-			{results && (
+			{results && notes && notes.length > 0 && (
 				<Card className="mb-4">
 					<CardHeader>
-						<CardTitle>Energy Timeline</CardTitle>
+						<CardTitle>Notes Per Second</CardTitle>
 					</CardHeader>
 					<CardContent>
-						{timelineQuery.isLoading && (
+						{notesQuery.isLoading && (
 							<Skeleton className="h-32 w-full rounded-lg" />
 						)}
-						{energyData.length > 0 && (
-							<ChartContainer
-								config={energyChartConfig}
-								className="h-32 w-full"
-							>
-								<AreaChart
-									data={energyData}
+						{npsData.length > 0 && (
+							<ChartContainer config={npsChartConfig} className="h-32 w-full">
+								<BarChart
+									data={npsData}
 									margin={{ left: 4, right: 4, top: 4, bottom: 4 }}
 								>
-									<defs>
-										<linearGradient id="energyFill" x1="0" y1="0" x2="0" y2="1">
-											<stop
-												offset="0%"
-												stopColor="var(--color-energy)"
-												stopOpacity={0.4}
-											/>
-											<stop
-												offset="100%"
-												stopColor="var(--color-energy)"
-												stopOpacity={0.05}
-											/>
-										</linearGradient>
-									</defs>
 									<CartesianGrid strokeDasharray="3 3" vertical={false} />
 									<XAxis
 										dataKey="time"
@@ -346,13 +269,7 @@ function SessionDetailPage() {
 										axisLine={false}
 										tickMargin={8}
 									/>
-									<YAxis
-										domain={[0, 1]}
-										tickFormatter={(v: number) => `${Math.round(v * 100)}%`}
-										tickLine={false}
-										axisLine={false}
-										width={36}
-									/>
+									<YAxis tickLine={false} axisLine={false} width={28} />
 									<ChartTooltip
 										content={
 											<ChartTooltipContent
@@ -362,25 +279,20 @@ function SessionDetailPage() {
 														? formatSongTimeMs(time * 1000)
 														: "";
 												}}
-												formatter={(value) =>
-													`${(Number(value) * 100).toFixed(1)}%`
-												}
 											/>
 										}
 									/>
-									<Area
-										dataKey="energy"
-										stroke="var(--color-energy)"
-										strokeWidth={2}
-										fill="url(#energyFill)"
-										type="monotone"
+									<Bar
+										dataKey="nps"
+										fill="oklch(0.62 0.19 255)"
+										radius={[2, 2, 0, 0]}
 									/>
-								</AreaChart>
+								</BarChart>
 							</ChartContainer>
 						)}
-						{energyData.length === 0 && !timelineQuery.isLoading && (
+						{npsData.length === 0 && !notesQuery.isLoading && (
 							<p className="py-8 text-center text-xs text-muted-foreground">
-								No energy timeline data available
+								No note data available
 							</p>
 						)}
 					</CardContent>
@@ -482,7 +394,7 @@ function SessionDetailPage() {
 			)}
 
 			{results && notes && notes.length > 0 && (
-				<PerHandPerformance
+				<SwingAnalysis
 					notes={notes}
 					comboBreaks={timeline?.comboBreaks ?? []}
 				/>

@@ -6,10 +6,11 @@ const GRID_COLS = [0, 1, 2, 3] as const;
 
 interface CellData {
 	count: number;
-	totalDistance: number;
+	totalScore: number;
 }
 
-function qualityColor(quality: number): string {
+function accuracyColor(score15: number): string {
+	const quality = score15 / 15;
 	const hue = Math.round(quality * 120);
 	return `hsl(${hue} 70% 45%)`;
 }
@@ -21,26 +22,19 @@ export function NoteGridHeatmap({ notes }: { notes: NoteItemDto[] }) {
 		const col = Number(note.lineIndex);
 		const row = Number(note.noteLineLayer);
 		const key = `${col}-${row}`;
-		const distance = Number(note.cutPointDistance);
+		const score = Number(note.centerDistanceScore);
 
 		const existing = cells.get(key);
 		if (existing) {
 			existing.count++;
-			existing.totalDistance += distance;
+			existing.totalScore += score;
 		} else {
 			cells.set(key, {
 				count: 1,
-				totalDistance: distance,
+				totalScore: score,
 			});
 		}
 	}
-
-	const allDistances = [...cells.values()].map(
-		(c) => c.totalDistance / c.count,
-	);
-	const minDist = Math.min(...allDistances);
-	const maxDist = Math.max(...allDistances);
-	const range = maxDist - minDist || 0.001;
 
 	return (
 		<div className="flex flex-col gap-1.5">
@@ -58,22 +52,22 @@ export function NoteGridHeatmap({ notes }: { notes: NoteItemDto[] }) {
 								</div>
 							);
 						}
-						const avgDist = cell.totalDistance / cell.count;
-						const quality = 1 - (avgDist - minDist) / range;
+						const avgScore = cell.totalScore / cell.count;
 						return (
 							<div
 								key={`cell-${col}-${row}`}
 								className="flex h-16 flex-1 flex-col items-center justify-center rounded-lg border border-border/20"
 								style={{
-									backgroundColor: `${qualityColor(quality)}25`,
-									borderColor: `${qualityColor(quality)}50`,
+									backgroundColor: `${accuracyColor(avgScore)}25`,
+									borderColor: `${accuracyColor(avgScore)}50`,
 								}}
 							>
 								<span
 									className="font-mono text-sm font-semibold tabular-nums"
-									style={{ color: qualityColor(quality) }}
+									style={{ color: accuracyColor(avgScore) }}
 								>
-									{avgDist.toFixed(3)}m
+									{avgScore.toFixed(1)}
+									<span className="text-xs text-muted-foreground/60">/15</span>
 								</span>
 								<span className="text-xs text-muted-foreground">
 									{cell.count} {cell.count === 1 ? "note" : "notes"}
@@ -84,17 +78,17 @@ export function NoteGridHeatmap({ notes }: { notes: NoteItemDto[] }) {
 				</div>
 			))}
 			<div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
-				<span>Avg cut distance from center</span>
+				<span>Avg accuracy score per grid position</span>
 				<div className="flex items-center gap-1">
-					<span>Near</span>
+					<span>Off-center</span>
 					<div
 						className={cn("h-2 w-16 rounded-full")}
 						style={{
 							background:
-								"linear-gradient(to right, hsl(120 70% 45%), hsl(60 70% 45%), hsl(0 70% 45%))",
+								"linear-gradient(to right, hsl(0 70% 45%), hsl(60 70% 45%), hsl(120 70% 45%))",
 						}}
 					/>
-					<span>Far</span>
+					<span>Centered</span>
 				</div>
 			</div>
 		</div>
