@@ -1,9 +1,4 @@
-import { useState } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { getGetMeQueryKey, useRegister } from "@/api/auth/auth";
-import type { RegisterDto } from "@/api/model";
+import { Button } from "@shiron/ui/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -14,7 +9,12 @@ import {
 } from "@shiron/ui/components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "@shiron/ui/components/ui/field";
 import { Input } from "@shiron/ui/components/ui/input";
-import { Button } from "@shiron/ui/components/ui/button";
+import { useQueryClient } from "@tanstack/react-query";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import { toast } from "sonner";
+import { getGetMeQueryKey, useRegister } from "@/api/auth/auth";
+import type { RegisterDto } from "@/api/model";
 
 export const Route = createFileRoute("/auth/register")({
 	component: RegisterPage,

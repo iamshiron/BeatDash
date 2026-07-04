@@ -1,31 +1,18 @@
-import { useEffect, useRef, useState } from "react";
-import { createFileRoute, redirect, Link } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
 import {
-	MonitorIcon,
-	MetronomeIcon,
-	MusicNotesSimpleIcon,
+	BarbellIcon,
 	FireIcon,
 	GuitarIcon,
-	BarbellIcon,
-	WallIcon,
 	HeartbeatIcon,
 	LightningIcon,
-	TargetIcon,
+	MetronomeIcon,
+	MonitorIcon,
+	MusicNotesSimpleIcon,
 	ScalesIcon,
+	TargetIcon,
+	WallIcon,
 } from "@phosphor-icons/react";
-import { AppShell } from "@/components/layout/AppShell";
-import {
-	useRealtimeEvent,
-	type LiveMapStartedEvent,
-	type ScoreUpdateEvent,
-} from "@/realtime";
-import { getGetApiDeviceQueryKey, useGetApiDevice } from "@/api/device/device";
-import { getGetApiMapsMapIdCoverUrl } from "@/api/maps/maps";
 import { Badge } from "@shiron/ui/components/ui/badge";
 import { Button } from "@shiron/ui/components/ui/button";
-import { Skeleton } from "@shiron/ui/components/ui/skeleton";
-import { cn } from "@shiron/ui/lib/utils";
 import {
 	Empty,
 	EmptyContent,
@@ -34,6 +21,19 @@ import {
 	EmptyMedia,
 	EmptyTitle,
 } from "@shiron/ui/components/ui/empty";
+import { Skeleton } from "@shiron/ui/components/ui/skeleton";
+import { cn } from "@shiron/ui/lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
+import { getGetApiDeviceQueryKey, useGetApiDevice } from "@/api/device/device";
+import { getGetApiMapsMapIdCoverUrl } from "@/api/maps/maps";
+import { AppShell } from "@/components/layout/AppShell";
+import {
+	type LiveMapStartedEvent,
+	type ScoreUpdateEvent,
+	useRealtimeEvent,
+} from "@/realtime";
 
 export const Route = createFileRoute("/live")({
 	beforeLoad: ({ context }) => {

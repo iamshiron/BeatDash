@@ -1,12 +1,7 @@
-import { useMemo, useState } from "react";
-import { createFileRoute, redirect } from "@tanstack/react-router";
 import {
 	MagnifyingGlassIcon,
 	MusicNotesSimpleIcon,
 } from "@phosphor-icons/react";
-import { AppShell } from "@/components/layout/AppShell";
-import { MapCard } from "@/components/maps/MapCard";
-import { useGetApiMaps } from "@/api/maps/maps";
 import {
 	Empty,
 	EmptyDescription,
@@ -16,6 +11,11 @@ import {
 } from "@shiron/ui/components/ui/empty";
 import { Input } from "@shiron/ui/components/ui/input";
 import { Skeleton } from "@shiron/ui/components/ui/skeleton";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+import { useGetApiMaps } from "@/api/maps/maps";
+import { AppShell } from "@/components/layout/AppShell";
+import { MapCard } from "@/components/maps/MapCard";
 
 export const Route = createFileRoute("/maps")({
 	beforeLoad: ({ context }) => {

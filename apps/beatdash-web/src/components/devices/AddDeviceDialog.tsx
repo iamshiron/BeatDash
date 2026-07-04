@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { Button } from "@shiron/ui/components/ui/button";
 import {
 	Dialog,
@@ -10,6 +9,7 @@ import {
 	DialogTitle,
 } from "@shiron/ui/components/ui/dialog";
 import { Spinner } from "@shiron/ui/components/ui/spinner";
+import { useEffect, useState } from "react";
 import { getApiDeviceRegister } from "@/api/device/device";
 import type { RegisterDeviceResponseDto } from "@/api/model";
 

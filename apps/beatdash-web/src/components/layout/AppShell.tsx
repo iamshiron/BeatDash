@@ -1,5 +1,5 @@
-import { Link } from "@tanstack/react-router";
 import { Button } from "@shiron/ui/components/ui/button";
+import { Link } from "@tanstack/react-router";
 import { ModeToggle } from "@/components/layout/ModeToggle";
 import { UserMenu } from "@/components/layout/UserMenu";
 import { useAuth } from "@/contexts/auth";
@@ -35,6 +35,9 @@ export function AppShell({
 								</Button>
 								<Button variant="ghost" size="sm" asChild>
 									<Link to="/maps">Maps</Link>
+								</Button>
+								<Button variant="ghost" size="sm" asChild>
+									<Link to="/sessions">Sessions</Link>
 								</Button>
 								<Button variant="ghost" size="sm" asChild>
 									<Link to="/live">Live</Link>

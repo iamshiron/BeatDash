@@ -1,12 +1,9 @@
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import {
 	FireIcon,
 	MetronomeIcon,
 	MusicNotesSimpleIcon,
 	TimerIcon,
 } from "@phosphor-icons/react";
-import { getGetApiMapsMapIdCoverUrl } from "@/api/maps/maps";
-import type { BeatmapDifficultyDto, MapDetailDto } from "@/api/model";
 import { Badge, badgeVariants } from "@shiron/ui/components/ui/badge";
 import {
 	Tooltip,
@@ -14,6 +11,9 @@ import {
 	TooltipTrigger,
 } from "@shiron/ui/components/ui/tooltip";
 import { cn } from "@shiron/ui/lib/utils";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { getGetApiMapsMapIdCoverUrl } from "@/api/maps/maps";
+import type { BeatmapDifficultyDto, MapDetailDto } from "@/api/model";
 
 const RANK_ORDER = ["Easy", "Normal", "Hard", "Expert", "ExpertPlus"] as const;
 

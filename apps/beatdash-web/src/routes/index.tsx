@@ -1,7 +1,7 @@
+import { Button } from "@shiron/ui/components/ui/button";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/layout/AppShell";
 import { useAuth } from "@/contexts/auth";
-import { Button } from "@shiron/ui/components/ui/button";
 
 export const Route = createFileRoute("/")({
 	component: LandingPage,

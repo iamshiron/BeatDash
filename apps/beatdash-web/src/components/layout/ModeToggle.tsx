@@ -1,5 +1,4 @@
 import { MoonIcon, SunIcon } from "@phosphor-icons/react";
-import { useTheme } from "next-themes";
 import { Button } from "@shiron/ui/components/ui/button";
 import {
 	DropdownMenu,
@@ -7,6 +6,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@shiron/ui/components/ui/dropdown-menu";
+import { useTheme } from "next-themes";
 
 export function ModeToggle() {
 	const { setTheme } = useTheme();

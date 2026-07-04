@@ -1,3 +1,5 @@
+import { Avatar, AvatarFallback } from "@shiron/ui/components/ui/avatar";
+import { Button } from "@shiron/ui/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -6,13 +8,11 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@shiron/ui/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@shiron/ui/components/ui/avatar";
-import { Button } from "@shiron/ui/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { getGetMeQueryKey, useAuth } from "@/contexts/auth";
 import { useLogout } from "@/api/auth/auth";
+import { getGetMeQueryKey, useAuth } from "@/contexts/auth";
 
 function getInitials(name: string): string {
 	const parts = name.trim().split(/\s+/).filter(Boolean);
