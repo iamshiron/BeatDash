@@ -220,13 +220,24 @@ public class NetworkManager : IDisposable {
     }
 
     /// <summary>
-    /// Waits for the server-assigned correlation ID pushed back in response to a
-    /// <see cref="BinaryPacketTypes.MapStart"/>. Returns the ID, or <c>null</c> if
-    /// the server does not respond within <paramref name="timeout"/>.
+    /// Prepares the correlation-ID wait. Must be called BEFORE sending MapStart
+    /// so the server's response can't arrive before the TCS is set. On localhost
+    /// the round-trip is nanoseconds — setting it after the send races the
+    /// receive loop.
     /// </summary>
-    public async Task<int?> AssignCorrelationIdAsync(TimeSpan timeout, CancellationToken ct) {
-        var tcs = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
-        _correlationTcs = tcs;
+    public void PrepareCorrelationAssignment() {
+        _correlationTcs = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
+    }
+
+    /// <summary>
+    /// Waits for the correlation ID prepared by
+    /// <see cref="PrepareCorrelationAssignment"/>. Returns the ID, or
+    /// <c>null</c> if the server does not respond within
+    /// <paramref name="timeout"/>.
+    /// </summary>
+    public async Task<int?> WaitForCorrelationAssignmentAsync(TimeSpan timeout, CancellationToken ct) {
+        var tcs = _correlationTcs;
+        if (tcs is null) return null;
 
         var winner = await Task.WhenAny(tcs.Task, Task.Delay(timeout, ct));
         return winner == tcs.Task ? await tcs.Task : null;

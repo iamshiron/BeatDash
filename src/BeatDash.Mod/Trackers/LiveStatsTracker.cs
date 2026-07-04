@@ -34,7 +34,7 @@ public sealed class LiveStatsTracker(
 
     private float? _lastMotionSongTime;
     private int _currentCombo;
-    private int _lastMultipliedScore;
+    private int _lastModifiedScore;
     private bool _flushed;
 
     public void Initialize() {
@@ -44,7 +44,7 @@ public sealed class LiveStatsTracker(
         energyCounter.gameEnergyDidChangeEvent += OnEnergyChange;
         scoreController.scoreDidChangeEvent += OnScoreDidChange;
 
-        _lastMultipliedScore = scoreController.multipliedScore;
+        _lastModifiedScore = scoreController.modifiedScore;
 
         pauseController.didReturnToMenuEvent += OnLevelEnd;
         levelEndActions.levelFinishedEvent += OnLevelEnd;
@@ -191,13 +191,12 @@ public sealed class LiveStatsTracker(
     }
 
     private void OnScoreDidChange(int multipliedScore, int modifiedScore) {
-        var current = scoreController.multipliedScore;
-        var delta = current - _lastMultipliedScore;
+        var delta = modifiedScore - _lastModifiedScore;
         if (delta == 0) return;
-        _lastMultipliedScore = current;
+        _lastModifiedScore = modifiedScore;
         statsAccumulator.AddScoreChange(new ScoreChangeDto {
             SongTime = (int) (atsc.songTime * 1000),
-            ScoreDelta = delta
+            Score = modifiedScore
         });
     }
 

@@ -81,9 +81,10 @@ public sealed class GameplaySessionTracker(
         };
 
         Plugin.Log.Info($"Sending map data: {mapPayload.SongName} - {mapPayload.SongAuthor}, awaiting server-assigned correlation ID...");
+        networkManager.PrepareCorrelationAssignment();
         await networkManager.PostJsonBinaryAsync(BinaryPacketTypes.MapStart, mapPayload, forceTcp: true);
 
-        var assigned = await networkManager.AssignCorrelationIdAsync(CorrelationAssignmentTimeout, ct);
+        var assigned = await networkManager.WaitForCorrelationAssignmentAsync(CorrelationAssignmentTimeout, ct);
         if (assigned is null) {
             Plugin.Log.Error("Timed out waiting for server-assigned correlation ID; telemetry disabled for this map.");
             return;
