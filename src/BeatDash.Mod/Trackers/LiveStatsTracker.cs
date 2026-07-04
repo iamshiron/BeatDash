@@ -86,6 +86,7 @@ public sealed class LiveStatsTracker(
                 SongTime = (int) (nd.time * 1000),
                 ColorType = (int) nd.colorType,
                 NoteType = (int) nd.gameplayType,
+                ScoringType = (int) nd.scoringType,
                 CutDirection = (int) nd.cutDirection,
                 LineIndex = nd.lineIndex,
                 NoteLineLayer = (int) nd.noteLineLayer,
@@ -111,7 +112,10 @@ public sealed class LiveStatsTracker(
 
     private void OnNoteFinished(ScoringElement element) {
         var nd = element.noteData;
-        if (nd.colorType == ColorType.None && nd.gameplayType != NoteData.GameplayType.Bomb) return;
+        // Bombs are recorded exclusively in OnNoteCut, which carries real
+        // kinematics (saber speed, cut point). Letting them through here
+        // persisted every hit bomb a second time with zeroed kinematics.
+        if (nd.gameplayType == NoteData.GameplayType.Bomb) return;
 
         var songTime = nd.time;
         var hasKinematics = _pendingKinematics.TryGetValue(songTime, out var kin);
@@ -162,6 +166,7 @@ public sealed class LiveStatsTracker(
             SongTime = (int) (songTime * 1000),
             ColorType = (int) colorType,
             NoteType = (int) nd.gameplayType,
+            ScoringType = (int) nd.scoringType,
             CutDirection = (int) nd.cutDirection,
             LineIndex = nd.lineIndex,
             NoteLineLayer = (int) nd.noteLineLayer,

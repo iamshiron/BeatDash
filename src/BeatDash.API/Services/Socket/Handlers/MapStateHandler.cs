@@ -26,7 +26,7 @@ public sealed class MapStateHandler(
             message.State, message.CorrelationId, message.LevelId);
 
         if (IsTerminalState(message.State)) {
-            await playSessionService.TryEndAsync(context.SessionId, message.CorrelationId, message.Results, ct);
+            await playSessionService.TryEndAsync(context.SessionId, message.CorrelationId, message.State, message.Results, ct);
 
             if (sessionStore.TryGet(context.SessionId, message.CorrelationId, out var playSessionId)) {
                 _ = motionFramePersistence.PersistAsync(

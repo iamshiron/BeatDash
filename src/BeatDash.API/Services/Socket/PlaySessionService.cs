@@ -24,11 +24,13 @@ public interface IPlaySessionService {
         MapStartMessage metadata, Guid beatmapId, CancellationToken ct);
 
     /// <summary>
-    /// Sets <see cref="PlaySession.EndedAt"/> on the session matching the given
-    /// correlation ID, if one exists and hasn't already been ended. When
-    /// <paramref name="results"/> is non-null, also persists the final results.
+    /// Sets <see cref="PlaySession.EndedAt"/> and <see cref="PlaySession.EndReason"/>
+    /// on the session matching the given correlation ID, if one exists and hasn't
+    /// already been ended. When <paramref name="results"/> is non-null, also
+    /// persists the final results; otherwise records
+    /// <see cref="PlaySessionEndReason.Incomplete"/>.
     /// </summary>
-    Task TryEndAsync(Guid socketSessionId, int correlationId, MapResults? results, CancellationToken ct);
+    Task TryEndAsync(Guid socketSessionId, int correlationId, string state, MapResults? results, CancellationToken ct);
 }
 
 /// <summary>
@@ -82,6 +84,7 @@ public sealed class PlaySessionService(
             StartedAt = DateTime.UtcNow,
             EndedAt = null,
             AutoMode = metadata.AutoMode,
+            ModifierFlags = metadata.ModifierFlags,
         };
         db.PlaySessions.Add(session);
         await db.SaveChangesAsync(ct);
@@ -94,7 +97,7 @@ public sealed class PlaySessionService(
     }
 
     /// <inheritdoc/>
-    public async Task TryEndAsync(Guid socketSessionId, int correlationId, MapResults? results, CancellationToken ct) {
+    public async Task TryEndAsync(Guid socketSessionId, int correlationId, string state, MapResults? results, CancellationToken ct) {
         if (!sessionStore.TryGet(socketSessionId, correlationId, out var sessionId)) {
             logger.LogWarning(
                 "Cannot end play session: no session registered (corr={CorrelationId})",
@@ -107,11 +110,13 @@ public sealed class PlaySessionService(
         if (results is null) {
             var updated = await db.PlaySessions
                 .Where(s => s.Id == sessionId && s.EndedAt == null)
-                .ExecuteUpdateAsync(s => s.SetProperty(x => x.EndedAt, DateTime.UtcNow), ct);
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(x => x.EndedAt, DateTime.UtcNow)
+                    .SetProperty(x => x.EndReason, (PlaySessionEndReason?) PlaySessionEndReason.Incomplete), ct);
 
             if (updated > 0) {
                 logger.LogInformation(
-                    "Ended play session {SessionId} (corr={CorrelationId})",
+                    "Ended play session {SessionId} (corr={CorrelationId}, reason=Incomplete)",
                     sessionId, correlationId);
             }
             return;
@@ -126,8 +131,10 @@ public sealed class PlaySessionService(
         }
 
         session.EndedAt ??= DateTime.UtcNow;
+        session.EndReason ??= ToEndReason(state);
         session.Results = new PlaySessionResults {
             Score = results.Score,
+            MultipliedScore = results.MultipliedScore,
             MaxPossibleScore = results.MaxMultipliedScore,
             Accuracy = results.Accuracy,
             Rank = results.Rank,
@@ -137,11 +144,23 @@ public sealed class PlaySessionService(
             BadCuts = results.BadCuts,
             Misses = results.MissedNotes,
             FinalEnergy = results.Energy,
+            EndSongTimeMs = (int) (results.EndSongTime * 1000f),
         };
 
         await db.SaveChangesAsync(ct);
         logger.LogInformation(
-            "Ended play session {SessionId} with results (corr={CorrelationId}, rank={Rank}, score={Score})",
-            sessionId, correlationId, results.Rank, results.Score);
+            "Ended play session {SessionId} with results (corr={CorrelationId}, reason={EndReason}, rank={Rank}, score={Score})",
+            sessionId, correlationId, session.EndReason, results.Rank, results.Score);
     }
+
+    /// <summary>
+    /// Maps the client-reported state string to a persisted end reason. Mirrors
+    /// the terminal set checked by <c>MapStateHandler.IsTerminalState</c>.
+    /// </summary>
+    private static PlaySessionEndReason ToEndReason(string state) => state switch {
+        "Finished" => PlaySessionEndReason.Finished,
+        "Failed" => PlaySessionEndReason.Failed,
+        "Quit" => PlaySessionEndReason.Quit,
+        _ => PlaySessionEndReason.Incomplete
+    };
 }

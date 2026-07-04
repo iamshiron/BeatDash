@@ -294,9 +294,11 @@ public class NetworkManager : IDisposable {
     }
 
     /// <summary>
-    /// Serializes a message to JSON and sends it as a binary packet, preferring
-    /// UDP when available. Set <paramref name="forceTcp"/> for payloads that need
-    /// reliable delivery (e.g. map-start metadata, state changes).
+    /// Serializes a message to JSON and sends it as a binary packet. UDP is only
+    /// used for ephemeral, loss-tolerant packet types (see
+    /// <see cref="IsUdpEligible"/>); any persistence-bound type always travels
+    /// over TCP regardless of <paramref name="forceTcp"/>. Set the flag for
+    /// clarity on reliable-but-not-persisted payloads.
     /// </summary>
     public async Task PostJsonBinaryAsync(BinaryPacketTypes type, object message, bool forceTcp = false) {
         var json = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message));
@@ -304,12 +306,13 @@ public class NetworkManager : IDisposable {
     }
 
     /// <summary>
-    /// Sends a binary packet, preferring UDP when available. Set
-    /// <paramref name="forceTcp"/> for payloads that need reliable delivery
-    /// (e.g. large images).
+    /// Sends a binary packet. UDP is only used for ephemeral, loss-tolerant
+    /// packet types (see <see cref="IsUdpEligible"/>); any persistence-bound
+    /// type always travels over TCP regardless of <paramref name="forceTcp"/>,
+    /// so persisted data can never silently land on an unreliable channel.
     /// </summary>
     public async Task PostBinaryAsync(BinaryPacketTypes type, byte[] content, bool forceTcp = false) {
-        if (!forceTcp && _isUdpAvailable && _udp != null) {
+        if (!forceTcp && IsUdpEligible(type) && _isUdpAvailable && _udp != null) {
             try {
                 var packet = UdpPacket.Build(type, content);
                 await _udp.SendAsync(packet, packet.Length);
@@ -326,6 +329,15 @@ public class NetworkManager : IDisposable {
         var framed = new BinaryPacket(type, content);
         await _socket.SendAsync(new ArraySegment<byte>(framed.Payload), WebSocketMessageType.Binary, true, _cancellationTokenSource.Token);
     }
+
+    /// <summary>
+    /// The fixed whitelist of packet types permitted over UDP. These are the
+    /// only ephemeral, loss-tolerant channels; everything else is persisted on
+    /// the server and MUST travel over reliable TCP. Add a type here only if it
+    /// is realtime-only and never written to the database.
+    /// </summary>
+    private static bool IsUdpEligible(BinaryPacketTypes type) =>
+        type is BinaryPacketTypes.ScoreUpdate or BinaryPacketTypes.Holepunch;
 
     private void ResetUdp() {
         _isUdpAvailable = false;

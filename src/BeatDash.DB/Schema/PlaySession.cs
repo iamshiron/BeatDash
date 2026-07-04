@@ -17,6 +17,19 @@ public class PlaySession {
     /// </summary>
     public bool AutoMode { get; set; }
 
+    /// <summary>
+    /// How the session ended. Null for in-flight sessions; set on terminal state
+    /// (or <see cref="PlaySessionEndReason.Incomplete"/> when ended without one).
+    /// </summary>
+    public PlaySessionEndReason? EndReason { get; set; }
+
+    /// <summary>
+    /// Packed bitmask of gameplay modifiers active during this play
+    /// (see <see cref="Shiron.BeatDash.Data.Socket.ModifierBit"/>). Null for
+    /// pre-migration sessions. Required to interpret the score/outcome (e.g. NoFail).
+    /// </summary>
+    public int? ModifierFlags { get; set; }
+
     /// <summary>Final results, populated when the session reaches a terminal state.</summary>
     public PlaySessionResults? Results { get; set; }
 

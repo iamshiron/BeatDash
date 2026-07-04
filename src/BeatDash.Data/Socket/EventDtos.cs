@@ -4,6 +4,13 @@ public sealed class NoteEventDto {
     public required int SongTime { get; init; }
     public required int ColorType { get; init; }
     public required int NoteType { get; init; }
+    /// <summary>
+    /// Beat Saber's <c>NoteData.ScoringType</c> (as <c>int</c>): disambiguates
+    /// arc/sliders and chain links that share a <see cref="NoteType"/> of
+    /// Normal but have pinned cut-score ranges. Required to reconstruct the
+    /// exact per-note score definition.
+    /// </summary>
+    public required int ScoringType { get; init; }
     public required int CutDirection { get; init; }
     public required int LineIndex { get; init; }
     public required int NoteLineLayer { get; init; }

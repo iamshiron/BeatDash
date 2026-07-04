@@ -130,14 +130,14 @@ public static class SessionEndpoints {
                     .AsNoTracking()
                     .Where(i => i.PlaySessionId == id)
                     .OrderBy(i => i.SongTimeMs)
-                    .Select(i => new ScorePointDto(i.SongTimeMs, i.ScoreBefore))
+                    .Select(i => new ScorePointDto(i.SongTimeMs, i.Score))
                     .ToListAsync(ct);
 
                 var energy = await db.PlaySessionEnergyChangeItems
                     .AsNoTracking()
                     .Where(i => i.PlaySessionId == id)
                     .OrderBy(i => i.SongTimeMs)
-                    .Select(i => new EnergyPointDto(i.SongTimeMs, i.EnergyBefore))
+                    .Select(i => new EnergyPointDto(i.SongTimeMs, i.Energy))
                     .ToListAsync(ct);
 
                 var comboBreaks = await db.PlaySessionComboBreakItems
@@ -174,11 +174,15 @@ public static class SessionEndpoints {
                         i.SongTimeMs,
                         (int) i.ColorType,
                         (int) i.NoteType,
+                        (int) i.ScoringType,
                         (int) i.CutDirection,
                         i.LineIndex,
                         i.NoteLineLayer,
                         i.Result,
                         i.MaxScore,
+                        i.BeforeCutScore,
+                        i.CenterDistanceScore,
+                        i.AfterCutScore,
                         i.PreCutSwing,
                         i.PostCutSwing,
                         i.CutPointDistance,
@@ -257,6 +261,8 @@ public sealed record PlaySessionListItemDto(
     string DifficultyRank,
     string DifficultyName,
     bool AutoMode,
+    string? EndReason,
+    int? ModifierFlags,
     PlaySessionResultsDto? Results
 ) {
     internal static PlaySessionListItemDto From(PlaySession s) => new(
@@ -273,6 +279,8 @@ public sealed record PlaySessionListItemDto(
         s.BeatmapDifficulty.DifficultyRank.ToString(),
         s.BeatmapDifficulty.DifficultyName,
         s.AutoMode,
+        s.EndReason?.ToString(),
+        s.ModifierFlags,
         PlaySessionResultsDto.From(s.Results)
     );
 }
@@ -284,6 +292,8 @@ public sealed record PlaySessionDetailDto(
     TimeSpan? Duration,
     BeatmapInfoDto Beatmap,
     bool AutoMode,
+    string? EndReason,
+    int? ModifierFlags,
     PlaySessionResultsDto? Results,
     int NoteCount,
     int ComboBreakCount,
@@ -297,6 +307,8 @@ public sealed record PlaySessionDetailDto(
         s.EndedAt.HasValue ? s.EndedAt.Value - s.StartedAt : null,
         BeatmapInfoDto.From(s.BeatmapDifficulty),
         s.AutoMode,
+        s.EndReason?.ToString(),
+        s.ModifierFlags,
         PlaySessionResultsDto.From(s.Results),
         noteCount,
         comboBreakCount,
@@ -346,6 +358,7 @@ public sealed record BeatmapInfoDto(
 
 public sealed record PlaySessionResultsDto(
     int Score,
+    int MultipliedScore,
     int MaxPossibleScore,
     float Accuracy,
     string Rank,
@@ -354,12 +367,13 @@ public sealed record PlaySessionResultsDto(
     int GoodCuts,
     int BadCuts,
     int Misses,
-    float FinalEnergy
+    float FinalEnergy,
+    int EndSongTimeMs
 ) {
     internal static PlaySessionResultsDto? From(PlaySessionResults? r) => r is null ? null : new(
-        r.Score, r.MaxPossibleScore, r.Accuracy, r.Rank,
+        r.Score, r.MultipliedScore, r.MaxPossibleScore, r.Accuracy, r.Rank,
         r.FullCombo, r.MaxCombo, r.GoodCuts, r.BadCuts,
-        r.Misses, r.FinalEnergy
+        r.Misses, r.FinalEnergy, r.EndSongTimeMs
     );
 }
 
@@ -377,11 +391,15 @@ public sealed record NoteItemDto(
     int SongTimeMs,
     int ColorType,
     int NoteType,
+    int ScoringType,
     int CutDirection,
     int LineIndex,
     int NoteLineLayer,
     int Result,
     int MaxScore,
+    int BeforeCutScore,
+    int CenterDistanceScore,
+    int AfterCutScore,
     float PreCutSwing,
     float PostCutSwing,
     float CutPointDistance,

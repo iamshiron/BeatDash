@@ -89,11 +89,15 @@ public sealed class LiveStatsHandler(
                 SongTimeMs = e.SongTime,
                 ColorType = (ColorType) e.ColorType,
                 NoteType = (NoteType) e.NoteType,
+                ScoringType = (NoteScoringType) e.ScoringType,
                 CutDirection = (CutDirection) e.CutDirection,
                 LineIndex = e.LineIndex,
                 NoteLineLayer = e.NoteLineLayer,
                 Result = e.Result,
                 MaxScore = e.MaxScore,
+                BeforeCutScore = e.BeforeCutScore,
+                CenterDistanceScore = e.CenterDistanceScore,
+                AfterCutScore = e.AfterCutScore,
                 PreCutSwing = e.BeforeCutSwing,
                 PostCutSwing = e.AfterCutSwing,
                 CutPointDistance = e.CutPointDistance,
@@ -115,7 +119,7 @@ public sealed class LiveStatsHandler(
                 PlaySessionId = playSessionId,
                 CorrelationId = correlationId,
                 SongTimeMs = e.SongTime,
-                EnergyBefore = e.Energy,
+                Energy = e.Energy,
             }));
         }
 
@@ -124,7 +128,7 @@ public sealed class LiveStatsHandler(
                 PlaySessionId = playSessionId,
                 CorrelationId = correlationId,
                 SongTimeMs = s.SongTime,
-                ScoreBefore = s.Score,
+                Score = s.Score,
             }));
         }
 

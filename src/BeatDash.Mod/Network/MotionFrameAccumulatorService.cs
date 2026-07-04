@@ -10,8 +10,10 @@ namespace Shiron.BeatDash.Mod.Network;
 /// double-buffered batch (mirroring <see cref="StatAccumulatorService"/>) and
 /// transmits them as a binary <see cref="BinaryPacketTypes.MotionFrameBatch"/>
 /// packet. While one buffer is being sent, the other accumulates, so a buffer
-/// being written to is never the one being transmitted. Connection-drop
-/// recovery (retransmit/retry) is deferred to V2.
+/// being written to is never the one being transmitted. Frames are persisted on
+/// the server, so the batch is always forced over TCP — UDP is never used here
+/// (the NetworkManager UDP whitelist permits only ephemeral packet types).
+/// Connection-drop recovery (retransmit/retry) is deferred to V2.
 /// </summary>
 public sealed class MotionFrameAccumulatorService(
     NetworkManager networkManager,
@@ -73,7 +75,7 @@ public sealed class MotionFrameAccumulatorService(
 
         try {
             var payload = PackMotionFrames(correlationId, toSend);
-            await networkManager.PostBinaryAsync(BinaryPacketTypes.MotionFrameBatch, payload);
+            await networkManager.PostBinaryAsync(BinaryPacketTypes.MotionFrameBatch, payload, forceTcp: true);
         } catch (Exception e) {
             Plugin.Log.Error($"Failed to flush motion frames batch: {e.Message}");
         } finally {
