@@ -21,14 +21,15 @@ public sealed class LiveStatsTracker(
     PauseController pauseController,
     ILevelEndActions levelEndActions,
     NetworkManager networkManager,
-    StatAccumulatorService statsAccumulator
+    StatAccumulatorService statsAccumulator,
+    MotionFrameAccumulatorService motionAccumulator,
+    PluginConfig config
 ) : IInitializable, ITickable, IDisposable {
-    private const float MotionSampleInterval = 1f / 30f;
+    private readonly float _motionSampleInterval =
+        config.MotionSampleRate > 0 ? 1f / config.MotionSampleRate : 0f;
 
     private readonly HandAccumulator _left = new();
     private readonly HandAccumulator _right = new();
-
-    private readonly List<MotionFrame> _motionFrames = [];
 
     private readonly Dictionary<float, (float SaberSpeed, float CutPointDist)> _pendingKinematics = [];
 
@@ -61,13 +62,18 @@ public sealed class LiveStatsTracker(
             return;
         }
 
-        if (songTime - _lastMotionSongTime.GetValueOrDefault() >= MotionSampleInterval) {
+        if (_motionSampleInterval <= 0f
+            || songTime - _lastMotionSongTime.GetValueOrDefault() >= _motionSampleInterval) {
             _lastMotionSongTime = songTime;
             SampleMotion(songTime);
         }
 
         if (statsAccumulator.IsThresholdReached()) {
-            _ = FlushAsync(songTime);
+            _ = FlushStatsAsync(songTime);
+        }
+
+        if (motionAccumulator.IsThresholdReached()) {
+            _ = motionAccumulator.FlushAsync(session.CorrelationId);
         }
     }
 
@@ -201,7 +207,7 @@ public sealed class LiveStatsTracker(
     }
 
     private void SampleMotion(float songTime) {
-        _motionFrames.Add(new MotionFrame(
+        motionAccumulator.Append(new MotionFrame(
             (int) (songTime * 1000),
             ToTransformData(saberManager.leftSaber.transform),
             ToTransformData(saberManager.rightSaber.transform),
@@ -212,7 +218,8 @@ public sealed class LiveStatsTracker(
     private void OnLevelEnd() {
         if (_flushed) return;
         _flushed = true;
-        _ = FlushAsync(atsc.songTime, force: true);
+        _ = FlushStatsAsync(atsc.songTime, force: true);
+        _ = motionAccumulator.FlushAsync(session.CorrelationId, force: true);
     }
 
     private async Task SendScoreUpdateAsync(float songTime) {
@@ -232,17 +239,10 @@ public sealed class LiveStatsTracker(
         }
     }
 
-    private async Task FlushAsync(float songTime, bool force = false) {
+    private async Task FlushStatsAsync(float songTime, bool force = false) {
         try {
             var snapshot = BuildSnapshot(songTime);
             await statsAccumulator.FlushAsync(snapshot, session.CorrelationId, force);
-
-            var motionFrames = _motionFrames.ToArray();
-            _motionFrames.Clear();
-            if (motionFrames.Length > 0) {
-                var binaryPayload = PackMotionFrames(session.CorrelationId, motionFrames);
-                await networkManager.PostBinaryAsync(BinaryPacketTypes.MotionFrameBatch, binaryPayload);
-            }
         } catch (Exception e) {
             Plugin.Log.Error($"Failed to flush live stats: {e.Message}");
         }
@@ -260,45 +260,6 @@ public sealed class LiveStatsTracker(
             ToDto(_left),
             ToDto(_right)
         );
-    }
-
-    private static unsafe byte[] PackMotionFrames(int correlationId, MotionFrame[] frames) {
-        var buffer = new byte[6 + MotionFrame.Size * frames.Length];
-        fixed (byte* pBuf = buffer) {
-            *(int*) pBuf = correlationId;
-            *(short*) (pBuf + 4) = (short) frames.Length;
-
-            var offset = 6;
-            for (var i = 0; i < frames.Length; i++) {
-                var f = frames[i];
-                var framePtr = pBuf + offset;
-                *(int*) framePtr = f.SongTime;
-                var p = (float*) (framePtr + 4);
-                *p++ = f.LeftSaber.PosX;
-                *p++ = f.LeftSaber.PosY;
-                *p++ = f.LeftSaber.PosZ;
-                *p++ = f.LeftSaber.RotX;
-                *p++ = f.LeftSaber.RotY;
-                *p++ = f.LeftSaber.RotZ;
-                *p++ = f.LeftSaber.RotW;
-                *p++ = f.RightSaber.PosX;
-                *p++ = f.RightSaber.PosY;
-                *p++ = f.RightSaber.PosZ;
-                *p++ = f.RightSaber.RotX;
-                *p++ = f.RightSaber.RotY;
-                *p++ = f.RightSaber.RotZ;
-                *p++ = f.RightSaber.RotW;
-                *p++ = f.Head.PosX;
-                *p++ = f.Head.PosY;
-                *p++ = f.Head.PosZ;
-                *p++ = f.Head.RotX;
-                *p++ = f.Head.RotY;
-                *p++ = f.Head.RotZ;
-                *p++ = f.Head.RotW;
-                offset += MotionFrame.Size;
-            }
-        }
-        return buffer;
     }
 
     private static TransformData ToTransformData(Transform t) {

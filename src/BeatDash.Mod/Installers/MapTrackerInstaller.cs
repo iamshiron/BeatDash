@@ -10,6 +10,7 @@ public class MapTrackerInstaller : Installer {
     public override void InstallBindings() {
         Container.Bind<GameplaySession>().AsSingle();
         Container.Bind<StatAccumulatorService>().AsSingle();
+        Container.Bind<MotionFrameAccumulatorService>().AsSingle();
         Container.BindInterfacesAndSelfTo<GameplaySessionTracker>().AsSingle();
         Container.BindInterfacesAndSelfTo<LiveStatsTracker>().AsSingle();
     }

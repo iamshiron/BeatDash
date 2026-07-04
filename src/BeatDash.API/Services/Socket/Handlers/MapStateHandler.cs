@@ -12,7 +12,9 @@ namespace Shiron.BeatDash.API.Services.Socket.Handlers;
 public sealed class MapStateHandler(
     ILogger<MapStateHandler> logger,
     IRealtimeBroadcaster broadcaster,
-    IPlaySessionService playSessionService
+    IPlaySessionService playSessionService,
+    IPlaySessionStore sessionStore,
+    IMotionFramePersistence motionFramePersistence
 ) : SocketBinaryMessageHandler<MapStateMessage> {
 
     /// <inheritdoc/>
@@ -25,6 +27,15 @@ public sealed class MapStateHandler(
 
         if (IsTerminalState(message.State)) {
             await playSessionService.TryEndAsync(context.SessionId, message.CorrelationId, ct);
+
+            if (sessionStore.TryGet(context.SessionId, message.CorrelationId, out var playSessionId)) {
+                _ = motionFramePersistence.PersistAsync(
+                    context.SessionId, message.CorrelationId, playSessionId, CancellationToken.None);
+            } else {
+                logger.LogWarning(
+                    "Cannot flush motion frames: no play session registered (corr={CorrelationId})",
+                    message.CorrelationId);
+            }
         }
 
         await broadcaster.SendLiveMapStateChangedAsync(context.UserId, new LiveMapStateChangedEvent(

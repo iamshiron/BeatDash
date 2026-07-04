@@ -16,6 +16,7 @@ public class BeatDashDbContext(DbContextOptions<BeatDashDbContext> options) : Id
     public DbSet<PlaySessionComboBreakItem> PlaySessionComboBreakItems => Set<PlaySessionComboBreakItem>();
     public DbSet<PlaySessionEnergyChangeItem> PlaySessionEnergyChangeItems => Set<PlaySessionEnergyChangeItem>();
     public DbSet<PlaySessionScoreChangeItem> PlaySessionScoreChangeItems => Set<PlaySessionScoreChangeItem>();
+    public DbSet<PlaySessionItemMotionFrame> PlaySessionItemMotionFrames => Set<PlaySessionItemMotionFrame>();
 
     protected override void OnModelCreating(ModelBuilder builder) {
         base.OnModelCreating(builder);
@@ -107,6 +108,10 @@ public class BeatDashDbContext(DbContextOptions<BeatDashDbContext> options) : Id
                 .WithOne(x => x.PlaySession)
                 .HasForeignKey(x => x.PlaySessionId)
                 .OnDelete(DeleteBehavior.Cascade);
+            c.HasMany(x => x.MotionFrameItems)
+                .WithOne(x => x.PlaySession)
+                .HasForeignKey(x => x.PlaySessionId)
+                .OnDelete(DeleteBehavior.Cascade);
             c.ToTable("PlaySessions");
         });
 
@@ -120,5 +125,6 @@ public class BeatDashDbContext(DbContextOptions<BeatDashDbContext> options) : Id
         builder.Entity<PlaySessionComboBreakItem>().ToTable("PlaySessionComboBreakItems");
         builder.Entity<PlaySessionEnergyChangeItem>().ToTable("PlaySessionEnergyChangeItems");
         builder.Entity<PlaySessionScoreChangeItem>().ToTable("PlaySessionScoreChangeItems");
+        builder.Entity<PlaySessionItemMotionFrame>().ToTable("PlaySessionItemMotionFrames");
     }
 }

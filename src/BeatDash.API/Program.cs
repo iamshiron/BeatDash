@@ -53,6 +53,7 @@ builder.Services.Configure<StorageOptions>(options => {
 });
 
 builder.Services.Configure<UdpSocketOptions>(builder.Configuration.GetSection("UdpSocket"));
+builder.Services.Configure<MotionFrameOptions>(builder.Configuration.GetSection("MotionFrame"));
 
 builder.Services.ConfigureApplicationCookie(o => {
     o.LoginPath = "/auth/login";
@@ -91,6 +92,8 @@ builder.Services.AddSingleton<ITokenService>(new TokenService(jwtSecret, jwtIssu
 builder.Services.AddSingleton<ISessionManager, SessionManager>();
 builder.Services.AddSingleton<IMapDataStore, MapDataStore>();
 builder.Services.AddSingleton<IPlaySessionStore, PlaySessionStore>();
+builder.Services.AddSingleton<IMotionFrameBuffer, MotionFrameBuffer>();
+builder.Services.AddSingleton<IMotionFramePersistence, MotionFramePersistence>();
 builder.Services.AddScoped<IPlaySessionService, PlaySessionService>();
 builder.Services.AddSingleton<IStorageService, MinioStorageService>();
 builder.Services.AddScoped<IPinService, PinService>();

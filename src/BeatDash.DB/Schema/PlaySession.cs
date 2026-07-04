@@ -17,4 +17,5 @@ public class PlaySession {
     public IList<PlaySessionComboBreakItem> ComboBreakItems { get; set; } = [];
     public IList<PlaySessionEnergyChangeItem> EnergyChangeItems { get; set; } = [];
     public IList<PlaySessionScoreChangeItem> ScoreChangeItems { get; set; } = [];
+    public IList<PlaySessionItemMotionFrame> MotionFrameItems { get; set; } = [];
 }
