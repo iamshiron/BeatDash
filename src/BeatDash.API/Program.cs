@@ -158,6 +158,7 @@ api.MapIdentityEndpoints();
 api.MapDeviceEndpoints();
 api.MapClientEndpoints();
 api.MapMapEndpoints();
+api.MapSessionEndpoints();
 api.MapHub<RealtimeHub>("/client/web");
 
 app.Run();

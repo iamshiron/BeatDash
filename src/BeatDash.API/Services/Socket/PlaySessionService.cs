@@ -25,9 +25,10 @@ public interface IPlaySessionService {
 
     /// <summary>
     /// Sets <see cref="PlaySession.EndedAt"/> on the session matching the given
-    /// correlation ID, if one exists and hasn't already been ended.
+    /// correlation ID, if one exists and hasn't already been ended. When
+    /// <paramref name="results"/> is non-null, also persists the final results.
     /// </summary>
-    Task TryEndAsync(Guid socketSessionId, int correlationId, CancellationToken ct);
+    Task TryEndAsync(Guid socketSessionId, int correlationId, MapResults? results, CancellationToken ct);
 }
 
 /// <summary>
@@ -43,6 +44,13 @@ public sealed class PlaySessionService(
     public async Task<Guid?> TryCreateAsync(
         Guid userId, Guid socketSessionId, int correlationId,
         MapStartMessage metadata, Guid beatmapId, CancellationToken ct) {
+
+        if (sessionStore.TryGet(socketSessionId, correlationId, out var existingSessionId)) {
+            logger.LogInformation(
+                "Play session already registered (corr={CorrelationId}, session={SessionId}); skipping duplicate",
+                correlationId, existingSessionId);
+            return existingSessionId;
+        }
 
         if (!Enum.TryParse(metadata.Difficulty, ignoreCase: true, out BeatmapDifficultyRank rank)) {
             logger.LogWarning(
@@ -85,7 +93,7 @@ public sealed class PlaySessionService(
     }
 
     /// <inheritdoc/>
-    public async Task TryEndAsync(Guid socketSessionId, int correlationId, CancellationToken ct) {
+    public async Task TryEndAsync(Guid socketSessionId, int correlationId, MapResults? results, CancellationToken ct) {
         if (!sessionStore.TryGet(socketSessionId, correlationId, out var sessionId)) {
             logger.LogWarning(
                 "Cannot end play session: no session registered (corr={CorrelationId})",
@@ -94,14 +102,45 @@ public sealed class PlaySessionService(
         }
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
-        var updated = await db.PlaySessions
-            .Where(s => s.Id == sessionId && s.EndedAt == null)
-            .ExecuteUpdateAsync(s => s.SetProperty(x => x.EndedAt, DateTime.UtcNow), ct);
 
-        if (updated > 0) {
-            logger.LogInformation(
-                "Ended play session {SessionId} (corr={CorrelationId})",
-                sessionId, correlationId);
+        if (results is null) {
+            var updated = await db.PlaySessions
+                .Where(s => s.Id == sessionId && s.EndedAt == null)
+                .ExecuteUpdateAsync(s => s.SetProperty(x => x.EndedAt, DateTime.UtcNow), ct);
+
+            if (updated > 0) {
+                logger.LogInformation(
+                    "Ended play session {SessionId} (corr={CorrelationId})",
+                    sessionId, correlationId);
+            }
+            return;
         }
+
+        var session = await db.PlaySessions.FirstOrDefaultAsync(s => s.Id == sessionId, ct);
+        if (session is null) {
+            logger.LogWarning(
+                "Play session {SessionId} not found in database (corr={CorrelationId})",
+                sessionId, correlationId);
+            return;
+        }
+
+        session.EndedAt ??= DateTime.UtcNow;
+        session.Results = new PlaySessionResults {
+            Score = results.Score,
+            MaxPossibleScore = results.MaxMultipliedScore,
+            Accuracy = results.Accuracy,
+            Rank = results.Rank,
+            FullCombo = results.FullCombo,
+            MaxCombo = results.MaxCombo,
+            GoodCuts = results.GoodCuts,
+            BadCuts = results.BadCuts,
+            Misses = results.MissedNotes,
+            FinalEnergy = results.Energy,
+        };
+
+        await db.SaveChangesAsync(ct);
+        logger.LogInformation(
+            "Ended play session {SessionId} with results (corr={CorrelationId}, rank={Rank}, score={Score})",
+            sessionId, correlationId, results.Rank, results.Score);
     }
 }

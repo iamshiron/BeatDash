@@ -12,6 +12,9 @@ public class PlaySession {
     public required DateTime StartedAt { get; set; }
     public required DateTime? EndedAt { get; set; }
 
+    /// <summary>Final results, populated when the session reaches a terminal state.</summary>
+    public PlaySessionResults? Results { get; set; }
+
     // Relations
     public IList<PlaySessionNoteItem> NoteItems { get; set; } = [];
     public IList<PlaySessionComboBreakItem> ComboBreakItems { get; set; } = [];

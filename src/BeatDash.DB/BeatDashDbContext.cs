@@ -112,6 +112,9 @@ public class BeatDashDbContext(DbContextOptions<BeatDashDbContext> options) : Id
                 .WithOne(x => x.PlaySession)
                 .HasForeignKey(x => x.PlaySessionId)
                 .OnDelete(DeleteBehavior.Cascade);
+            c.OwnsOne(x => x.Results, r => {
+                r.Property(p => p.Rank).HasMaxLength(8);
+            });
             c.ToTable("PlaySessions");
         });
 
