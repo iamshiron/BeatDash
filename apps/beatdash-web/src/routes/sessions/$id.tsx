@@ -44,6 +44,7 @@ import {
 	formatScore,
 	formatSongTimeMs,
 	RANK_STYLES,
+	type SessionSearchParams,
 } from "@/lib/sessions";
 
 const scoreChartConfig = {
@@ -65,11 +66,21 @@ export const Route = createFileRoute("/sessions/$id")({
 			throw redirect({ to: "/auth/login", replace: true });
 		}
 	},
+	validateSearch: (search: Record<string, unknown>): SessionSearchParams => ({
+		page: typeof search.page === "number" ? search.page : undefined,
+		q: typeof search.q === "string" ? search.q : undefined,
+		difficulty:
+			typeof search.difficulty === "string" ? search.difficulty : undefined,
+		sortBy: typeof search.sortBy === "string" ? search.sortBy : undefined,
+		sortDir: typeof search.sortDir === "string" ? search.sortDir : undefined,
+		includeAuto: search.includeAuto === true,
+	}),
 	component: SessionDetailPage,
 });
 
 function SessionDetailPage() {
 	const { id } = Route.useParams();
+	const listSearch = Route.useSearch();
 
 	const detailQuery = useGetApiSessionsId(id);
 	const timelineQuery = useGetApiSessionsIdTimeline(id);
@@ -135,7 +146,7 @@ function SessionDetailPage() {
 	return (
 		<AppShell wide>
 			<Button variant="ghost" size="sm" asChild className="mb-4 -ml-2 w-fit">
-				<Link to="/sessions">
+				<Link to="/sessions" search={listSearch}>
 					<ArrowLeftIcon className="size-4" />
 					Sessions
 				</Link>

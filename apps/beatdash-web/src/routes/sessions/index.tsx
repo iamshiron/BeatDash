@@ -1,11 +1,8 @@
 import {
-	ArrowDownIcon,
-	ArrowUpIcon,
 	CaretLeftIcon,
 	CaretRightIcon,
 	ClockIcon,
 	MagnifyingGlassIcon,
-	RobotIcon,
 } from "@phosphor-icons/react";
 import { Button } from "@shiron/ui/components/ui/button";
 import {
@@ -24,6 +21,7 @@ import {
 	SelectValue,
 } from "@shiron/ui/components/ui/select";
 import { Skeleton } from "@shiron/ui/components/ui/skeleton";
+import { Switch } from "@shiron/ui/components/ui/switch";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useGetApiSessions } from "@/api/sessions/sessions";
@@ -32,7 +30,7 @@ import { SessionCard } from "@/components/sessions/SessionCard";
 import {
 	DIFFICULTY_OPTIONS,
 	type SessionSearchParams,
-	SORT_OPTIONS,
+	SORT_OPTIONS_COMBINED,
 	toApiParams,
 } from "@/lib/sessions";
 
@@ -96,25 +94,31 @@ function SessionsListPage() {
 	const page = result ? Number(result.page) : (search.page ?? 1);
 
 	const hasFilters = search.q || search.difficulty;
+	const isGenuinelyEmpty = !isLoading && totalCount === 0 && !hasFilters;
 
 	return (
 		<AppShell wide>
-			<div className="flex items-center justify-between gap-3">
-				<h1 className="font-heading text-lg font-semibold tracking-tight">
-					Sessions
-				</h1>
+			<div className="flex items-end justify-between gap-4">
+				<div>
+					<h1 className="font-heading text-xl font-bold tracking-tight">
+						Sessions
+					</h1>
+					<p className="mt-0.5 text-xs text-muted-foreground">
+						{totalCount} {totalCount === 1 ? "session" : "sessions"}
+					</p>
+				</div>
 				<div className="relative w-full max-w-xs">
 					<MagnifyingGlassIcon className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 					<Input
 						value={inputValue}
 						onChange={(e) => setInputValue(e.target.value)}
-						placeholder="Search sessions…"
+						placeholder="Search…"
 						className="h-9 pl-8"
 					/>
 				</div>
 			</div>
 
-			<div className="mt-4 flex flex-wrap items-center gap-2">
+			<div className="mt-3 flex flex-wrap items-center gap-1.5 rounded-lg border border-border/60 bg-muted/20 p-1.5">
 				<Select
 					value={search.difficulty ?? "all"}
 					onValueChange={(v) =>
@@ -124,7 +128,7 @@ function SessionsListPage() {
 						})
 					}
 				>
-					<SelectTrigger className="h-9 w-36">
+					<SelectTrigger className="h-8 w-[7.5rem] border-transparent bg-background text-xs">
 						<SelectValue placeholder="Difficulty" />
 					</SelectTrigger>
 					<SelectContent>
@@ -137,15 +141,20 @@ function SessionsListPage() {
 					</SelectContent>
 				</Select>
 
+				<div className="h-4 w-px bg-border/60" />
+
 				<Select
-					value={search.sortBy}
-					onValueChange={(v) => updateSearch({ sortBy: v, page: 1 })}
+					value={`${search.sortBy ?? "StartedAt"}:${search.sortDir ?? "Desc"}`}
+					onValueChange={(v) => {
+						const [sortBy, sortDir] = v.split(":") as [string, string];
+						updateSearch({ sortBy, sortDir, page: 1 });
+					}}
 				>
-					<SelectTrigger className="h-9 w-36">
-						<SelectValue placeholder="Sort by" />
+					<SelectTrigger className="h-8 w-[10rem] border-transparent bg-background text-xs">
+						<SelectValue />
 					</SelectTrigger>
 					<SelectContent>
-						{SORT_OPTIONS.map((opt) => (
+						{SORT_OPTIONS_COMBINED.map((opt) => (
 							<SelectItem key={opt.value} value={opt.value}>
 								{opt.label}
 							</SelectItem>
@@ -153,39 +162,31 @@ function SessionsListPage() {
 					</SelectContent>
 				</Select>
 
-				<Button
-					variant="outline"
-					size="icon"
-					className="h-9 w-9"
-					onClick={() =>
-						updateSearch({
-							sortDir: search.sortDir === "Asc" ? "Desc" : "Asc",
-						})
-					}
-				>
-					{search.sortDir === "Asc" ? <ArrowUpIcon /> : <ArrowDownIcon />}
-				</Button>
-
-				<Button
-					variant={search.includeAuto ? "default" : "outline"}
-					size="sm"
-					className="h-9"
-					onClick={() =>
-						updateSearch({
-							includeAuto: !search.includeAuto,
-							page: 1,
-						})
-					}
-				>
-					<RobotIcon className="size-3.5" />
+				<div className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
 					Auto
-				</Button>
+					<Switch
+						checked={search.includeAuto}
+						onCheckedChange={(checked) =>
+							updateSearch({ includeAuto: checked, page: 1 })
+						}
+					/>
+				</div>
 			</div>
 
 			{isLoading && (
-				<div className="mt-4 flex flex-col gap-2">
+				<div className="mt-3 flex flex-col gap-2">
 					{SKELETON_KEYS.map((key) => (
-						<Skeleton key={key} className="h-20 rounded-xl" />
+						<div
+							key={key}
+							className="flex items-center gap-3.5 rounded-xl border border-border p-3"
+						>
+							<Skeleton className="size-14 shrink-0 rounded-lg" />
+							<div className="flex-1 space-y-2">
+								<Skeleton className="h-3.5 w-48" />
+								<Skeleton className="h-3 w-32" />
+							</div>
+							<Skeleton className="h-10 w-16 shrink-0" />
+						</div>
 					))}
 				</div>
 			)}
@@ -197,19 +198,19 @@ function SessionsListPage() {
 							<ClockIcon />
 						</EmptyMedia>
 						<EmptyTitle>
-							{hasFilters ? "No sessions found" : "No sessions yet"}
+							{isGenuinelyEmpty ? "No sessions yet" : "No sessions found"}
 						</EmptyTitle>
 						<EmptyDescription>
-							{hasFilters
-								? "Try adjusting your filters or search term."
-								: "Play a map on your headset to see sessions here."}
+							{isGenuinelyEmpty
+								? "Play a map on your headset to see sessions here."
+								: "Try adjusting your filters or search term."}
 						</EmptyDescription>
 					</EmptyHeader>
 				</Empty>
 			)}
 
 			{!isLoading && sessions.length > 0 && (
-				<div className="mt-4 flex flex-col gap-2">
+				<div className="mt-3 flex flex-col gap-2">
 					{sessions.map((session) => (
 						<SessionCard key={session.id} session={session} />
 					))}
@@ -218,25 +219,27 @@ function SessionsListPage() {
 
 			{!isLoading && totalPages > 1 && (
 				<div className="mt-6 flex items-center justify-between">
-					<span className="text-xs text-muted-foreground">
-						Page {page} of {totalPages} ({totalCount} sessions)
-					</span>
-					<div className="flex gap-2">
+					<p className="font-mono text-xs tabular-nums text-muted-foreground">
+						{page} / {totalPages}
+					</p>
+					<div className="flex items-center gap-1.5">
 						<Button
 							variant="outline"
-							size="sm"
+							size="icon"
+							className="size-8"
 							disabled={page <= 1}
 							onClick={() => updateSearch({ page: page - 1 })}
 						>
-							<CaretLeftIcon /> Prev
+							<CaretLeftIcon className="size-4" />
 						</Button>
 						<Button
 							variant="outline"
-							size="sm"
+							size="icon"
+							className="size-8"
 							disabled={page >= totalPages}
 							onClick={() => updateSearch({ page: page + 1 })}
 						>
-							Next <CaretRightIcon />
+							<CaretRightIcon className="size-4" />
 						</Button>
 					</div>
 				</div>

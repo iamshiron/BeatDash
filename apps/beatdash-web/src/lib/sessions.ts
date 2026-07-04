@@ -35,6 +35,19 @@ export const SORT_OPTIONS = [
 	{ value: "MaxCombo", label: "Max Combo" },
 ] as const;
 
+export const SORT_OPTIONS_COMBINED = [
+	{ value: "StartedAt:Desc", label: "Newest first" },
+	{ value: "StartedAt:Asc", label: "Oldest first" },
+	{ value: "Score:Desc", label: "Highest score" },
+	{ value: "Score:Asc", label: "Lowest score" },
+	{ value: "Accuracy:Desc", label: "Highest accuracy" },
+	{ value: "Accuracy:Asc", label: "Lowest accuracy" },
+	{ value: "Duration:Desc", label: "Longest duration" },
+	{ value: "Duration:Asc", label: "Shortest duration" },
+	{ value: "MaxCombo:Desc", label: "Longest combo" },
+	{ value: "MaxCombo:Asc", label: "Shortest combo" },
+] as const;
+
 const DIFFICULTY_TO_NUM: Record<string, number> = {
 	Easy: 0,
 	Normal: 1,
@@ -63,7 +76,7 @@ export interface SessionSearchParams {
 export function toApiParams(search: SessionSearchParams): GetApiSessionsParams {
 	return {
 		Page: search.page ?? 1,
-		PageSize: 20,
+		PageSize: 25,
 		Search: search.q?.trim() || undefined,
 		Difficulty: search.difficulty
 			? DIFFICULTY_TO_NUM[search.difficulty]
