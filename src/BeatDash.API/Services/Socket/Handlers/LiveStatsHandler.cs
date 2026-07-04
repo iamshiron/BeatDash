@@ -15,9 +15,10 @@ public sealed class LiveStatsHandler(
     ILogger<LiveStatsHandler> logger,
     IRealtimeBroadcaster broadcaster
 ) : SocketMessageHandler<LiveStatsMessage> {
-
-    protected override async Task HandleMessageAsync(
-        SocketContext context, LiveStatsMessage message, CancellationToken ct) {
+    protected async override Task HandleMessageAsync(
+        SocketContext context,
+        LiveStatsMessage message,
+        CancellationToken ct) {
         var noteEvents = message.NoteEvents ?? [];
         var comboBreaks = message.ComboBreaks ?? [];
         var energyChanges = message.EnergyChanges ?? [];

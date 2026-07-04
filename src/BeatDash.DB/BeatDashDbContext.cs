@@ -11,6 +11,12 @@ public class BeatDashDbContext(DbContextOptions<BeatDashDbContext> options) : Id
     public DbSet<Beatmap> Beatmaps => Set<Beatmap>();
     public DbSet<BeatmapDifficulty> BeatmapDifficulties => Set<BeatmapDifficulty>();
 
+    public DbSet<PlaySession> PlaySessions => Set<PlaySession>();
+    public DbSet<PlaySessionNoteItem> PlaySessionNoteItems => Set<PlaySessionNoteItem>();
+    public DbSet<PlaySessionComboBreakItem> PlaySessionComboBreakItems => Set<PlaySessionComboBreakItem>();
+    public DbSet<PlaySessionEnergyChangeItem> PlaySessionEnergyChangeItems => Set<PlaySessionEnergyChangeItem>();
+    public DbSet<PlaySessionScoreChangeItem> PlaySessionScoreChangeItems => Set<PlaySessionScoreChangeItem>();
+
     protected override void OnModelCreating(ModelBuilder builder) {
         base.OnModelCreating(builder);
 
@@ -74,5 +80,45 @@ public class BeatDashDbContext(DbContextOptions<BeatDashDbContext> options) : Id
                 .OnDelete(DeleteBehavior.Cascade);
             c.ToTable("BeatmapDifficulties");
         });
+
+        builder.Entity<PlaySession>(c => {
+            c.HasKey(x => x.Id);
+            c.HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            c.HasOne(x => x.BeatmapDifficulty)
+                .WithMany()
+                .HasForeignKey(x => x.BeatmapDifficultyId)
+                .OnDelete(DeleteBehavior.Cascade);
+            c.HasMany(x => x.NoteItems)
+                .WithOne(x => x.PlaySession)
+                .HasForeignKey(x => x.PlaySessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            c.HasMany(x => x.ComboBreakItems)
+                .WithOne(x => x.PlaySession)
+                .HasForeignKey(x => x.PlaySessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            c.HasMany(x => x.EnergyChangeItems)
+                .WithOne(x => x.PlaySession)
+                .HasForeignKey(x => x.PlaySessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            c.HasMany(x => x.ScoreChangeItems)
+                .WithOne(x => x.PlaySession)
+                .HasForeignKey(x => x.PlaySessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            c.ToTable("PlaySessions");
+        });
+
+        builder.Entity<PlaySessionItem>(c => {
+            c.UseTpcMappingStrategy();
+            c.HasKey(x => x.Id);
+            c.HasIndex(x => new { x.PlaySessionId, x.SongTimeMs });
+        });
+
+        builder.Entity<PlaySessionNoteItem>().ToTable("PlaySessionNoteItems");
+        builder.Entity<PlaySessionComboBreakItem>().ToTable("PlaySessionComboBreakItems");
+        builder.Entity<PlaySessionEnergyChangeItem>().ToTable("PlaySessionEnergyChangeItems");
+        builder.Entity<PlaySessionScoreChangeItem>().ToTable("PlaySessionScoreChangeItems");
     }
 }

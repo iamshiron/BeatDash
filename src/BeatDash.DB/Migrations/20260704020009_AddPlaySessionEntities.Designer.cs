@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Shiron.BeatDash.DB;
@@ -11,9 +12,11 @@ using Shiron.BeatDash.DB;
 namespace Shiron.BeatDash.DB.Migrations
 {
     [DbContext(typeof(BeatDashDbContext))]
-    partial class BeatDashDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260704020009_AddPlaySessionEntities")]
+    partial class AddPlaySessionEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
