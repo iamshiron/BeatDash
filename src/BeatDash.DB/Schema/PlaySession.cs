@@ -1,7 +1,7 @@
 namespace Shiron.BeatDash.DB.Schema;
 
 public class PlaySession {
-    public required Guid Id { get; set; } = Guid.CreateVersion7();
+    public Guid Id { get; set; } = Guid.CreateVersion7();
     public required int CorrelationId { get; set; }
 
     public Guid UserId { get; set; }

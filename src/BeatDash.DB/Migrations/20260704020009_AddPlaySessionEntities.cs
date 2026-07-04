@@ -1,20 +1,16 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Shiron.BeatDash.DB.Migrations
-{
+namespace Shiron.BeatDash.DB.Migrations {
     /// <inheritdoc />
-    public partial class AddPlaySessionEntities : Migration
-    {
+    public partial class AddPlaySessionEntities : Migration {
         /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
+        protected override void Up(MigrationBuilder migrationBuilder) {
             migrationBuilder.CreateTable(
                 name: "PlaySessions",
-                columns: table => new
-                {
+                columns: table => new {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     CorrelationId = table.Column<int>(type: "integer", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
@@ -22,8 +18,7 @@ namespace Shiron.BeatDash.DB.Migrations
                     StartedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     EndedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
-                constraints: table =>
-                {
+                constraints: table => {
                     table.PrimaryKey("PK_PlaySessions", x => x.Id);
                     table.ForeignKey(
                         name: "FK_PlaySessions_BeatmapDifficulties_BeatmapDifficultyId",
@@ -41,16 +36,14 @@ namespace Shiron.BeatDash.DB.Migrations
 
             migrationBuilder.CreateTable(
                 name: "PlaySessionComboBreakItems",
-                columns: table => new
-                {
+                columns: table => new {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     CorrelationId = table.Column<int>(type: "integer", nullable: false),
                     PlaySessionId = table.Column<Guid>(type: "uuid", nullable: false),
                     SongTimeMs = table.Column<int>(type: "integer", nullable: false),
                     ComboBefore = table.Column<int>(type: "integer", nullable: false)
                 },
-                constraints: table =>
-                {
+                constraints: table => {
                     table.PrimaryKey("PK_PlaySessionComboBreakItems", x => x.Id);
                     table.ForeignKey(
                         name: "FK_PlaySessionComboBreakItems_PlaySessions_PlaySessionId",
@@ -62,16 +55,14 @@ namespace Shiron.BeatDash.DB.Migrations
 
             migrationBuilder.CreateTable(
                 name: "PlaySessionEnergyChangeItems",
-                columns: table => new
-                {
+                columns: table => new {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     CorrelationId = table.Column<int>(type: "integer", nullable: false),
                     PlaySessionId = table.Column<Guid>(type: "uuid", nullable: false),
                     SongTimeMs = table.Column<int>(type: "integer", nullable: false),
                     EnergyBefore = table.Column<float>(type: "real", nullable: false)
                 },
-                constraints: table =>
-                {
+                constraints: table => {
                     table.PrimaryKey("PK_PlaySessionEnergyChangeItems", x => x.Id);
                     table.ForeignKey(
                         name: "FK_PlaySessionEnergyChangeItems_PlaySessions_PlaySessionId",
@@ -83,8 +74,7 @@ namespace Shiron.BeatDash.DB.Migrations
 
             migrationBuilder.CreateTable(
                 name: "PlaySessionNoteItems",
-                columns: table => new
-                {
+                columns: table => new {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     CorrelationId = table.Column<int>(type: "integer", nullable: false),
                     PlaySessionId = table.Column<Guid>(type: "uuid", nullable: false),
@@ -101,8 +91,7 @@ namespace Shiron.BeatDash.DB.Migrations
                     CutPointDistance = table.Column<float>(type: "real", nullable: false),
                     SaberSpeed = table.Column<float>(type: "real", nullable: false)
                 },
-                constraints: table =>
-                {
+                constraints: table => {
                     table.PrimaryKey("PK_PlaySessionNoteItems", x => x.Id);
                     table.ForeignKey(
                         name: "FK_PlaySessionNoteItems_PlaySessions_PlaySessionId",
@@ -114,16 +103,14 @@ namespace Shiron.BeatDash.DB.Migrations
 
             migrationBuilder.CreateTable(
                 name: "PlaySessionScoreChangeItems",
-                columns: table => new
-                {
+                columns: table => new {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     CorrelationId = table.Column<int>(type: "integer", nullable: false),
                     PlaySessionId = table.Column<Guid>(type: "uuid", nullable: false),
                     SongTimeMs = table.Column<int>(type: "integer", nullable: false),
                     ScoreBefore = table.Column<int>(type: "integer", nullable: false)
                 },
-                constraints: table =>
-                {
+                constraints: table => {
                     table.PrimaryKey("PK_PlaySessionScoreChangeItems", x => x.Id);
                     table.ForeignKey(
                         name: "FK_PlaySessionScoreChangeItems_PlaySessions_PlaySessionId",
@@ -165,8 +152,7 @@ namespace Shiron.BeatDash.DB.Migrations
         }
 
         /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
+        protected override void Down(MigrationBuilder migrationBuilder) {
             migrationBuilder.DropTable(
                 name: "PlaySessionComboBreakItems");
 
