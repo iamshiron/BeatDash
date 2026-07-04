@@ -9,7 +9,7 @@ namespace Shiron.BeatDash.Data.Realtime.Events;
 /// at a specific point in the song timeline.
 /// </summary>
 /// <param name="CorrelationId">Links to the original map start event.</param>
-/// <param name="SongTime">Position in original song timeline (seconds). Pauses stop advancement.</param>
+/// <param name="SongTime">Position in original song timeline (milliseconds). Pauses stop advancement.</param>
 /// <param name="Score">Cumulative multiplied score.</param>
 /// <param name="ModifiedScore">Cumulative modified score (after modifier multipliers).</param>
 /// <param name="MaxPossibleScore">Maximum possible multiplied score at this point.</param>
@@ -20,7 +20,7 @@ namespace Shiron.BeatDash.Data.Realtime.Events;
 /// <param name="Timestamp">When the update was received by the server (UTC).</param>
 public sealed record LiveStatsEvent(
     int CorrelationId,
-    float SongTime,
+    int SongTime,
     int Score,
     int ModifiedScore,
     int MaxPossibleScore,
@@ -32,5 +32,6 @@ public sealed record LiveStatsEvent(
     NoteEventDto[] NoteEvents,
     ComboBreakDto[] ComboBreaks,
     EnergyChangeDto[] EnergyChanges,
+    ScoreChangeDto[] ScoreChanges,
     DateTime Timestamp
 );

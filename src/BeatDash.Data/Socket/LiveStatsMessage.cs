@@ -30,8 +30,8 @@ public sealed class HandStatsDto {
 public sealed class LiveStatsMessage : SocketMessage<LiveStatsMessage> {
     public required int CorrelationId { get; init; }
 
-    /// <summary>Position in the original song timeline (seconds). Pauses stop advancement.</summary>
-    public required float SongTime { get; init; }
+    /// <summary>Position in the original song timeline (milliseconds). Pauses stop advancement.</summary>
+    public required int SongTime { get; init; }
 
     /// <summary>Current cumulative multiplied score (before modifier adjustments).</summary>
     public required int Score { get; init; }
@@ -57,4 +57,5 @@ public sealed class LiveStatsMessage : SocketMessage<LiveStatsMessage> {
     public NoteEventDto[] NoteEvents { get; init; } = [];
     public ComboBreakDto[] ComboBreaks { get; init; } = [];
     public EnergyChangeDto[] EnergyChanges { get; init; } = [];
+    public ScoreChangeDto[] ScoreChanges { get; init; } = [];
 }

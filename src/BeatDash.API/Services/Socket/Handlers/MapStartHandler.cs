@@ -24,7 +24,12 @@ public sealed class MapStartHandler(
 
     protected override async Task HandleMessageAsync(
         SocketContext context, MapStartMessage message, CancellationToken ct) {
-        logger.LogInformation("Map started: {SongName} (corr={CorrelationId})", message.SongName, message.CorrelationId);
+        logger.LogInformation(
+            "Map started: {SongName} (corr={CorrelationId}, level={LevelId}) | " +
+            "context items: npsCurve={Nps}, walls={Walls}, bombs={Bombs}, notesPerHand={NotesLeft}/{NotesRight}",
+            message.SongName, message.CorrelationId, message.LevelId,
+            (message.NpsCurve ?? []).Length, (message.WallTimeline ?? []).Length, (message.BombPositions ?? []).Length,
+            message.NotesPerHandLeft, message.NotesPerHandRight);
 
         var pair = mapDataStore.SubmitMetadata(context, message);
         Guid? mapId = null;

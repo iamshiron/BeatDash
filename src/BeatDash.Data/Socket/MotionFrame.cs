@@ -15,12 +15,12 @@ public readonly struct TransformData {
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public readonly struct MotionFrame {
-    public readonly float SongTime;
+    public readonly int SongTime;
     public readonly TransformData LeftSaber;
     public readonly TransformData RightSaber;
     public readonly TransformData Head;
 
-    public MotionFrame(float songTime, TransformData leftSaber, TransformData rightSaber, TransformData head) {
+    public MotionFrame(int songTime, TransformData leftSaber, TransformData rightSaber, TransformData head) {
         SongTime = songTime;
         LeftSaber = leftSaber;
         RightSaber = rightSaber;

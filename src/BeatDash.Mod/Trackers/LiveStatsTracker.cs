@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Shiron.BeatDash.Data.Socket;
 using Shiron.BeatDash.Mod.Network;
 using UnityEngine;
@@ -21,25 +20,21 @@ public sealed class LiveStatsTracker(
     PlayerTransforms playerTransforms,
     PauseController pauseController,
     ILevelEndActions levelEndActions,
-    NetworkManager networkManager
+    NetworkManager networkManager,
+    StatAccumulatorService statsAccumulator
 ) : IInitializable, ITickable, IDisposable {
-
-    private const float SnapshotInterval = 2f;
     private const float MotionSampleInterval = 1f / 30f;
 
     private readonly HandAccumulator _left = new();
     private readonly HandAccumulator _right = new();
 
-    private readonly List<NoteEventDto> _noteEvents = [];
-    private readonly List<ComboBreakDto> _comboBreaks = [];
-    private readonly List<EnergyChangeDto> _energyChanges = [];
     private readonly List<MotionFrame> _motionFrames = [];
 
     private readonly Dictionary<float, (float SaberSpeed, float CutPointDist)> _pendingKinematics = [];
 
-    private float? _lastSnapshotSongTime;
     private float? _lastMotionSongTime;
     private int _currentCombo;
+    private int _lastMultipliedScore;
     private bool _flushed;
 
     public void Initialize() {
@@ -47,6 +42,9 @@ public sealed class LiveStatsTracker(
         beatmapObjectManager.noteWasCutEvent += OnNoteCut;
         comboController.comboDidChangeEvent += OnComboChanged;
         energyCounter.gameEnergyDidChangeEvent += OnEnergyChange;
+        scoreController.scoreDidChangeEvent += OnScoreDidChange;
+
+        _lastMultipliedScore = scoreController.multipliedScore;
 
         pauseController.didReturnToMenuEvent += OnLevelEnd;
         levelEndActions.levelFinishedEvent += OnLevelEnd;
@@ -58,8 +56,7 @@ public sealed class LiveStatsTracker(
 
         var songTime = atsc.songTime;
 
-        if (!_lastSnapshotSongTime.HasValue) {
-            _lastSnapshotSongTime = songTime;
+        if (!_lastMotionSongTime.HasValue) {
             _lastMotionSongTime = songTime;
             return;
         }
@@ -69,9 +66,8 @@ public sealed class LiveStatsTracker(
             SampleMotion(songTime);
         }
 
-        if (songTime - _lastSnapshotSongTime.GetValueOrDefault() >= SnapshotInterval) {
-            _lastSnapshotSongTime = songTime;
-            _ = SendBatchAsync(songTime);
+        if (statsAccumulator.IsThresholdReached()) {
+            _ = FlushAsync(songTime);
         }
     }
 
@@ -80,8 +76,8 @@ public sealed class LiveStatsTracker(
 
         if (nd.gameplayType == NoteData.GameplayType.Bomb) {
             var cp = cutInfo.cutPoint;
-            _noteEvents.Add(new NoteEventDto {
-                SongTime = nd.time,
+            statsAccumulator.AddNoteEvent(new NoteEventDto {
+                SongTime = (int) (nd.time * 1000),
                 ColorType = (int) nd.colorType,
                 NoteType = (int) nd.gameplayType,
                 CutDirection = (int) nd.cutDirection,
@@ -95,7 +91,7 @@ public sealed class LiveStatsTracker(
                 BeforeCutSwing = 0f,
                 AfterCutSwing = 0f,
                 SaberSpeed = cutInfo.saberSpeed,
-                CutPointDistance = Mathf.Sqrt(cp.x * cp.x + cp.y * cp.y + cp.z * cp.z),
+                CutPointDistance = Mathf.Sqrt(cp.x * cp.x + cp.y * cp.y + cp.z * cp.z)
             });
             return;
         }
@@ -116,7 +112,7 @@ public sealed class LiveStatsTracker(
         if (hasKinematics) _pendingKinematics.Remove(songTime);
 
         int result;
-        int maxScore = 0;
+        var maxScore = 0;
         int beforeCut = 0, centerDist = 0, afterCut = 0;
         float beforeSwing = 0f, afterSwing = 0f;
 
@@ -156,8 +152,8 @@ public sealed class LiveStatsTracker(
             }
         }
 
-        _noteEvents.Add(new NoteEventDto {
-            SongTime = songTime,
+        statsAccumulator.AddNoteEvent(new NoteEventDto {
+            SongTime = (int) (songTime * 1000),
             ColorType = (int) colorType,
             NoteType = (int) nd.gameplayType,
             CutDirection = (int) nd.cutDirection,
@@ -171,7 +167,7 @@ public sealed class LiveStatsTracker(
             BeforeCutSwing = beforeSwing,
             AfterCutSwing = afterSwing,
             SaberSpeed = hasKinematics ? kin.SaberSpeed : 0f,
-            CutPointDistance = hasKinematics ? kin.CutPointDist : 0f,
+            CutPointDistance = hasKinematics ? kin.CutPointDist : 0f
         });
 
         _ = SendScoreUpdateAsync(atsc.songTime);
@@ -179,24 +175,35 @@ public sealed class LiveStatsTracker(
 
     private void OnComboChanged(int combo) {
         if (combo == 0 && _currentCombo > 0) {
-            _comboBreaks.Add(new ComboBreakDto {
-                SongTime = atsc.songTime,
-                ComboBefore = _currentCombo,
+            statsAccumulator.AddComboBreak(new ComboBreakDto {
+                SongTime = (int) (atsc.songTime * 1000),
+                ComboBefore = _currentCombo
             });
         }
         _currentCombo = combo;
     }
 
     private void OnEnergyChange(float energy) {
-        _energyChanges.Add(new EnergyChangeDto {
-            SongTime = atsc.songTime,
-            Energy = energy,
+        statsAccumulator.AddEnergyChange(new EnergyChangeDto {
+            SongTime = (int) (atsc.songTime * 1000),
+            Energy = energy
+        });
+    }
+
+    private void OnScoreDidChange(int multipliedScore, int modifiedScore) {
+        var current = scoreController.multipliedScore;
+        var delta = current - _lastMultipliedScore;
+        if (delta == 0) return;
+        _lastMultipliedScore = current;
+        statsAccumulator.AddScoreChange(new ScoreChangeDto {
+            SongTime = (int) (atsc.songTime * 1000),
+            ScoreDelta = delta
         });
     }
 
     private void SampleMotion(float songTime) {
         _motionFrames.Add(new MotionFrame(
-            songTime,
+            (int) (songTime * 1000),
             ToTransformData(saberManager.leftSaber.transform),
             ToTransformData(saberManager.rightSaber.transform),
             ToTransformData(playerTransforms.headWorldPos, playerTransforms.headWorldRot)
@@ -206,7 +213,7 @@ public sealed class LiveStatsTracker(
     private void OnLevelEnd() {
         if (_flushed) return;
         _flushed = true;
-        _ = SendBatchAsync(atsc.songTime);
+        _ = FlushAsync(atsc.songTime, force: true);
     }
 
     private async Task SendScoreUpdateAsync(float songTime) {
@@ -226,43 +233,34 @@ public sealed class LiveStatsTracker(
         }
     }
 
-    private async Task SendBatchAsync(float songTime) {
+    private async Task FlushAsync(float songTime, bool force = false) {
         try {
-            var noteEvents = _noteEvents.ToArray();
-            var comboBreaks = _comboBreaks.ToArray();
-            var energyChanges = _energyChanges.ToArray();
-            _noteEvents.Clear();
-            _comboBreaks.Clear();
-            _energyChanges.Clear();
+            var snapshot = BuildSnapshot(songTime);
+            await statsAccumulator.FlushAsync(snapshot, session.CorrelationId, force);
 
             var motionFrames = _motionFrames.ToArray();
             _motionFrames.Clear();
-
-            var message = new LiveStatsMessage {
-                CorrelationId = session.CorrelationId,
-                SongTime = songTime,
-                Score = scoreController.multipliedScore,
-                ModifiedScore = scoreController.modifiedScore,
-                MaxPossibleScore = scoreController.immediateMaxPossibleMultipliedScore,
-                Energy = energyCounter.energy,
-                CurrentCombo = _currentCombo,
-                MaxCombo = comboController.maxCombo,
-                LeftHand = ToDto(_left),
-                RightHand = ToDto(_right),
-                NoteEvents = noteEvents,
-                ComboBreaks = comboBreaks,
-                EnergyChanges = energyChanges,
-            };
-
-            await networkManager.PostMessageAsync(JsonConvert.SerializeObject(message));
-
             if (motionFrames.Length > 0) {
                 var binaryPayload = PackMotionFrames(session.CorrelationId, motionFrames);
                 await networkManager.PostBinaryAsync(BinaryPacketTypes.MotionFrameBatch, binaryPayload);
             }
         } catch (Exception e) {
-            Plugin.Log.Error($"Failed to send live stats batch: {e.Message}");
+            Plugin.Log.Error($"Failed to flush live stats: {e.Message}");
         }
+    }
+
+    private StatsSnapshot BuildSnapshot(float songTime) {
+        return new StatsSnapshot(
+            (int) (songTime * 1000),
+            scoreController.multipliedScore,
+            scoreController.modifiedScore,
+            scoreController.immediateMaxPossibleMultipliedScore,
+            energyCounter.energy,
+            _currentCombo,
+            comboController.maxCombo,
+            ToDto(_left),
+            ToDto(_right)
+        );
     }
 
     private static unsafe byte[] PackMotionFrames(int correlationId, MotionFrame[] frames) {
@@ -271,10 +269,12 @@ public sealed class LiveStatsTracker(
             *(int*) pBuf = correlationId;
             *(short*) (pBuf + 4) = (short) frames.Length;
 
-            var p = (float*) (pBuf + 6);
-            for (int i = 0; i < frames.Length; i++) {
+            var offset = 6;
+            for (var i = 0; i < frames.Length; i++) {
                 var f = frames[i];
-                *p++ = f.SongTime;
+                var framePtr = pBuf + offset;
+                *(int*) framePtr = f.SongTime;
+                var p = (float*) (framePtr + 4);
                 *p++ = f.LeftSaber.PosX;
                 *p++ = f.LeftSaber.PosY;
                 *p++ = f.LeftSaber.PosZ;
@@ -296,6 +296,7 @@ public sealed class LiveStatsTracker(
                 *p++ = f.Head.RotY;
                 *p++ = f.Head.RotZ;
                 *p++ = f.Head.RotW;
+                offset += MotionFrame.Size;
             }
         }
         return buffer;
@@ -320,7 +321,7 @@ public sealed class LiveStatsTracker(
             TotalCenterDistanceScore = h.TotalCenterDistanceScore,
             TotalAfterCutScore = h.TotalAfterCutScore,
             AverageBeforeCutSwing = h.GoodCuts > 0 ? h.TotalBeforeCutSwing / h.GoodCuts : 0f,
-            AverageAfterCutSwing = h.GoodCuts > 0 ? h.TotalAfterCutSwing / h.GoodCuts : 0f,
+            AverageAfterCutSwing = h.GoodCuts > 0 ? h.TotalAfterCutSwing / h.GoodCuts : 0f
         };
     }
 
@@ -329,6 +330,7 @@ public sealed class LiveStatsTracker(
         beatmapObjectManager.noteWasCutEvent -= OnNoteCut;
         comboController.comboDidChangeEvent -= OnComboChanged;
         energyCounter.gameEnergyDidChangeEvent -= OnEnergyChange;
+        scoreController.scoreDidChangeEvent -= OnScoreDidChange;
 
         pauseController.didReturnToMenuEvent -= OnLevelEnd;
         levelEndActions.levelFinishedEvent -= OnLevelEnd;

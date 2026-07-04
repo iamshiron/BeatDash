@@ -5,6 +5,12 @@ using Shiron.BeatDash.Data.Socket;
 
 namespace Shiron.BeatDash.API.Services.Socket.Handlers;
 
+/// <summary>
+/// Handles <see cref="LiveStatsMessage"/> received over the reliable TCP channel.
+/// The batched event arrays (note events, combo breaks, energy changes, score
+/// changes) and the cumulative snapshot form the authoritative integrity/statistics
+/// record destined for database persistence (persistence TBD).
+/// </summary>
 public sealed class LiveStatsHandler(
     ILogger<LiveStatsHandler> logger,
     IRealtimeBroadcaster broadcaster
@@ -12,8 +18,20 @@ public sealed class LiveStatsHandler(
 
     protected override async Task HandleMessageAsync(
         SocketContext context, LiveStatsMessage message, CancellationToken ct) {
-        logger.LogDebug("Live stats: score={Score}, combo={Combo}, songTime={SongTime}s (corr={CorrelationId})",
-            message.Score, message.CurrentCombo, message.SongTime, message.CorrelationId);
+        var noteEvents = message.NoteEvents ?? [];
+        var comboBreaks = message.ComboBreaks ?? [];
+        var energyChanges = message.EnergyChanges ?? [];
+        var scoreChanges = message.ScoreChanges ?? [];
+
+        logger.LogInformation(
+            "Live stats received (user={UserId}, corr={CorrelationId}): songTimeMs={SongTime}, " +
+            "score={Score}/{MaxPossibleScore}, combo={CurrentCombo}, energy={Energy:F2} | " +
+            "items: notes={Notes}, comboBreaks={ComboBreaks}, energyChanges={EnergyChanges}, " +
+            "scoreChanges={ScoreChanges}, total={Total}",
+            context.UserId, message.CorrelationId, message.SongTime,
+            message.Score, message.MaxPossibleScore, message.CurrentCombo, message.Energy,
+            noteEvents.Length, comboBreaks.Length, energyChanges.Length, scoreChanges.Length,
+            noteEvents.Length + comboBreaks.Length + energyChanges.Length + scoreChanges.Length);
 
         await broadcaster.SendLiveStatsAsync(context.UserId, new LiveStatsEvent(
             message.CorrelationId,
@@ -26,9 +44,10 @@ public sealed class LiveStatsHandler(
             message.MaxCombo,
             message.LeftHand,
             message.RightHand,
-            message.NoteEvents ?? [],
-            message.ComboBreaks ?? [],
-            message.EnergyChanges ?? [],
+            noteEvents,
+            comboBreaks,
+            energyChanges,
+            scoreChanges,
             DateTime.UtcNow
         ));
     }

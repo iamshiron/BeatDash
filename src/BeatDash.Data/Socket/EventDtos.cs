@@ -1,7 +1,7 @@
 namespace Shiron.BeatDash.Data.Socket;
 
 public sealed class NoteEventDto {
-    public required float SongTime { get; init; }
+    public required int SongTime { get; init; }
     public required int ColorType { get; init; }
     public required int NoteType { get; init; }
     public required int CutDirection { get; init; }
@@ -23,11 +23,20 @@ public sealed class NoteEventDto {
 }
 
 public sealed class ComboBreakDto {
-    public required float SongTime { get; init; }
+    public required int SongTime { get; init; }
     public required int ComboBefore { get; init; }
 }
 
 public sealed class EnergyChangeDto {
-    public required float SongTime { get; init; }
+    public required int SongTime { get; init; }
     public required float Energy { get; init; }
+}
+
+/// <summary>
+/// A discrete score-delta event, used to reconstruct the score curve
+/// independently of per-note scoring (anti-cheat/statistics integrity).
+/// </summary>
+public sealed class ScoreChangeDto {
+    public required int SongTime { get; init; }
+    public required int ScoreDelta { get; init; }
 }
