@@ -12,6 +12,11 @@ public class PlaySession {
     public required DateTime StartedAt { get; set; }
     public required DateTime? EndedAt { get; set; }
 
+    /// <summary>
+    /// Whether the session was played with auto-play active. Client-reported.
+    /// </summary>
+    public bool AutoMode { get; set; }
+
     /// <summary>Final results, populated when the session reaches a terminal state.</summary>
     public PlaySessionResults? Results { get; set; }
 

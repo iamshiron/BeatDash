@@ -23,6 +23,12 @@ public sealed class MapStartMessage : SocketMessage<MapStartMessage> {
     public required BeatmapCharacteristic Characteristic { get; init; }
 
     /// <summary>
+    /// Whether the game was launched with auto-play active (e.g. <c>--auto_play</c>).
+    /// Client-reported; the server trusts this flag.
+    /// </summary>
+    public required bool AutoMode { get; init; }
+
+    /// <summary>
     /// Packed bitmask of all gameplay modifiers. See <see cref="ModifierBit"/> for bit positions.
     /// </summary>
     public required int ModifierFlags { get; init; }

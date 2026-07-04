@@ -48,6 +48,10 @@ public static class SessionEndpoints {
                     query = query.Where(s => s.BeatmapDifficulty.BeatmapId == queryParams.BeatmapId.Value);
                 }
 
+                if (!queryParams.IncludeAuto) {
+                    query = query.Where(s => !s.AutoMode);
+                }
+
                 if (queryParams.SortBy is SessionSortBy.Score or SessionSortBy.Accuracy
                     or SessionSortBy.MaxCombo or SessionSortBy.Duration) {
                     query = query.Where(s => s.EndedAt != null);
@@ -232,7 +236,8 @@ public sealed record PlaySessionQueryParams(
     DateTime? To = null,
     Guid? BeatmapId = null,
     SessionSortBy SortBy = SessionSortBy.StartedAt,
-    SortDirection SortDir = SortDirection.Desc
+    SortDirection SortDir = SortDirection.Desc,
+    bool IncludeAuto = false
 );
 
 public enum SessionSortBy { StartedAt, Score, Accuracy, Duration, MaxCombo }
@@ -251,6 +256,7 @@ public sealed record PlaySessionListItemDto(
     float Bpm,
     string DifficultyRank,
     string DifficultyName,
+    bool AutoMode,
     PlaySessionResultsDto? Results
 ) {
     internal static PlaySessionListItemDto From(PlaySession s) => new(
@@ -266,6 +272,7 @@ public sealed record PlaySessionListItemDto(
         s.BeatmapDifficulty.Beatmap.Bpm,
         s.BeatmapDifficulty.DifficultyRank.ToString(),
         s.BeatmapDifficulty.DifficultyName,
+        s.AutoMode,
         PlaySessionResultsDto.From(s.Results)
     );
 }
@@ -276,6 +283,7 @@ public sealed record PlaySessionDetailDto(
     DateTime? EndedAt,
     TimeSpan? Duration,
     BeatmapInfoDto Beatmap,
+    bool AutoMode,
     PlaySessionResultsDto? Results,
     int NoteCount,
     int ComboBreakCount,
@@ -288,6 +296,7 @@ public sealed record PlaySessionDetailDto(
         s.EndedAt,
         s.EndedAt.HasValue ? s.EndedAt.Value - s.StartedAt : null,
         BeatmapInfoDto.From(s.BeatmapDifficulty),
+        s.AutoMode,
         PlaySessionResultsDto.From(s.Results),
         noteCount,
         comboBreakCount,

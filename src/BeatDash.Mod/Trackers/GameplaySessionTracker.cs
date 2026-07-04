@@ -24,6 +24,8 @@ public sealed class GameplaySessionTracker(
 ) : IAsyncInitializable, IDisposable {
     private static readonly TimeSpan CorrelationAssignmentTimeout = TimeSpan.FromSeconds(5);
 
+    private const string AutoPlayArgument = "--auto_play";
+
     public async Task InitializeAsync(CancellationToken ct) {
         var level = setupData.beatmapLevel;
         var key = setupData.beatmapKey;
@@ -63,6 +65,7 @@ public sealed class GameplaySessionTracker(
             ObstacleCount = transformedData.obstaclesCount,
             CuttableObjectCount = transformedData.cuttableNotesCount,
             LaneCount = transformedData.numberOfLines,
+            AutoMode = IsAutoPlayActive(),
             Characteristic = new BeatmapCharacteristic {
                 SerializedName = characteristic.serializedName,
                 ContainsRotationEvents = characteristic.containsRotationEvents,
@@ -210,6 +213,9 @@ public sealed class GameplaySessionTracker(
 
         return (notesLeft, notesRight, nps, walls.ToArray(), bombs.ToArray());
     }
+
+    private static bool IsAutoPlayActive() =>
+        Environment.GetCommandLineArgs().Contains(AutoPlayArgument);
 
     private static int PackModifierFlags(GameplayModifiers gm) {
         var flags = 0;

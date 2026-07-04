@@ -81,6 +81,7 @@ public sealed class PlaySessionService(
             BeatmapDifficultyId = beatmapDifficultyId,
             StartedAt = DateTime.UtcNow,
             EndedAt = null,
+            AutoMode = metadata.AutoMode,
         };
         db.PlaySessions.Add(session);
         await db.SaveChangesAsync(ct);

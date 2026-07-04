@@ -90,6 +90,7 @@ public sealed class MapStartHandler(
             message.NpsCurve ?? [],
             message.WallTimeline ?? [],
             message.BombPositions ?? [],
+            message.AutoMode,
             DateTime.UtcNow
         ));
     }

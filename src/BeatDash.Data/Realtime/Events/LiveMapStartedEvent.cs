@@ -30,6 +30,7 @@ namespace Shiron.BeatDash.Data.Realtime.Events;
 /// <param name="NpsCurve">Notes per second, one int per second of song time.</param>
 /// <param name="WallTimeline">All walls/obstacles with start time, duration, and position.</param>
 /// <param name="BombPositions">All bomb positions in the song timeline.</param>
+/// <param name="AutoMode">Whether the game was launched with auto-play active (e.g. <c>--auto_play</c>).</param>
 /// <param name="Timestamp">When the event occurred (UTC).</param>
 public sealed record LiveMapStartedEvent(
     Guid? MapId,
@@ -55,5 +56,6 @@ public sealed record LiveMapStartedEvent(
     int[] NpsCurve,
     WallEntryDto[] WallTimeline,
     BombEntryDto[] BombPositions,
+    bool AutoMode,
     DateTime Timestamp
 );
