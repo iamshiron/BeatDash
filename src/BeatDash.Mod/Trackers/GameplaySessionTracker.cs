@@ -22,6 +22,8 @@ public sealed class GameplaySessionTracker(
     PrepareLevelCompletionResults prepareResults,
     NetworkManager networkManager
 ) : IAsyncInitializable, IDisposable {
+    private static readonly TimeSpan CorrelationAssignmentTimeout = TimeSpan.FromSeconds(5);
+
     public async Task InitializeAsync(CancellationToken ct) {
         var level = setupData.beatmapLevel;
         var key = setupData.beatmapKey;
@@ -30,15 +32,7 @@ public sealed class GameplaySessionTracker(
         var characteristic = key.beatmapCharacteristic;
 
         session.LevelId = level.levelID;
-        session.CorrelationId = UnityEngine.Random.Range(0, int.MaxValue);
         session.MaxMultipliedScore = ScoreModel.ComputeMaxMultipliedScoreForBeatmap(transformedData);
-        session.IsInitialized = true;
-
-        pauseController.didPauseEvent += HandlePaused;
-        pauseController.didResumeEvent += HandleResumed;
-        pauseController.didReturnToMenuEvent += HandleQuit;
-        levelEndActions.levelFinishedEvent += HandleFinished;
-        levelEndActions.levelFailedEvent += HandleFailed;
 
         var coverPng = await GetCoverPngAsync(level);
 
@@ -51,7 +45,7 @@ public sealed class GameplaySessionTracker(
         };
 
         var mapPayload = new MapStartMessage {
-            CorrelationId = session.CorrelationId,
+            CorrelationId = 0,
             LevelId = level.levelID,
             DurationMs = (int) (level.songDuration * 1000f),
             NotesPerSecond = transformedData.cuttableNotesCount / level.songDuration,
@@ -86,13 +80,28 @@ public sealed class GameplaySessionTracker(
             BombPositions = bombs
         };
 
-        var imageData = MapCoverImagePacket.Build(session.CorrelationId, coverPng);
-
-        Plugin.Log.Info(
-            $"Sending map data: {mapPayload.SongName} - {mapPayload.SongAuthor} ({imageData.Length} bytes) [corr={session.CorrelationId}]");
-
+        Plugin.Log.Info($"Sending map data: {mapPayload.SongName} - {mapPayload.SongAuthor}, awaiting server-assigned correlation ID...");
         await networkManager.PostJsonBinaryAsync(BinaryPacketTypes.MapStart, mapPayload, forceTcp: true);
+
+        var assigned = await networkManager.AssignCorrelationIdAsync(CorrelationAssignmentTimeout, ct);
+        if (assigned is null) {
+            Plugin.Log.Error("Timed out waiting for server-assigned correlation ID; telemetry disabled for this map.");
+            return;
+        }
+
+        session.CorrelationId = assigned.Value;
+        session.IsInitialized = true;
+
+        pauseController.didPauseEvent += HandlePaused;
+        pauseController.didResumeEvent += HandleResumed;
+        pauseController.didReturnToMenuEvent += HandleQuit;
+        levelEndActions.levelFinishedEvent += HandleFinished;
+        levelEndActions.levelFailedEvent += HandleFailed;
+
+        var imageData = MapCoverImagePacket.Build(session.CorrelationId, coverPng);
         await networkManager.PostBinaryAsync(BinaryPacketTypes.MapCoverImage, imageData, forceTcp: true);
+
+        Plugin.Log.Info($"Map data sent: {mapPayload.SongName} - {mapPayload.SongAuthor} ({imageData.Length} bytes) [corr={session.CorrelationId}]");
     }
 
     private async void HandlePaused() {

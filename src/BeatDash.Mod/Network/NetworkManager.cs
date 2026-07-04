@@ -29,6 +29,8 @@ public class NetworkManager : IDisposable {
     private UdpClient? _udp = null;
     private volatile bool _isUdpAvailable = false;
 
+    private volatile TaskCompletionSource<int>? _correlationTcs;
+
     private static readonly HttpClient RefreshClient = new();
 
 
@@ -187,6 +189,9 @@ public class NetworkManager : IDisposable {
                 _isUdpAvailable = true;
                 Plugin.Log.Debug("UDP endpoint bound — binary traffic now prefers UDP.");
                 break;
+            case nameof(CorrelationAssignedMessage):
+                HandleCorrelationAssigned(json);
+                break;
             default:
                 Plugin.Log.Info($"Received: {json}");
                 break;
@@ -202,6 +207,29 @@ public class NetworkManager : IDisposable {
         } catch (Exception e) {
             Plugin.Log.Debug($"Failed to start UDP handshake: {e.Message}");
         }
+    }
+
+    private void HandleCorrelationAssigned(string json) {
+        try {
+            var msg = JsonConvert.DeserializeObject<CorrelationAssignedMessage>(json);
+            if (msg == null) return;
+            _correlationTcs?.TrySetResult(msg.CorrelationId);
+        } catch (Exception e) {
+            Plugin.Log.Debug($"Failed to parse CorrelationAssignedMessage: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Waits for the server-assigned correlation ID pushed back in response to a
+    /// <see cref="BinaryPacketTypes.MapStart"/>. Returns the ID, or <c>null</c> if
+    /// the server does not respond within <paramref name="timeout"/>.
+    /// </summary>
+    public async Task<int?> AssignCorrelationIdAsync(TimeSpan timeout, CancellationToken ct) {
+        var tcs = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _correlationTcs = tcs;
+
+        var winner = await Task.WhenAny(tcs.Task, Task.Delay(timeout, ct));
+        return winner == tcs.Task ? await tcs.Task : null;
     }
 
     /// <summary>

@@ -24,14 +24,21 @@ public sealed class MapStartHandler(
 
     protected override async Task HandleMessageAsync(
         SocketContext context, MapStartMessage message, CancellationToken ct) {
+        var correlationId = Random.Shared.Next(1, int.MaxValue);
+
         logger.LogInformation(
-            "Map started: {SongName} (corr={CorrelationId}, level={LevelId}) | " +
+            "Map started: {SongName} (assigned corr={CorrelationId}, level={LevelId}) | " +
             "context items: npsCurve={Nps}, walls={Walls}, bombs={Bombs}, notesPerHand={NotesLeft}/{NotesRight}",
-            message.SongName, message.CorrelationId, message.LevelId,
+            message.SongName, correlationId, message.LevelId,
             (message.NpsCurve ?? []).Length, (message.WallTimeline ?? []).Length, (message.BombPositions ?? []).Length,
             message.NotesPerHandLeft, message.NotesPerHandRight);
 
-        var pair = mapDataStore.SubmitMetadata(context, message);
+        await context.SessionManager.SendMessageAsync(
+            context.SessionId,
+            new CorrelationAssignedMessage { CorrelationId = correlationId },
+            ct);
+
+        var pair = mapDataStore.SubmitMetadata(context, correlationId, message);
         Guid? mapId = null;
         if (pair is not null) {
             logger.LogInformation("Map data complete: '{SongName}' + {Bytes}-byte image",

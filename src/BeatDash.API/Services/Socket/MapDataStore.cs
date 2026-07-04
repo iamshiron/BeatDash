@@ -5,15 +5,17 @@ namespace Shiron.BeatDash.API.Services.Socket;
 
 /// <summary>
 /// Temporarily holds the two halves of a map-start event (JSON metadata and
-/// cover image) keyed by a client-generated correlation ID, joining them into a
+/// cover image) keyed by a server-assigned correlation ID, joining them into a
 /// complete <see cref="MapDataPair"/> once both arrive. Unmatched halves expire
 /// automatically, so an orphan from a dropped send never leaks.
 /// </summary>
 public interface IMapDataStore {
     /// <summary>
-    /// Records the metadata half. Returns a complete pair if the image already arrived.
+    /// Records the metadata half under the server-assigned
+    /// <paramref name="correlationId"/>. Returns a complete pair if the image
+    /// already arrived.
     /// </summary>
-    MapDataPair? SubmitMetadata(SocketContext ctx, MapStartMessage metadata);
+    MapDataPair? SubmitMetadata(SocketContext ctx, int correlationId, MapStartMessage metadata);
 
     /// <summary>
     /// Records the image half. Returns a complete pair if the metadata already arrived.
@@ -44,10 +46,10 @@ public sealed class MapDataStore(IMemoryCache cache) : IMapDataStore {
     private static readonly TimeSpan Expiration = TimeSpan.FromMinutes(1);
 
     /// <inheritdoc/>
-    public MapDataPair? SubmitMetadata(SocketContext ctx, MapStartMessage metadata) {
-        var pending = GetOrCreate(ctx.SessionId, metadata.CorrelationId);
+    public MapDataPair? SubmitMetadata(SocketContext ctx, int correlationId, MapStartMessage metadata) {
+        var pending = GetOrCreate(ctx.SessionId, correlationId);
         pending.Metadata = metadata;
-        return TryComplete(ctx, metadata.CorrelationId, pending);
+        return TryComplete(ctx, correlationId, pending);
     }
 
     /// <inheritdoc/>
