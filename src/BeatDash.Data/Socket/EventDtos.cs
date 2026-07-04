@@ -33,10 +33,11 @@ public sealed class EnergyChangeDto {
 }
 
 /// <summary>
-/// A discrete score-delta event, used to reconstruct the score curve
+/// A discrete score event carrying the absolute cumulative modified score at
+/// the moment the score changed. Used to reconstruct the score curve
 /// independently of per-note scoring (anti-cheat/statistics integrity).
 /// </summary>
 public sealed class ScoreChangeDto {
     public required int SongTime { get; init; }
-    public required int ScoreDelta { get; init; }
+    public required int Score { get; init; }
 }
