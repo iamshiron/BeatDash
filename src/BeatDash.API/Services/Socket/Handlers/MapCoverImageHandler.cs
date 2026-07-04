@@ -10,7 +10,8 @@ namespace Shiron.BeatDash.API.Services.Socket.Handlers;
 public sealed class MapCoverImageHandler(
     ILogger<MapCoverImageHandler> logger,
     IMapDataStore mapDataStore,
-    IBeatmapPersistenceService persistence
+    IBeatmapPersistenceService persistence,
+    IPlaySessionService playSessionService
 ) : ISocketBinaryHandler {
     public BinaryPacketTypes PacketType => BinaryPacketTypes.MapCoverImage;
 
@@ -26,7 +27,15 @@ public sealed class MapCoverImageHandler(
         if (pair is not null) {
             logger.LogInformation("Map data complete: '{SongName}' + {Bytes}-byte image",
                 pair.Metadata.SongName, pair.ImageBytes.Length);
-            _ = await persistence.PersistAsync(pair, ct);
+            var mapId = await persistence.PersistAsync(pair, ct);
+            logger.LogInformation("Map persisted: mapId={MapId}", mapId);
+
+            await playSessionService.TryCreateAsync(
+                pair.UserId, context.SessionId, correlationId, pair.Metadata, mapId, ct);
+        } else {
+            logger.LogWarning(
+                "Cover image submitted but pair NOT complete (corr={CorrelationId}) — metadata missing or expired",
+                correlationId);
         }
     }
 }

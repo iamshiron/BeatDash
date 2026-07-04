@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Shiron.BeatDash.Data.Socket;
 
 namespace Shiron.BeatDash.API.Services.Socket;
@@ -38,7 +39,7 @@ public sealed record MapDataPair(
 /// <see cref="IMemoryCache"/>-backed implementation. Entries are scoped per
 /// session and correlation ID and expire shortly after creation.
 /// </summary>
-public sealed class MapDataStore(IMemoryCache cache) : IMapDataStore {
+public sealed class MapDataStore(IMemoryCache cache, ILogger<MapDataStore> logger) : IMapDataStore {
     /// <summary>
     /// How long an unmatched half lives before eviction. The metadata and image
     /// are sent back-to-back, so this only needs to cover transmission time.
@@ -49,14 +50,22 @@ public sealed class MapDataStore(IMemoryCache cache) : IMapDataStore {
     public MapDataPair? SubmitMetadata(SocketContext ctx, int correlationId, MapStartMessage metadata) {
         var pending = GetOrCreate(ctx.SessionId, correlationId);
         pending.Metadata = metadata;
-        return TryComplete(ctx, correlationId, pending);
+        var pair = TryComplete(ctx, correlationId, pending);
+        logger.LogInformation(
+            "SubmitMetadata: corr={CorrelationId}, session={SessionId}, song='{Song}', pairComplete={Complete}",
+            correlationId, ctx.SessionId, metadata.SongName, pair is not null);
+        return pair;
     }
 
     /// <inheritdoc/>
     public MapDataPair? SubmitImage(SocketContext ctx, int correlationId, byte[] image) {
         var pending = GetOrCreate(ctx.SessionId, correlationId);
         pending.Image = image;
-        return TryComplete(ctx, correlationId, pending);
+        var pair = TryComplete(ctx, correlationId, pending);
+        logger.LogInformation(
+            "SubmitImage: corr={CorrelationId}, session={SessionId}, imageBytes={Bytes}, hasMetadata={HasMeta}, pairComplete={Complete}",
+            correlationId, ctx.SessionId, image.Length, pending.Metadata is not null, pair is not null);
+        return pair;
     }
 
     private PendingMapData GetOrCreate(Guid sessionId, int correlationId) =>

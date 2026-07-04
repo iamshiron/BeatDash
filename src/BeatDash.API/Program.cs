@@ -90,6 +90,8 @@ builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<ITokenService>(new TokenService(jwtSecret, jwtIssuer, jwtAudience));
 builder.Services.AddSingleton<ISessionManager, SessionManager>();
 builder.Services.AddSingleton<IMapDataStore, MapDataStore>();
+builder.Services.AddSingleton<IPlaySessionStore, PlaySessionStore>();
+builder.Services.AddScoped<IPlaySessionService, PlaySessionService>();
 builder.Services.AddSingleton<IStorageService, MinioStorageService>();
 builder.Services.AddScoped<IPinService, PinService>();
 builder.Services.AddScoped<IBeatmapPersistenceService, BeatmapPersistenceService>();

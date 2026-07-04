@@ -48,6 +48,12 @@ public sealed class SocketBinaryDispatcher(
             return;
         }
 
-        await DispatchAsync(context, (BinaryPacketTypes) typeByte, packet[BinaryPacket.HeaderSize..], ct);
+        var type = (BinaryPacketTypes) typeByte;
+        var payloadSize = packet.Length - BinaryPacket.HeaderSize;
+        logger.LogInformation(
+            "TCP binary dispatch: type={PacketType}, payload={Size} bytes, session={SessionId}",
+            type, payloadSize, context.SessionId);
+
+        await DispatchAsync(context, type, packet[BinaryPacket.HeaderSize..], ct);
     }
 }

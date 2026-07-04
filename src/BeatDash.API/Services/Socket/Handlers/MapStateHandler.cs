@@ -11,7 +11,8 @@ namespace Shiron.BeatDash.API.Services.Socket.Handlers;
 /// </summary>
 public sealed class MapStateHandler(
     ILogger<MapStateHandler> logger,
-    IRealtimeBroadcaster broadcaster
+    IRealtimeBroadcaster broadcaster,
+    IPlaySessionService playSessionService
 ) : SocketBinaryMessageHandler<MapStateMessage> {
 
     /// <inheritdoc/>
@@ -22,6 +23,10 @@ public sealed class MapStateHandler(
         logger.LogInformation("Map state changed: {State} (corr={CorrelationId}, level={LevelId})",
             message.State, message.CorrelationId, message.LevelId);
 
+        if (IsTerminalState(message.State)) {
+            await playSessionService.TryEndAsync(context.SessionId, message.CorrelationId, ct);
+        }
+
         await broadcaster.SendLiveMapStateChangedAsync(context.UserId, new LiveMapStateChangedEvent(
             null,
             message.CorrelationId,
@@ -30,4 +35,10 @@ public sealed class MapStateHandler(
             DateTime.UtcNow
         ));
     }
+
+    /// <summary>
+    /// Terminal states that end the play session (carry <see cref="MapResults"/>).
+    /// </summary>
+    private static bool IsTerminalState(string state) =>
+        state is "Finished" or "Failed" or "Quit";
 }

@@ -43,10 +43,18 @@ public sealed class BeatmapPersistenceService(
         var m = pair.Metadata;
         var bucket = options.Value.BucketAssets;
 
+        logger.LogInformation(
+            "PersistAsync START: song='{Song}', levelId='{LevelId}', userId={UserId}, imageBytes={Bytes}",
+            m.SongName, m.LevelId, pair.UserId, pair.ImageBytes.Length);
+
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
         var beatmap = await db.Beatmaps.FirstOrDefaultAsync(b => b.LevelId == m.LevelId, ct);
         var isNew = beatmap is null;
+        logger.LogInformation(
+            "PersistAsync: beatmap lookup by LevelId='{LevelId}' → {Found} (isNew={IsNew})",
+            m.LevelId, beatmap is not null ? $"found Id={beatmap.Id}" : "not found", isNew);
+
         if (isNew) {
             beatmap = new Beatmap {
                 LevelId = m.LevelId,
@@ -60,6 +68,7 @@ public sealed class BeatmapPersistenceService(
             };
             db.Beatmaps.Add(beatmap);
             await db.SaveChangesAsync(ct);
+            logger.LogInformation("PersistAsync: created beatmap Id={MapId}", beatmap.Id);
         } else {
             beatmap!.SongName = m.SongName;
             beatmap.SongSubName = m.SongSubName;
@@ -72,12 +81,19 @@ public sealed class BeatmapPersistenceService(
 
         if (string.IsNullOrEmpty(beatmap.CoverImageKey)) {
             var coverKey = $"{CoverKeyPrefix}{beatmap.Id}.png";
+            logger.LogInformation(
+                "PersistAsync: uploading cover to MinIO bucket='{Bucket}', key='{Key}'",
+                bucket, coverKey);
             await storage.UploadAsync(bucket, coverKey, CoverContentType, pair.ImageBytes, ct);
             beatmap.CoverImageKey = coverKey;
+            logger.LogInformation("PersistAsync: cover uploaded, setting CoverImageKey");
+        } else {
+            logger.LogInformation("PersistAsync: cover already set ('{Key}'), skipping upload", beatmap.CoverImageKey);
         }
 
         if (Enum.TryParse(m.Difficulty, ignoreCase: true, out BeatmapDifficultyRank rank)) {
             await UpsertDifficultyAsync(db, beatmap.Id, pair.UserId, m, rank, ct);
+            logger.LogInformation("PersistAsync: difficulty upserted (rank={Rank})", rank);
         } else {
             logger.LogWarning(
                 "Unrecognized difficulty '{Difficulty}' for map '{Song}' ({LevelId}); difficulty not persisted",

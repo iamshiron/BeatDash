@@ -5,6 +5,7 @@ using Shiron.BeatDash.API.Services.Realtime;
 using Shiron.BeatDash.Data.Realtime.Events;
 using Shiron.BeatDash.Data.Socket;
 using Shiron.BeatDash.DB;
+using Shiron.BeatDash.DB.Schema;
 
 namespace Shiron.BeatDash.API.Services.Socket.Handlers;
 
@@ -16,7 +17,8 @@ public sealed class MapStartHandler(
     IMapDataStore mapDataStore,
     IBeatmapPersistenceService persistence,
     IRealtimeBroadcaster broadcaster,
-    IDbContextFactory<BeatDashDbContext> dbFactory
+    IDbContextFactory<BeatDashDbContext> dbFactory,
+    IPlaySessionService playSessionService
 ) : SocketBinaryMessageHandler<MapStartMessage> {
 
     /// <inheritdoc/>
@@ -44,6 +46,8 @@ public sealed class MapStartHandler(
             logger.LogInformation("Map data complete: '{SongName}' + {Bytes}-byte image",
                 pair.Metadata.SongName, pair.ImageBytes.Length);
             mapId = await persistence.PersistAsync(pair, ct);
+            await playSessionService.TryCreateAsync(
+                context.UserId, context.SessionId, correlationId, message, mapId.Value, ct);
         } else {
             await using var db = await dbFactory.CreateDbContextAsync(ct);
             mapId = await db.Beatmaps
@@ -51,6 +55,15 @@ public sealed class MapStartHandler(
                 .Where(b => b.LevelId == message.LevelId)
                 .Select(b => (Guid?) b.Id)
                 .FirstOrDefaultAsync(ct);
+
+            if (mapId is Guid existingMapId) {
+                await playSessionService.TryCreateAsync(
+                    context.UserId, context.SessionId, correlationId, message, existingMapId, ct);
+            } else {
+                logger.LogWarning(
+                    "Beatmap not yet persisted; play session will be created when cover image arrives (corr={CorrelationId})",
+                    correlationId);
+            }
         }
 
         await broadcaster.SendLiveMapStartedAsync(context.UserId, new LiveMapStartedEvent(
