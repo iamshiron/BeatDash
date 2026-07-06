@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Shiron.BeatDash.DB.Schema.BeatSaver;
 
 namespace Shiron.BeatDash.DB.Schema;
 
@@ -38,5 +39,25 @@ public sealed class Beatmap {
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+    // --- BeatSaver fetch bookkeeping ---
+
+    /// <summary>
+    /// Lifecycle of the BeatSaver metadata fetch for this map. Drives which maps
+    /// the fetch job picks up. Defaults to <see cref="BeatSaverFetchStatus.Pending"/>.
+    /// </summary>
+    public BeatSaverFetchStatus FetchStatus { get; set; } = BeatSaverFetchStatus.Pending;
+
+    /// <summary>When a fetch was last attempted (success or failure), if ever.</summary>
+    public DateTime? FetchLastAttemptedAt { get; set; }
+
+    /// <summary>Number of fetch attempts made; used to cap retries of failures.</summary>
+    public int FetchAttemptCount { get; set; }
+
+    /// <summary>The last fetch error message, if the most recent attempt failed.</summary>
+    [MaxLength(1024)] public string? FetchError { get; set; }
+
     public ICollection<BeatmapDifficulty> Difficulties { get; set; } = [];
+
+    /// <summary>The fetched BeatSaver record, if any. <see langword="null"/> until fetched.</summary>
+    public BeatSaverMap? BeatSaverMap { get; set; }
 }

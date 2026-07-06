@@ -7,11 +7,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Minio;
+using Quartz;
 using Scalar.AspNetCore;
 using Shiron.BeatDash.API.Configuration;
 using Shiron.BeatDash.API.Endpoints;
 using Shiron.BeatDash.API.Seeders;
 using Shiron.BeatDash.API.Services;
+using Shiron.BeatDash.API.Services.BeatSaver;
 using Shiron.BeatDash.API.Services.Realtime;
 using Shiron.BeatDash.API.Services.Socket;
 using Shiron.BeatDash.API.Services.Socket.Handlers;
@@ -54,6 +56,7 @@ builder.Services.Configure<StorageOptions>(options => {
 
 builder.Services.Configure<UdpSocketOptions>(builder.Configuration.GetSection("UdpSocket"));
 builder.Services.Configure<MotionFrameOptions>(builder.Configuration.GetSection("MotionFrame"));
+builder.Services.Configure<BeatSaverOptions>(builder.Configuration.GetSection("BeatSaver"));
 
 builder.Services.ConfigureApplicationCookie(o => {
     o.LoginPath = "/auth/login";
@@ -99,6 +102,40 @@ builder.Services.AddSingleton<IStorageService, MinioStorageService>();
 builder.Services.AddScoped<IPinService, PinService>();
 builder.Services.AddScoped<IBeatmapPersistenceService, BeatmapPersistenceService>();
 builder.Services.AddHostedService<UdpSocketService>();
+
+// BeatSaver fetch pipeline
+builder.Services.AddSingleton<BeatSaverRateLimiter>();
+builder.Services.AddSingleton<IBeatSaverFetchTrigger, BeatSaverFetchTrigger>();
+builder.Services.AddScoped<IBeatSaverFetchService, BeatSaverFetchService>();
+builder.Services.AddHttpClient<IBeatSaverClient, BeatSaverClient>((sp, http) => {
+    var o = sp.GetRequiredService<IOptions<BeatSaverOptions>>().Value;
+    http.BaseAddress = new Uri(o.ApiBaseUrl);
+    http.DefaultRequestHeaders.UserAgent.ParseAdd(o.UserAgent);
+    http.Timeout = TimeSpan.FromSeconds(Math.Max(1, o.RequestTimeoutSeconds));
+});
+
+// Quartz scheduler + BeatSaver fetch job (startup + recurring sweeps)
+var beatSaver = builder.Configuration.GetSection("BeatSaver").Get<BeatSaverOptions>() ?? new BeatSaverOptions();
+builder.Services.AddQuartz(q => {
+    q.AddJob<BeatSaverFetchJob>(o => o.WithIdentity(BeatSaverFetchJob.Key).StoreDurably());
+
+    if (beatSaver.FetchOnStartup) {
+        q.AddTrigger(t => t
+            .ForJob(BeatSaverFetchJob.Key)
+            .WithIdentity("BeatSaverFetch-startup")
+            .StartNow());
+    }
+
+    if (beatSaver.ScheduledFetchEnabled) {
+        var minutes = Math.Max(1, beatSaver.ScheduledFetchIntervalMinutes);
+        q.AddTrigger(t => t
+            .ForJob(BeatSaverFetchJob.Key)
+            .WithIdentity("BeatSaverFetch-schedule")
+            .StartAt(DateBuilder.FutureDate(minutes, IntervalUnit.Minute))
+            .WithSimpleSchedule(s => s.WithInterval(TimeSpan.FromMinutes(minutes)).RepeatForever()));
+    }
+});
+builder.Services.AddQuartzHostedService(o => o.WaitForJobsToComplete = true);
 
 // MinIO
 builder.Services.AddSingleton<IMinioClient>(sp => {

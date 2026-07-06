@@ -17,6 +17,8 @@
         <PackageReference Include="Minio"/>
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design"/>
+        <PackageReference Include="Quartz"/>
+        <PackageReference Include="Quartz.Extensions.Hosting"/>
         <PackageReference Include="Scalar.AspNetCore"/>
         <PackageReference Include="SkiaSharp"/>
         <PackageReference Include="System.IdentityModel.Tokens.Jwt"/>

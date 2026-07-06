@@ -19,9 +19,14 @@ public interface IBeatmapPersistenceService {
     /// and stores the difficulty variant. Safe to call for repeated plays of
     /// the same map.
     /// </summary>
-    /// <returns>The database ID of the persisted beatmap.</returns>
-    Task<Guid> PersistAsync(MapDataPair pair, CancellationToken ct);
+    /// <returns>The persisted beatmap's ID and whether it was newly created.</returns>
+    Task<BeatmapPersistResult> PersistAsync(MapDataPair pair, CancellationToken ct);
 }
+
+/// <summary>Outcome of a <see cref="IBeatmapPersistenceService.PersistAsync"/> call.</summary>
+/// <param name="Id">The persisted beatmap's database id.</param>
+/// <param name="IsNew">True if the beatmap row was created by this call.</param>
+public readonly record struct BeatmapPersistResult(Guid Id, bool IsNew);
 
 /// <summary>
 /// <see cref="IDbContextFactory{TContext}"/>-backed implementation. Each call
@@ -39,7 +44,7 @@ public sealed class BeatmapPersistenceService(
     private const string CoverKeyPrefix = "covers/";
 
     /// <inheritdoc/>
-    public async Task<Guid> PersistAsync(MapDataPair pair, CancellationToken ct) {
+    public async Task<BeatmapPersistResult> PersistAsync(MapDataPair pair, CancellationToken ct) {
         var m = pair.Metadata;
         var bucket = options.Value.BucketAssets;
 
@@ -105,7 +110,7 @@ public sealed class BeatmapPersistenceService(
             "Persisted map '{Song}' ({MapId}){Action}",
             m.SongName, beatmap.Id, isNew ? " [new]" : "");
 
-        return beatmap.Id;
+        return new BeatmapPersistResult(beatmap.Id, isNew);
     }
 
     /// <summary>

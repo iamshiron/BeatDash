@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Shiron.BeatDash.DB.Schema;
+using Shiron.BeatDash.DB.Schema.BeatSaver;
 
 namespace Shiron.BeatDash.DB;
 
@@ -10,6 +11,11 @@ public class BeatDashDbContext(DbContextOptions<BeatDashDbContext> options) : Id
     public DbSet<Device> Devices => Set<Device>();
     public DbSet<Beatmap> Beatmaps => Set<Beatmap>();
     public DbSet<BeatmapDifficulty> BeatmapDifficulties => Set<BeatmapDifficulty>();
+
+    public DbSet<BeatSaverMap> BeatSaverMaps => Set<BeatSaverMap>();
+    public DbSet<BeatSaverUser> BeatSaverUsers => Set<BeatSaverUser>();
+    public DbSet<BeatSaverVersion> BeatSaverVersions => Set<BeatSaverVersion>();
+    public DbSet<BeatSaverVersionDifficulty> BeatSaverVersionDifficulties => Set<BeatSaverVersionDifficulty>();
 
     public DbSet<PlaySession> PlaySessions => Set<PlaySession>();
     public DbSet<PlaySessionNoteItem> PlaySessionNoteItems => Set<PlaySessionNoteItem>();
@@ -80,6 +86,48 @@ public class BeatDashDbContext(DbContextOptions<BeatDashDbContext> options) : Id
                 .HasForeignKey(x => x.BeatmapId)
                 .OnDelete(DeleteBehavior.Cascade);
             c.ToTable("BeatmapDifficulties");
+        });
+
+        builder.Entity<BeatSaverUser>(c => {
+            c.HasKey(x => x.Id);
+            c.HasIndex(x => x.BeatSaverUserId).IsUnique();
+            c.ToTable("BeatSaverUsers");
+        });
+
+        builder.Entity<BeatSaverMap>(c => {
+            c.HasKey(x => x.Id);
+            c.HasIndex(x => x.BeatmapId).IsUnique();
+            c.HasIndex(x => x.BeatSaverId);
+            c.HasOne(x => x.Beatmap)
+                .WithOne(x => x.BeatSaverMap)
+                .HasForeignKey<BeatSaverMap>(x => x.BeatmapId)
+                .OnDelete(DeleteBehavior.Cascade);
+            c.HasOne(x => x.Uploader)
+                .WithMany()
+                .HasForeignKey(x => x.UploaderId)
+                .OnDelete(DeleteBehavior.SetNull);
+            c.OwnsOne(x => x.Metadata);
+            c.OwnsOne(x => x.Stats);
+            c.HasMany(x => x.Versions)
+                .WithOne(x => x.BeatSaverMap)
+                .HasForeignKey(x => x.BeatSaverMapId)
+                .OnDelete(DeleteBehavior.Cascade);
+            c.ToTable("BeatSaverMaps");
+        });
+
+        builder.Entity<BeatSaverVersion>(c => {
+            c.HasKey(x => x.Id);
+            c.HasIndex(x => x.Hash);
+            c.HasMany(x => x.Difficulties)
+                .WithOne(x => x.BeatSaverVersion)
+                .HasForeignKey(x => x.BeatSaverVersionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            c.ToTable("BeatSaverVersions");
+        });
+
+        builder.Entity<BeatSaverVersionDifficulty>(c => {
+            c.HasKey(x => x.Id);
+            c.ToTable("BeatSaverVersionDifficulties");
         });
 
         builder.Entity<PlaySession>(c => {

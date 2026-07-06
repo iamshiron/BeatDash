@@ -1,5 +1,8 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Shiron.BeatDash.API.Configuration;
 using Shiron.BeatDash.API.Services;
+using Shiron.BeatDash.API.Services.BeatSaver;
 using Shiron.BeatDash.Data.Socket;
 
 namespace Shiron.BeatDash.API.Services.Socket.Handlers;
@@ -11,7 +14,9 @@ public sealed class MapCoverImageHandler(
     ILogger<MapCoverImageHandler> logger,
     IMapDataStore mapDataStore,
     IBeatmapPersistenceService persistence,
-    IPlaySessionService playSessionService
+    IPlaySessionService playSessionService,
+    IBeatSaverFetchTrigger beatSaverTrigger,
+    IOptions<BeatSaverOptions> beatSaverOptions
 ) : ISocketBinaryHandler {
     public BinaryPacketTypes PacketType => BinaryPacketTypes.MapCoverImage;
 
@@ -27,11 +32,16 @@ public sealed class MapCoverImageHandler(
         if (pair is not null) {
             logger.LogInformation("Map data complete: '{SongName}' + {Bytes}-byte image",
                 pair.Metadata.SongName, pair.ImageBytes.Length);
-            var mapId = await persistence.PersistAsync(pair, ct);
-            logger.LogInformation("Map persisted: mapId={MapId}", mapId);
+            var result = await persistence.PersistAsync(pair, ct);
+            logger.LogInformation("Map persisted: mapId={MapId}", result.Id);
 
             await playSessionService.TryCreateAsync(
-                pair.UserId, context.SessionId, correlationId, pair.Metadata, mapId, ct);
+                pair.UserId, context.SessionId, correlationId, pair.Metadata, result.Id, ct);
+
+            // Kick off a BeatSaver fetch for maps we've never seen before.
+            if (result.IsNew && beatSaverOptions.Value.FetchOnNewMap) {
+                await beatSaverTrigger.TriggerMapAsync(result.Id, force: false, ct);
+            }
         } else {
             logger.LogWarning(
                 "Cover image submitted but pair NOT complete (corr={CorrelationId}) — metadata missing or expired",

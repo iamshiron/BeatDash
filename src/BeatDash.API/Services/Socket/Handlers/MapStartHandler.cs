@@ -1,6 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Shiron.BeatDash.API.Configuration;
 using Shiron.BeatDash.API.Services;
+using Shiron.BeatDash.API.Services.BeatSaver;
 using Shiron.BeatDash.API.Services.Realtime;
 using Shiron.BeatDash.Data.Realtime.Events;
 using Shiron.BeatDash.Data.Socket;
@@ -18,7 +21,9 @@ public sealed class MapStartHandler(
     IBeatmapPersistenceService persistence,
     IRealtimeBroadcaster broadcaster,
     IDbContextFactory<BeatDashDbContext> dbFactory,
-    IPlaySessionService playSessionService
+    IPlaySessionService playSessionService,
+    IBeatSaverFetchTrigger beatSaverTrigger,
+    IOptions<BeatSaverOptions> beatSaverOptions
 ) : SocketBinaryMessageHandler<MapStartMessage> {
 
     /// <inheritdoc/>
@@ -45,9 +50,15 @@ public sealed class MapStartHandler(
         if (pair is not null) {
             logger.LogInformation("Map data complete: '{SongName}' + {Bytes}-byte image",
                 pair.Metadata.SongName, pair.ImageBytes.Length);
-            mapId = await persistence.PersistAsync(pair, ct);
+            var result = await persistence.PersistAsync(pair, ct);
+            mapId = result.Id;
             await playSessionService.TryCreateAsync(
                 context.UserId, context.SessionId, correlationId, message, mapId.Value, ct);
+
+            // Kick off a BeatSaver fetch for maps we've never seen before.
+            if (result.IsNew && beatSaverOptions.Value.FetchOnNewMap) {
+                await beatSaverTrigger.TriggerMapAsync(result.Id, force: false, ct);
+            }
         } else {
             await using var db = await dbFactory.CreateDbContextAsync(ct);
             mapId = await db.Beatmaps
