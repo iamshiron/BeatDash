@@ -52,6 +52,13 @@ public static class SessionEndpoints {
                     query = query.Where(s => !s.AutoMode);
                 }
 
+                query = query.Where(s =>
+                    s.EndReason == PlaySessionEndReason.Finished ||
+                    (queryParams.IncludeFailed && s.EndReason == PlaySessionEndReason.Failed) ||
+                    (queryParams.IncludeQuit && s.EndReason == PlaySessionEndReason.Quit) ||
+                    (queryParams.IncludeIncomplete &&
+                        (s.EndReason == PlaySessionEndReason.Incomplete || s.EndReason == null)));
+
                 if (queryParams.SortBy is SessionSortBy.Score or SessionSortBy.Accuracy
                     or SessionSortBy.MaxCombo or SessionSortBy.Duration) {
                     query = query.Where(s => s.EndedAt != null);
@@ -241,7 +248,10 @@ public sealed record PlaySessionQueryParams(
     Guid? BeatmapId = null,
     SessionSortBy SortBy = SessionSortBy.StartedAt,
     SortDirection SortDir = SortDirection.Desc,
-    bool IncludeAuto = false
+    bool IncludeAuto = false,
+    bool IncludeFailed = false,
+    bool IncludeQuit = false,
+    bool IncludeIncomplete = false
 );
 
 public enum SessionSortBy { StartedAt, Score, Accuracy, Duration, MaxCombo }
