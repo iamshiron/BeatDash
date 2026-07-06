@@ -16,6 +16,9 @@ app.Configure(config => {
 
         beatmap.AddCommand<CalibrateCommand>("calibrate")
             .WithDescription("Fit metric Scale factors over a corpus and print the suggested config (applies nothing)");
+
+        beatmap.AddCommand<PushMapsCommand>("push")
+            .WithDescription("Bulk-import a CustomLevels directory into the server via the admin import endpoint");
     });
 });
 

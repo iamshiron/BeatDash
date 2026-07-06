@@ -1,8 +1,12 @@
+using System.Text.Json;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Shiron.BeatDash.API.Configuration;
 using Shiron.BeatDash.API.Services;
 using Shiron.BeatDash.API.Services.BeatSaver;
+using Shiron.BeatDash.API.Services.Socket;
+using Shiron.BeatDash.Data.Socket;
 using Shiron.BeatDash.DB;
 using Shiron.BeatDash.DB.Schema;
 using Shiron.BeatDash.DB.Schema.BeatSaver;
@@ -74,8 +78,51 @@ public static class MapEndpoints {
                 await trigger.TriggerMapAsync(mapId, force: true, ct);
                 return Results.Accepted($"/api/maps/{mapId}");
             }).RequireAuthorization(p => p.RequireRole("Admin")).Produces(202).Produces(404);
+
+        // Admin-only: import a map straight from parsed files (the persistence half of a
+        // map-start, without a play session). Used by the `beatmap push` CLI to bulk-load
+        // a CustomLevels directory. One call per (map, difficulty); the beatmap is deduped
+        // by LevelId and the BeatSaver fetch fires on first sight.
+        group.MapPost("/import", async (
+            HttpContext http,
+            [FromForm] string metadata,
+            IFormFile cover,
+            IBeatmapPersistenceService persistence,
+            IBeatSaverFetchTrigger trigger,
+            CancellationToken ct) => {
+                var userId = IdentityUtils.GetUserID(http.User);
+                if (userId is null) return Results.Unauthorized();
+
+                MapStartMessage? message;
+                try {
+                    message = JsonSerializer.Deserialize<MapStartMessage>(
+                        metadata, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                } catch (JsonException) {
+                    return Results.BadRequest("Invalid metadata JSON.");
+                }
+                if (message is null) return Results.BadRequest("Missing metadata.");
+
+                using var ms = new MemoryStream();
+                await cover.CopyToAsync(ms, ct);
+                var coverBytes = ms.ToArray();
+                if (coverBytes.Length == 0) return Results.BadRequest("Empty cover image.");
+
+                var pair = new MapDataPair(message, coverBytes, userId.Value, Guid.Empty);
+                var result = await persistence.PersistAsync(pair, ct);
+                if (result.IsNew) await trigger.TriggerMapAsync(result.Id, force: false, ct);
+
+                return Results.Ok(new MapImportResultDto(result.Id, result.IsNew));
+            })
+            .RequireAuthorization(p => p.RequireRole("Admin"))
+            .DisableAntiforgery()
+            .Produces<MapImportResultDto>()
+            .Produces(400)
+            .Produces(401);
     }
 }
+
+/// <summary>Result of a <c>POST /api/maps/import</c> call.</summary>
+public sealed record MapImportResultDto(Guid MapId, bool IsNew);
 
 public sealed record MapDetailDto(
     Guid Id,
