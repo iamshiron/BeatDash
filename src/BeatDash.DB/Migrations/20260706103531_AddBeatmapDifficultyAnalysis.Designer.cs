@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Shiron.BeatDash.DB;
@@ -12,9 +13,11 @@ using Shiron.BeatDash.DB;
 namespace Shiron.BeatDash.DB.Migrations
 {
     [DbContext(typeof(BeatDashDbContext))]
-    partial class BeatDashDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260706103531_AddBeatmapDifficultyAnalysis")]
+    partial class AddBeatmapDifficultyAnalysis
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -561,25 +564,26 @@ namespace Shiron.BeatDash.DB.Migrations
                     b.Property<int>("AnalyzerVersion")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("ArcCount")
+                    b.Property<int>("ArcCount")
                         .HasColumnType("integer");
 
                     b.Property<Guid>("BeatmapDifficultyId")
                         .HasColumnType("uuid");
 
-                    b.Property<int?>("BombCount")
+                    b.Property<int>("BombCount")
                         .HasColumnType("integer");
 
-                    b.Property<double?>("Bpm")
+                    b.Property<double>("Bpm")
                         .HasColumnType("double precision");
 
-                    b.Property<int?>("BpmChangeCount")
+                    b.Property<int>("BpmChangeCount")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("ChainCount")
+                    b.Property<int>("ChainCount")
                         .HasColumnType("integer");
 
                     b.Property<string>("FormatVersion")
+                        .IsRequired()
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");
 
@@ -589,13 +593,10 @@ namespace Shiron.BeatDash.DB.Migrations
                     b.Property<double?>("NjsOffset")
                         .HasColumnType("double precision");
 
-                    b.Property<int?>("NoteCount")
+                    b.Property<int>("NoteCount")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("ObstacleCount")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Status")
+                    b.Property<int>("ObstacleCount")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");

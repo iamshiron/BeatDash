@@ -11,6 +11,7 @@ public class BeatDashDbContext(DbContextOptions<BeatDashDbContext> options) : Id
     public DbSet<Device> Devices => Set<Device>();
     public DbSet<Beatmap> Beatmaps => Set<Beatmap>();
     public DbSet<BeatmapDifficulty> BeatmapDifficulties => Set<BeatmapDifficulty>();
+    public DbSet<BeatmapDifficultyAnalysis> BeatmapDifficultyAnalyses => Set<BeatmapDifficultyAnalysis>();
 
     public DbSet<BeatSaverMap> BeatSaverMaps => Set<BeatSaverMap>();
     public DbSet<BeatSaverUser> BeatSaverUsers => Set<BeatSaverUser>();
@@ -86,6 +87,16 @@ public class BeatDashDbContext(DbContextOptions<BeatDashDbContext> options) : Id
                 .HasForeignKey(x => x.BeatmapId)
                 .OnDelete(DeleteBehavior.Cascade);
             c.ToTable("BeatmapDifficulties");
+        });
+
+        builder.Entity<BeatmapDifficultyAnalysis>(c => {
+            c.HasKey(x => x.Id);
+            c.HasIndex(x => x.BeatmapDifficultyId).IsUnique();
+            c.HasOne(x => x.BeatmapDifficulty)
+                .WithOne(x => x.Analysis)
+                .HasForeignKey<BeatmapDifficultyAnalysis>(x => x.BeatmapDifficultyId)
+                .OnDelete(DeleteBehavior.Cascade);
+            c.ToTable("BeatmapDifficultyAnalyses");
         });
 
         builder.Entity<BeatSaverUser>(c => {

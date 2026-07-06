@@ -13,6 +13,7 @@ using Shiron.BeatDash.API.Configuration;
 using Shiron.BeatDash.API.Endpoints;
 using Shiron.BeatDash.API.Seeders;
 using Shiron.BeatDash.API.Services;
+using Shiron.BeatDash.API.Services.BeatmapAnalysis;
 using Shiron.BeatDash.API.Services.BeatSaver;
 using Shiron.BeatDash.API.Services.Realtime;
 using Shiron.BeatDash.API.Services.Socket;
@@ -104,6 +105,7 @@ builder.Services.AddScoped<IBeatmapPersistenceService, BeatmapPersistenceService
 builder.Services.AddHostedService<UdpSocketService>();
 
 // BeatSaver fetch pipeline
+builder.Services.AddScoped<IBeatmapAnalysisService, BeatmapAnalysisService>();
 builder.Services.AddSingleton<BeatSaverRateLimiter>();
 builder.Services.AddSingleton<IBeatSaverFetchTrigger, BeatSaverFetchTrigger>();
 builder.Services.AddScoped<IBeatSaverFetchService, BeatSaverFetchService>();

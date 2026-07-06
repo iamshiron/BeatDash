@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Shiron.BeatDash.API.Configuration;
+using Shiron.BeatDash.API.Services.BeatmapAnalysis;
 using Shiron.BeatDash.DB;
 using Shiron.BeatDash.DB.Schema;
 using Shiron.BeatDash.DB.Schema.BeatSaver;
@@ -39,6 +40,7 @@ public sealed class BeatSaverFetchService(
     IStorageService storage,
     IOptions<StorageOptions> storageOptions,
     IOptions<BeatSaverOptions> beatSaverOptions,
+    IBeatmapAnalysisService analysis,
     ILogger<BeatSaverFetchService> logger
 ) : IBeatSaverFetchService {
 
@@ -129,6 +131,15 @@ public sealed class BeatSaverFetchService(
             logger.LogInformation(
                 "BeatSaver fetch: persisted '{Name}' (key {Key}) for map {MapId}",
                 response.Name, response.Id, beatmapId);
+
+            // Parse the downloaded map and store per-difficulty analysis. Best-effort:
+            // a parse/analysis failure must not mark the fetch itself as failed.
+            try {
+                await analysis.AnalyzeAsync(beatmapId, ct);
+            } catch (Exception ex) when (ex is not OperationCanceledException) {
+                logger.LogError(ex, "BeatSaver fetch: analysis step failed for map {MapId}", beatmapId);
+            }
+
             return BeatSaverFetchStatus.Fetched;
         } catch (Exception ex) when (ex is not OperationCanceledException) {
             logger.LogError(ex, "BeatSaver fetch failed for map {MapId} (hash {Hash})", beatmapId, hash);

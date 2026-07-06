@@ -40,4 +40,7 @@ public sealed class BeatmapDifficulty {
 
     public Guid BeatmapId { get; set; }
     public Beatmap Beatmap { get; set; } = null!;
+
+    /// <summary>Server-computed analysis from parsing the map file, if it has run.</summary>
+    public BeatmapDifficultyAnalysis? Analysis { get; set; }
 }
