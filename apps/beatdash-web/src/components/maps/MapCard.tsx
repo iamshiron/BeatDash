@@ -13,7 +13,7 @@ import {
 import { cn } from "@shiron/ui/lib/utils";
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { getGetApiMapsMapIdCoverUrl } from "@/api/maps/maps";
-import type { BeatmapDifficultyDto, MapDetailDto } from "@/api/model";
+import type { MapListDifficultyDto, MapListItemDto } from "@/api/model";
 
 const RANK_ORDER = ["Easy", "Normal", "Hard", "Expert", "ExpertPlus"] as const;
 
@@ -24,6 +24,12 @@ const RANK_STYLES: Record<string, string> = {
 	Expert: "border-rose-500/25 bg-rose-500/15 text-rose-400",
 	ExpertPlus: "border-violet-500/25 bg-violet-500/15 text-violet-400",
 };
+
+const RANK_LABELS: Record<string, string> = { ExpertPlus: "Expert+" };
+
+function diffKey(d: MapListDifficultyDto): string {
+	return `${d.characteristic}-${d.difficultyRank}`;
+}
 
 function num(value: number | string): number {
 	return Number(value);
@@ -41,7 +47,7 @@ function rankIndex(rank: string): number {
 	return idx === -1 ? Number.MAX_SAFE_INTEGER : idx;
 }
 
-export function MapCard({ map }: { map: MapDetailDto }) {
+export function MapCard({ map }: { map: MapListItemDto }) {
 	const [coverFailed, setCoverFailed] = useState(false);
 	const hasCover = map.coverImageKey != null && !coverFailed;
 
@@ -107,7 +113,7 @@ export function MapCard({ map }: { map: MapDetailDto }) {
 	);
 }
 
-function DifficultyBadge({ difficulty }: { difficulty: BeatmapDifficultyDto }) {
+function DifficultyBadge({ difficulty }: { difficulty: MapListDifficultyDto }) {
 	return (
 		<Badge
 			variant="outline"
@@ -117,7 +123,8 @@ function DifficultyBadge({ difficulty }: { difficulty: BeatmapDifficultyDto }) {
 					"border-border bg-muted text-muted-foreground",
 			)}
 		>
-			{difficulty.difficultyName}
+			{difficulty.difficultyName ||
+				(RANK_LABELS[difficulty.difficultyRank] ?? difficulty.difficultyRank)}
 		</Badge>
 	);
 }
@@ -125,7 +132,7 @@ function DifficultyBadge({ difficulty }: { difficulty: BeatmapDifficultyDto }) {
 function DifficultyTags({
 	difficulties,
 }: {
-	difficulties: BeatmapDifficultyDto[];
+	difficulties: MapListDifficultyDto[];
 }) {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const measureRef = useRef<HTMLDivElement>(null);
@@ -180,7 +187,7 @@ function DifficultyTags({
 		<div ref={containerRef} className="relative">
 			<div className="flex flex-nowrap items-center gap-1 overflow-hidden">
 				{visible.map((d) => (
-					<DifficultyBadge key={d.id} difficulty={d} />
+					<DifficultyBadge key={diffKey(d)} difficulty={d} />
 				))}
 				{hidden.length > 0 && (
 					<Tooltip>
@@ -197,7 +204,7 @@ function DifficultyTags({
 						</TooltipTrigger>
 						<TooltipContent className="flex max-w-[16rem] flex-wrap gap-1">
 							{hidden.map((d) => (
-								<DifficultyBadge key={d.id} difficulty={d} />
+								<DifficultyBadge key={diffKey(d)} difficulty={d} />
 							))}
 						</TooltipContent>
 					</Tooltip>
@@ -210,7 +217,7 @@ function DifficultyTags({
 				className="pointer-events-none invisible absolute left-0 top-0 flex flex-nowrap items-center gap-1"
 			>
 				{difficulties.map((d) => (
-					<DifficultyBadge key={d.id} difficulty={d} />
+					<DifficultyBadge key={diffKey(d)} difficulty={d} />
 				))}
 				<span className={badgeVariants({ variant: "outline" })}>+9</span>
 			</div>
