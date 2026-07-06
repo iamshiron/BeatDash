@@ -38,6 +38,42 @@ public sealed class BeatmapDifficultyAnalysis {
     /// <summary>The beatmap file's on-disk format version (e.g. <c>3.3.0</c>).</summary>
     [MaxLength(32)] public string? FormatVersion { get; set; }
 
+    // --- Feature extraction ---
+
+    /// <summary>Outcome of the feature-extraction stage.</summary>
+    public FeatureExtractionStatus FeatureStatus { get; set; } = FeatureExtractionStatus.NotAttempted;
+
+    /// <summary>
+    /// Extracted features as a JSON object (feature key → value), stored as
+    /// <c>jsonb</c>. Null unless <see cref="FeatureStatus"/> is
+    /// <see cref="FeatureExtractionStatus.Success"/>.
+    /// </summary>
+    public string? Features { get; set; }
+
+    // --- Metrics (difficulty / PP / characteristics) ---
+
+    /// <summary>Outcome of the metric-scoring stage.</summary>
+    public MetricStatus MetricStatus { get; set; } = MetricStatus.NotAttempted;
+
+    /// <summary>Overall difficulty rating in <c>[0,1]</c>. Null unless scoring succeeded.</summary>
+    public double? DifficultyRating { get; set; }
+
+    /// <summary>Base performance points at reference accuracy. Null unless scoring succeeded.</summary>
+    public double? Pp { get; set; }
+
+    /// <summary>
+    /// Characteristic scores as a JSON object (name → <c>[0,1]</c>), stored as
+    /// <c>jsonb</c>. Null unless scoring succeeded.
+    /// </summary>
+    public string? Characteristics { get; set; }
+
+    /// <summary>
+    /// Fingerprint of the metric calibration used to compute the scores above. When
+    /// it no longer matches the running config, the row is re-scored from its stored
+    /// <see cref="Features"/>. Null until metrics have been scored.
+    /// </summary>
+    [MaxLength(32)] public string? MetricConfigHash { get; set; }
+
     /// <summary>
     /// Version of the analysis pipeline that produced this row, so results can be
     /// recomputed when the parser/metrics change.

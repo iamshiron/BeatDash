@@ -104,6 +104,13 @@ public sealed record ParsedBeatmap {
     public required string FormatVersion { get; init; }
     public required string Filename { get; init; }
 
+    /// <summary>
+    /// True if any object uses Mapping Extensions precision-encoded coordinates. When
+    /// set, consumers needing physical grid positions must run coordinates through
+    /// <see cref="MappingExtensions.Decode"/>; the parser leaves them verbatim.
+    /// </summary>
+    public bool UsesMappingExtensions { get; init; }
+
     public IReadOnlyList<Note> Notes { get; init; } = [];
     public IReadOnlyList<Bomb> Bombs { get; init; } = [];
     public IReadOnlyList<Obstacle> Obstacles { get; init; } = [];

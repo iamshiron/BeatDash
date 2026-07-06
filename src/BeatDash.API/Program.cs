@@ -13,6 +13,7 @@ using Shiron.BeatDash.API.Configuration;
 using Shiron.BeatDash.API.Endpoints;
 using Shiron.BeatDash.API.Seeders;
 using Shiron.BeatDash.API.Services;
+using Shiron.BeatDash.Analysis;
 using Shiron.BeatDash.API.Services.BeatmapAnalysis;
 using Shiron.BeatDash.API.Services.BeatSaver;
 using Shiron.BeatDash.API.Services.Realtime;
@@ -105,6 +106,15 @@ builder.Services.AddScoped<IBeatmapPersistenceService, BeatmapPersistenceService
 builder.Services.AddHostedService<UdpSocketService>();
 
 // BeatSaver fetch pipeline
+builder.Services.AddSingleton(FeatureExtractor.CreateDefault());
+
+// Metric scoring — calibration lives in the "Metrics" config section, overlaid on the
+// provisional defaults, so it can be recalibrated without recompiling.
+var metricConfig = MetricConfig.CreateDefault();
+builder.Configuration.GetSection("Metrics").Bind(metricConfig);
+builder.Services.AddSingleton(metricConfig);
+builder.Services.AddSingleton(MetricScorer.CreateDefault(metricConfig));
+
 builder.Services.AddScoped<IBeatmapAnalysisService, BeatmapAnalysisService>();
 builder.Services.AddSingleton<BeatSaverRateLimiter>();
 builder.Services.AddSingleton<IBeatSaverFetchTrigger, BeatSaverFetchTrigger>();
@@ -120,6 +130,14 @@ builder.Services.AddHttpClient<IBeatSaverClient, BeatSaverClient>((sp, http) => 
 var beatSaver = builder.Configuration.GetSection("BeatSaver").Get<BeatSaverOptions>() ?? new BeatSaverOptions();
 builder.Services.AddQuartz(q => {
     q.AddJob<BeatSaverFetchJob>(o => o.WithIdentity(BeatSaverFetchJob.Key).StoreDurably());
+
+    // Re-score maps whose metrics were computed under a now-stale calibration. Runs once
+    // at startup; no-op unless the "Metrics" config changed since the last run.
+    q.AddJob<BeatmapRescoreJob>(o => o.WithIdentity(BeatmapRescoreJob.Key).StoreDurably());
+    q.AddTrigger(t => t
+        .ForJob(BeatmapRescoreJob.Key)
+        .WithIdentity("BeatmapRescore-startup")
+        .StartNow());
 
     if (beatSaver.FetchOnStartup) {
         q.AddTrigger(t => t

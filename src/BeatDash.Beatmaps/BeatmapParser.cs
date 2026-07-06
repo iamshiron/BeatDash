@@ -338,9 +338,27 @@ public static class BeatmapParser {
             NjsOffset = meta.NjsOffset,
             FormatVersion = formatVersion,
             Filename = meta.Filename,
+            UsesMappingExtensions = DetectMappingExtensions(notes, bombs, obstacles, chains, arcs),
             Notes = notes, Bombs = bombs, Obstacles = obstacles,
             Chains = chains, Arcs = arcs, BpmChanges = bpmChanges,
         };
+    }
+
+    /// <summary>Detects Mapping Extensions precision placement by any out-of-range coordinate.</summary>
+    private static bool DetectMappingExtensions(
+        List<Note> notes, List<Bomb> bombs, List<Obstacle> obstacles, List<Chain> chains, List<Arc> arcs) {
+        foreach (var n in notes) if (MappingExtensions.IsPrecise(n.X) || MappingExtensions.IsPrecise(n.Y)) return true;
+        foreach (var b in bombs) if (MappingExtensions.IsPrecise(b.X) || MappingExtensions.IsPrecise(b.Y)) return true;
+        foreach (var o in obstacles) if (MappingExtensions.IsPrecise(o.X) || MappingExtensions.IsPrecise(o.Y)) return true;
+        foreach (var c in chains) {
+            if (MappingExtensions.IsPrecise(c.X) || MappingExtensions.IsPrecise(c.Y)
+                || MappingExtensions.IsPrecise(c.TailX) || MappingExtensions.IsPrecise(c.TailY)) return true;
+        }
+        foreach (var a in arcs) {
+            if (MappingExtensions.IsPrecise(a.X) || MappingExtensions.IsPrecise(a.Y)
+                || MappingExtensions.IsPrecise(a.TailX) || MappingExtensions.IsPrecise(a.TailY)) return true;
+        }
+        return false;
     }
 
     // ---------------------------------------------------------------------- //

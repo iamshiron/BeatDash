@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using Shiron.BeatDash.Analysis;
 using Shiron.BeatDash.Beatmaps;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -19,6 +20,14 @@ public sealed class ParseMapCommand : Command<ParseMapCommand.Settings> {
         [CommandOption("--notes")]
         [Description("Also list the first notes of each difficulty in the table view")]
         public bool Notes { get; init; }
+
+        [CommandOption("--features")]
+        [Description("Run the feature extractor and print the feature set for each difficulty")]
+        public bool Features { get; init; }
+
+        [CommandOption("--metrics")]
+        [Description("Run the metric scorer and print difficulty / PP / characteristics per difficulty")]
+        public bool Metrics { get; init; }
     }
 
     protected override int Execute(CommandContext context, Settings settings, CancellationToken cancellation) {
@@ -42,7 +51,60 @@ public sealed class ParseMapCommand : Command<ParseMapCommand.Settings> {
         }
 
         RenderLevel(level, settings.Notes);
+        if (settings.Features) RenderFeatures(level);
+        if (settings.Metrics) RenderMetrics(level);
         return 0;
+    }
+
+    private static void RenderMetrics(ParsedLevel level) {
+        var extractor = FeatureExtractor.CreateDefault();
+        var scorer = MetricScorer.CreateDefault(MetricConfig.CreateDefault());
+
+        foreach (var b in level.Beatmaps) {
+            var features = extractor.Extract(b, level.Bpm);
+            AnsiConsole.WriteLine();
+            AnsiConsole.MarkupLine($"[grey]{Markup.Escape(b.Characteristic)} / {Markup.Escape(b.Difficulty)}[/] — metrics");
+
+            if (!features.IsSuccess) {
+                AnsiConsole.MarkupLine($"  [red]features unavailable: {features.Outcome}[/]");
+                continue;
+            }
+
+            var result = scorer.Score(features.Features);
+            if (!result.IsSuccess) {
+                var failed = result.FailedScorer is { } f ? $" (scorer: {Markup.Escape(f)})" : "";
+                AnsiConsole.MarkupLine($"  [red]scoring failed: {result.Outcome}{failed}[/]");
+                continue;
+            }
+
+            var table = new Table().Border(TableBorder.Minimal);
+            table.AddColumns("Metric", "Value");
+            foreach (var (key, value) in result.Metrics.OrderBy(kv => kv.Key, StringComparer.Ordinal)) {
+                table.AddRow(Markup.Escape(key), value.ToString("0.####"));
+            }
+            AnsiConsole.Write(table);
+        }
+    }
+
+    private static void RenderFeatures(ParsedLevel level) {
+        var extractor = FeatureExtractor.CreateDefault();
+        foreach (var b in level.Beatmaps) {
+            var result = extractor.Extract(b, level.Bpm);
+            AnsiConsole.WriteLine();
+            var failed = result.FailedExtractor is { } f ? $" [red](extractor: {Markup.Escape(f)})[/]" : "";
+            AnsiConsole.MarkupLine(
+                $"[grey]{Markup.Escape(b.Characteristic)} / {Markup.Escape(b.Difficulty)}[/] — " +
+                $"features: [yellow]{result.Outcome}[/]{failed}");
+
+            if (result.Features.Count == 0) continue;
+
+            var table = new Table().Border(TableBorder.Minimal);
+            table.AddColumns("Feature", "Value");
+            foreach (var (key, value) in result.Features.OrderBy(kv => kv.Key, StringComparer.Ordinal)) {
+                table.AddRow(Markup.Escape(key), value.ToString("0.####"));
+            }
+            AnsiConsole.Write(table);
+        }
     }
 
     private static void RenderLevel(ParsedLevel level, bool showNotes) {

@@ -13,6 +13,9 @@ app.Configure(config => {
 
         beatmap.AddCommand<IndexMapsCommand>("index")
             .WithDescription("Parse every map folder under a directory and emit a per-map JSON summary");
+
+        beatmap.AddCommand<CalibrateCommand>("calibrate")
+            .WithDescription("Fit metric Scale factors over a corpus and print the suggested config (applies nothing)");
     });
 });
 

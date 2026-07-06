@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Shiron.BeatDash.DB;
@@ -12,9 +13,11 @@ using Shiron.BeatDash.DB;
 namespace Shiron.BeatDash.DB.Migrations
 {
     [DbContext(typeof(BeatDashDbContext))]
-    partial class BeatDashDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260706112412_AddBeatmapMetrics")]
+    partial class AddBeatmapMetrics
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -592,10 +595,6 @@ namespace Shiron.BeatDash.DB.Migrations
                         .HasColumnType("jsonb");
 
                     b.Property<string>("FormatVersion")
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
-
-                    b.Property<string>("MetricConfigHash")
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");
 

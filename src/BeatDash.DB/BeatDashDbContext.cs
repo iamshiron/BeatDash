@@ -92,6 +92,8 @@ public class BeatDashDbContext(DbContextOptions<BeatDashDbContext> options) : Id
         builder.Entity<BeatmapDifficultyAnalysis>(c => {
             c.HasKey(x => x.Id);
             c.HasIndex(x => x.BeatmapDifficultyId).IsUnique();
+            c.Property(x => x.Features).HasColumnType("jsonb");
+            c.Property(x => x.Characteristics).HasColumnType("jsonb");
             c.HasOne(x => x.BeatmapDifficulty)
                 .WithOne(x => x.Analysis)
                 .HasForeignKey<BeatmapDifficultyAnalysis>(x => x.BeatmapDifficultyId)
