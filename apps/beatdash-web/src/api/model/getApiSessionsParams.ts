@@ -25,4 +25,7 @@ BeatmapId?: string;
 SortBy?: SessionSortBy;
 SortDir?: SortDirection;
 IncludeAuto?: boolean;
+IncludeFailed?: boolean;
+IncludeQuit?: boolean;
+IncludeIncomplete?: boolean;
 };

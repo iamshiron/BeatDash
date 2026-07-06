@@ -8,6 +8,14 @@ export const DIFFICULTY_STYLES: Record<string, string> = {
 	ExpertPlus: "border-violet-500/25 bg-violet-500/15 text-violet-400",
 };
 
+export const DIFFICULTY_TEXT_STYLES: Record<string, string> = {
+	Easy: "text-emerald-400",
+	Normal: "text-sky-400",
+	Hard: "text-amber-400",
+	Expert: "text-rose-400",
+	ExpertPlus: "text-violet-400",
+};
+
 export const RANK_STYLES: Record<string, string> = {
 	SSS: "text-amber-300",
 	SS: "text-amber-400",

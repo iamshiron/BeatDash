@@ -235,8 +235,79 @@ public static class SessionEndpoints {
             .Produces<PlaySessionMotionDto>()
             .Produces(404)
             .Produces(401);
+
+        group.MapGet("/{id:Guid}/top", async (
+            Guid id,
+            ClaimsPrincipal user,
+            BeatDashDbContext db,
+            CancellationToken ct) => {
+                var userId = IdentityUtils.GetUserID(user);
+                if (!userId.HasValue) return Results.Unauthorized();
+
+                var current = await db.PlaySessions
+                    .AsNoTracking()
+                    .Where(s => s.Id == id && s.UserId == userId.Value)
+                    .Select(s => new {
+                        s.BeatmapDifficultyId,
+                        s.BeatmapDifficulty.BeatmapId,
+                        s.BeatmapDifficulty.CharacteristicSerializedName
+                    })
+                    .FirstOrDefaultAsync(ct);
+
+                if (current is null) return Results.NotFound();
+
+                // All difficulties of the same map + characteristic, in ascending rank order.
+                var difficulties = await db.BeatmapDifficulties
+                    .AsNoTracking()
+                    .Where(d =>
+                        d.BeatmapId == current.BeatmapId &&
+                        d.CharacteristicSerializedName == current.CharacteristicSerializedName)
+                    .OrderBy(d => d.DifficultyRank)
+                    .Select(d => new { d.Id, d.DifficultyRank, d.DifficultyName })
+                    .ToListAsync(ct);
+
+                var difficultyIds = difficulties.Select(d => d.Id).ToList();
+
+                var sessions = await db.PlaySessions
+                    .AsNoTracking()
+                    .Where(s =>
+                        s.UserId == userId.Value &&
+                        difficultyIds.Contains(s.BeatmapDifficultyId) &&
+                        !s.AutoMode &&
+                        s.EndReason == PlaySessionEndReason.Finished &&
+                        s.Results != null)
+                    .Include(s => s.BeatmapDifficulty.Beatmap)
+                    .OrderByDescending(s => s.Results!.Score)
+                    .ToListAsync(ct);
+
+                var result = difficulties.Select(d => new SessionTopDifficultyDto(
+                    d.Id,
+                    d.DifficultyRank.ToString(),
+                    d.DifficultyName,
+                    d.Id == current.BeatmapDifficultyId,
+                    sessions
+                        .Where(s => s.BeatmapDifficultyId == d.Id)
+                        .Take(10)
+                        .Select(PlaySessionListItemDto.From)
+                        .ToList()
+                )).ToList();
+
+                return Results.Ok(result);
+            })
+            .RequireAuthorization()
+            .Produces<IList<SessionTopDifficultyDto>>()
+            .Produces(404)
+            .Produces(401);
     }
 }
+
+public sealed record SessionTopDifficultyDto(
+    Guid BeatmapDifficultyId,
+    string DifficultyRank,
+    string DifficultyName,
+    bool IsCurrent,
+    IList<PlaySessionListItemDto> Sessions
+);
 
 public sealed record PlaySessionQueryParams(
     int Page = 1,

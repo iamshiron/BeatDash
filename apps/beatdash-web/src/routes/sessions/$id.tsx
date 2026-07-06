@@ -33,11 +33,13 @@ import {
 	useGetApiSessionsId,
 	useGetApiSessionsIdNotes,
 	useGetApiSessionsIdTimeline,
+	useGetApiSessionsIdTop,
 } from "@/api/sessions/sessions";
 import { AppShell } from "@/components/layout/AppShell";
 import { NoteGridHeatmap } from "@/components/sessions/NoteGridHeatmap";
 import { ScoreBreakdown } from "@/components/sessions/ScoreBreakdown";
 import { SwingAnalysis } from "@/components/sessions/SwingAnalysis";
+import { TopSessions } from "@/components/sessions/TopSessions";
 import {
 	DIFFICULTY_STYLES,
 	formatAccuracy,
@@ -82,12 +84,15 @@ function SessionDetailPage() {
 	const detailQuery = useGetApiSessionsId(id);
 	const timelineQuery = useGetApiSessionsIdTimeline(id);
 	const notesQuery = useGetApiSessionsIdNotes(id);
+	const topQuery = useGetApiSessionsIdTop(id);
 
 	const detail =
 		detailQuery.data?.status === 200 ? detailQuery.data.data : null;
 	const timeline =
 		timelineQuery.data?.status === 200 ? timelineQuery.data.data : null;
 	const notes = notesQuery.data?.status === 200 ? notesQuery.data.data : null;
+	const topDifficulties =
+		topQuery.data?.status === 200 ? topQuery.data.data : null;
 	const beatmap = detail?.beatmap;
 	const results = detail?.results;
 
@@ -401,7 +406,7 @@ function SessionDetailPage() {
 			)}
 
 			{results && (
-				<Card>
+				<Card className="mb-4">
 					<CardHeader>
 						<CardTitle>Note Grid</CardTitle>
 					</CardHeader>
@@ -417,6 +422,10 @@ function SessionDetailPage() {
 						)}
 					</CardContent>
 				</Card>
+			)}
+
+			{results && topDifficulties && topDifficulties.length > 0 && (
+				<TopSessions difficulties={topDifficulties} currentId={id} />
 			)}
 
 			{!results && detail && !detailQuery.isLoading && (
