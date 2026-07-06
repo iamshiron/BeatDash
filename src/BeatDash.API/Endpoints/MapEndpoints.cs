@@ -122,7 +122,8 @@ public static class MapEndpoints {
             CancellationToken ct) => {
                 var map = await db.Beatmaps
                     .AsNoTracking()
-                    .Include(b => b.Difficulties)
+                    .Include(b => b.Difficulties).ThenInclude(d => d.Analysis)
+                    .Include(b => b.BeatSaverMap!).ThenInclude(m => m.Uploader)
                     .FirstOrDefaultAsync(b => b.Id == mapId, ct);
 
                 if (map is null) return Results.NotFound();
@@ -326,6 +327,7 @@ public sealed record MapDetailDto(
     string? FetchError,
     DateTime CreatedAt,
     DateTime UpdatedAt,
+    MapBeatSaverDetailDto? BeatSaver,
     IList<BeatmapDifficultyDto> Difficulties
 ) {
     internal static MapDetailDto From(Beatmap b) => new(
@@ -343,8 +345,47 @@ public sealed record MapDetailDto(
         b.FetchError,
         b.CreatedAt,
         b.UpdatedAt,
-        b.Difficulties.Select(BeatmapDifficultyDto.From).ToList()
+        b.BeatSaverMap is null ? null : MapBeatSaverDetailDto.From(b.BeatSaverMap),
+        b.Difficulties
+            .OrderBy(d => d.CharacteristicSerializedName)
+            .ThenBy(d => d.DifficultyRank)
+            .Select(BeatmapDifficultyDto.From)
+            .ToList()
     );
+}
+
+/// <summary>The fetched BeatSaver details shown on the map detail page.</summary>
+public sealed record MapBeatSaverDetailDto(
+    string BeatSaverId,
+    string Name,
+    string? Description,
+    string? Uploader,
+    bool Ranked,
+    bool Qualified,
+    bool Automapper,
+    DateTime? Uploaded,
+    IList<string> Tags,
+    int Plays,
+    int Downloads,
+    int Upvotes,
+    int Downvotes,
+    float Score
+) {
+    internal static MapBeatSaverDetailDto From(Shiron.BeatDash.DB.Schema.BeatSaver.BeatSaverMap m) => new(
+        m.BeatSaverId,
+        m.Name,
+        m.Description,
+        m.Uploader?.Name,
+        m.Ranked || m.BlRanked,
+        m.Qualified || m.BlQualified,
+        m.Automapper,
+        m.Uploaded,
+        m.Tags,
+        m.Stats.Plays,
+        m.Stats.Downloads,
+        m.Stats.Upvotes,
+        m.Stats.Downvotes,
+        m.Stats.Score);
 }
 
 public sealed record BeatmapDifficultyDto(
@@ -361,7 +402,8 @@ public sealed record BeatmapDifficultyDto(
     int CharacteristicColorCount,
     bool CharacteristicRequires360Movement,
     bool CharacteristicContainsRotationEvents,
-    DateTime CreatedAt
+    DateTime CreatedAt,
+    MapDifficultyAnalysisDto? Analysis
 ) {
     internal static BeatmapDifficultyDto From(BeatmapDifficulty d) => new(
         d.Id,
@@ -377,6 +419,51 @@ public sealed record BeatmapDifficultyDto(
         d.CharacteristicColorCount,
         d.CharacteristicRequires360Movement,
         d.CharacteristicContainsRotationEvents,
-        d.CreatedAt
+        d.CreatedAt,
+        d.Analysis is null ? null : MapDifficultyAnalysisDto.From(d.Analysis)
     );
+}
+
+/// <summary>Server-computed analysis (parse counts + metrics) for one difficulty.</summary>
+public sealed record MapDifficultyAnalysisDto(
+    string Status,
+    string FeatureStatus,
+    string MetricStatus,
+    double? DifficultyRating,
+    double? Pp,
+    IReadOnlyDictionary<string, double>? Characteristics,
+    int? NoteCount,
+    int? BombCount,
+    int? ObstacleCount,
+    int? ChainCount,
+    int? ArcCount,
+    double? Njs,
+    string? FormatVersion,
+    DateTime AnalyzedAt
+) {
+    internal static MapDifficultyAnalysisDto From(BeatmapDifficultyAnalysis a) => new(
+        a.Status.ToString(),
+        a.FeatureStatus.ToString(),
+        a.MetricStatus.ToString(),
+        a.DifficultyRating,
+        a.Pp,
+        DeserializeCharacteristics(a.Characteristics),
+        a.NoteCount,
+        a.BombCount,
+        a.ObstacleCount,
+        a.ChainCount,
+        a.ArcCount,
+        a.Njs,
+        a.FormatVersion,
+        a.AnalyzedAt
+    );
+
+    private static IReadOnlyDictionary<string, double>? DeserializeCharacteristics(string? json) {
+        if (string.IsNullOrEmpty(json)) return null;
+        try {
+            return JsonSerializer.Deserialize<Dictionary<string, double>>(json);
+        } catch (JsonException) {
+            return null;
+        }
+    }
 }

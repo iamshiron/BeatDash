@@ -54,7 +54,7 @@ function pageItems(
 	return items;
 }
 
-export const Route = createFileRoute("/maps")({
+export const Route = createFileRoute("/maps/")({
 	beforeLoad: ({ context }) => {
 		if (!context.auth.isAuthenticated) {
 			throw redirect({ to: "/auth/login", replace: true });

@@ -9,21 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as MapsRouteImport } from './routes/maps'
 import { Route as LiveRouteImport } from './routes/live'
 import { Route as DevicesRouteImport } from './routes/devices'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SessionsIndexRouteImport } from './routes/sessions/index'
+import { Route as MapsIndexRouteImport } from './routes/maps/index'
 import { Route as SessionsIdRouteImport } from './routes/sessions/$id'
+import { Route as MapsIdRouteImport } from './routes/maps/$id'
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 
-const MapsRoute = MapsRouteImport.update({
-  id: '/maps',
-  path: '/maps',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LiveRoute = LiveRouteImport.update({
   id: '/live',
   path: '/live',
@@ -49,9 +45,19 @@ const SessionsIndexRoute = SessionsIndexRouteImport.update({
   path: '/sessions/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MapsIndexRoute = MapsIndexRouteImport.update({
+  id: '/maps/',
+  path: '/maps/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SessionsIdRoute = SessionsIdRouteImport.update({
   id: '/sessions/$id',
   path: '/sessions/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MapsIdRoute = MapsIdRouteImport.update({
+  id: '/maps/$id',
+  path: '/maps/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRegisterRoute = AuthRegisterRouteImport.update({
@@ -70,10 +76,11 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRouteWithChildren
   '/devices': typeof DevicesRoute
   '/live': typeof LiveRoute
-  '/maps': typeof MapsRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
+  '/maps/$id': typeof MapsIdRoute
   '/sessions/$id': typeof SessionsIdRoute
+  '/maps/': typeof MapsIndexRoute
   '/sessions/': typeof SessionsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -81,10 +88,11 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
   '/devices': typeof DevicesRoute
   '/live': typeof LiveRoute
-  '/maps': typeof MapsRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
+  '/maps/$id': typeof MapsIdRoute
   '/sessions/$id': typeof SessionsIdRoute
+  '/maps': typeof MapsIndexRoute
   '/sessions': typeof SessionsIndexRoute
 }
 export interface FileRoutesById {
@@ -93,10 +101,11 @@ export interface FileRoutesById {
   '/auth': typeof AuthRouteWithChildren
   '/devices': typeof DevicesRoute
   '/live': typeof LiveRoute
-  '/maps': typeof MapsRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
+  '/maps/$id': typeof MapsIdRoute
   '/sessions/$id': typeof SessionsIdRoute
+  '/maps/': typeof MapsIndexRoute
   '/sessions/': typeof SessionsIndexRoute
 }
 export interface FileRouteTypes {
@@ -106,10 +115,11 @@ export interface FileRouteTypes {
     | '/auth'
     | '/devices'
     | '/live'
-    | '/maps'
     | '/auth/login'
     | '/auth/register'
+    | '/maps/$id'
     | '/sessions/$id'
+    | '/maps/'
     | '/sessions/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -117,10 +127,11 @@ export interface FileRouteTypes {
     | '/auth'
     | '/devices'
     | '/live'
-    | '/maps'
     | '/auth/login'
     | '/auth/register'
+    | '/maps/$id'
     | '/sessions/$id'
+    | '/maps'
     | '/sessions'
   id:
     | '__root__'
@@ -128,10 +139,11 @@ export interface FileRouteTypes {
     | '/auth'
     | '/devices'
     | '/live'
-    | '/maps'
     | '/auth/login'
     | '/auth/register'
+    | '/maps/$id'
     | '/sessions/$id'
+    | '/maps/'
     | '/sessions/'
   fileRoutesById: FileRoutesById
 }
@@ -140,20 +152,14 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   DevicesRoute: typeof DevicesRoute
   LiveRoute: typeof LiveRoute
-  MapsRoute: typeof MapsRoute
+  MapsIdRoute: typeof MapsIdRoute
   SessionsIdRoute: typeof SessionsIdRoute
+  MapsIndexRoute: typeof MapsIndexRoute
   SessionsIndexRoute: typeof SessionsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/maps': {
-      id: '/maps'
-      path: '/maps'
-      fullPath: '/maps'
-      preLoaderRoute: typeof MapsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/live': {
       id: '/live'
       path: '/live'
@@ -189,11 +195,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SessionsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/maps/': {
+      id: '/maps/'
+      path: '/maps'
+      fullPath: '/maps/'
+      preLoaderRoute: typeof MapsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sessions/$id': {
       id: '/sessions/$id'
       path: '/sessions/$id'
       fullPath: '/sessions/$id'
       preLoaderRoute: typeof SessionsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/maps/$id': {
+      id: '/maps/$id'
+      path: '/maps/$id'
+      fullPath: '/maps/$id'
+      preLoaderRoute: typeof MapsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/register': {
@@ -230,8 +250,9 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   DevicesRoute: DevicesRoute,
   LiveRoute: LiveRoute,
-  MapsRoute: MapsRoute,
+  MapsIdRoute: MapsIdRoute,
   SessionsIdRoute: SessionsIdRoute,
+  MapsIndexRoute: MapsIndexRoute,
   SessionsIndexRoute: SessionsIndexRoute,
 }
 export const routeTree = rootRouteImport

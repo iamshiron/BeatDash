@@ -4,6 +4,7 @@
  * Shiron.BeatDash.API | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { MapDifficultyAnalysisDto } from './mapDifficultyAnalysisDto.ts';
 
 export interface BeatmapDifficultyDto {
   id: string;
@@ -30,4 +31,5 @@ export interface BeatmapDifficultyDto {
   characteristicRequires360Movement: boolean;
   characteristicContainsRotationEvents: boolean;
   createdAt: string;
+  analysis: null | MapDifficultyAnalysisDto;
 }

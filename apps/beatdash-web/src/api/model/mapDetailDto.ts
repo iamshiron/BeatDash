@@ -5,6 +5,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { BeatmapDifficultyDto } from './beatmapDifficultyDto.ts';
+import type { MapBeatSaverDetailDto } from './mapBeatSaverDetailDto.ts';
 
 export interface MapDetailDto {
   id: string;
@@ -27,5 +28,6 @@ export interface MapDetailDto {
   fetchError: string | null;
   createdAt: string;
   updatedAt: string;
+  beatSaver: null | MapBeatSaverDetailDto;
   difficulties: BeatmapDifficultyDto[];
 }

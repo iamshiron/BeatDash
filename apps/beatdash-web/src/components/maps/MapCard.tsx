@@ -11,6 +11,7 @@ import {
 	TooltipTrigger,
 } from "@shiron/ui/components/ui/tooltip";
 import { cn } from "@shiron/ui/lib/utils";
+import { Link } from "@tanstack/react-router";
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { getGetApiMapsMapIdCoverUrl } from "@/api/maps/maps";
 import type { MapListDifficultyDto, MapListItemDto } from "@/api/model";
@@ -61,7 +62,11 @@ export function MapCard({ map }: { map: MapListItemDto }) {
 	);
 
 	return (
-		<div className="flex overflow-hidden rounded-xl border border-border bg-card transition-colors hover:border-primary/40 focus-within:border-primary/40">
+		<Link
+			to="/maps/$id"
+			params={{ id: map.id }}
+			className="flex overflow-hidden rounded-xl border border-border bg-card transition-colors hover:border-primary/40 focus-within:border-primary/40"
+		>
 			<div className="flex shrink-0 items-center justify-center bg-gradient-to-br from-primary/40 to-[oklch(0.62_0.19_255)]/40 p-3">
 				{hasCover ? (
 					<img
@@ -109,7 +114,7 @@ export function MapCard({ map }: { map: MapListItemDto }) {
 					<span className="ml-auto truncate">{map.mapper}</span>
 				</div>
 			</div>
-		</div>
+		</Link>
 	);
 }
 
@@ -192,15 +197,14 @@ function DifficultyTags({
 				{hidden.length > 0 && (
 					<Tooltip>
 						<TooltipTrigger asChild>
-							<button
-								type="button"
+							<span
 								className={cn(
 									badgeVariants({ variant: "outline" }),
 									"border-border bg-muted text-muted-foreground",
 								)}
 							>
 								+{hidden.length}
-							</button>
+							</span>
 						</TooltipTrigger>
 						<TooltipContent className="flex max-w-[16rem] flex-wrap gap-1">
 							{hidden.map((d) => (
