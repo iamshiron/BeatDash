@@ -4,9 +4,10 @@
  * Shiron.BeatDash.API | v1
  * OpenAPI spec version: 1.0.0
  */
-import type { BeatmapDifficultyDto } from './beatmapDifficultyDto.ts';
+import type { MapBeatSaverSummaryDto } from './mapBeatSaverSummaryDto.ts';
+import type { MapListDifficultyDto } from './mapListDifficultyDto.ts';
 
-export interface MapDetailDto {
+export interface MapListItemDto {
   id: string;
   levelId: string;
   songName: string;
@@ -21,11 +22,7 @@ export interface MapDetailDto {
   /** @nullable */
   coverImageKey: string | null;
   fetchStatus: string;
-  /** @nullable */
-  fetchLastAttemptedAt: string | null;
-  /** @nullable */
-  fetchError: string | null;
   createdAt: string;
-  updatedAt: string;
-  difficulties: BeatmapDifficultyDto[];
+  beatSaver: null | MapBeatSaverSummaryDto;
+  difficulties: MapListDifficultyDto[];
 }

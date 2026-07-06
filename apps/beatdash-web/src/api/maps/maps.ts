@@ -5,22 +5,30 @@
  * OpenAPI spec version: 1.0.0
  */
 import {
+  useMutation,
   useQuery
 } from '@tanstack/react-query';
 import type {
   DataTag,
   DefinedInitialDataOptions,
   DefinedUseQueryResult,
+  MutationFunction,
   QueryClient,
   QueryFunction,
   QueryKey,
   UndefinedInitialDataOptions,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult
 } from '@tanstack/react-query';
 
 import type {
-  MapDetailDto
+  GetApiMapsParams,
+  MapDetailDto,
+  MapImportResultDto,
+  PagedResultOfMapListItemDto,
+  PostApiMapsImportBody
 } from '../model';
 
 
@@ -43,7 +51,7 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
 };
 
 export type getApiMapsResponse200 = {
-  data: MapDetailDto[]
+  data: PagedResultOfMapListItemDto
   status: 200
 }
 
@@ -54,17 +62,24 @@ export type getApiMapsResponseSuccess = (getApiMapsResponse200) & {
 
 export type getApiMapsResponse = (getApiMapsResponseSuccess)
 
-export const getGetApiMapsUrl = () => {
+export const getGetApiMapsUrl = (params?: GetApiMapsParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/maps`
+  return stringifiedParams.length > 0 ? `/api/maps?${stringifiedParams}` : `/api/maps`
 }
 
-export const getApiMaps = async ( options?: RequestInit): Promise<getApiMapsResponse> => {
+export const getApiMaps = async (params?: GetApiMapsParams, options?: RequestInit): Promise<getApiMapsResponse> => {
 
-  const res = await fetch(getGetApiMapsUrl(),
+  const res = await fetch(getGetApiMapsUrl(params),
   {
     ...options,
     method: 'GET'
@@ -84,23 +99,23 @@ export const getApiMaps = async ( options?: RequestInit): Promise<getApiMapsResp
 
 
 
-export const getGetApiMapsQueryKey = () => {
+export const getGetApiMapsQueryKey = (params?: GetApiMapsParams,) => {
     return [
-    `/api/maps`
+    `/api/maps`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getGetApiMapsQueryOptions = <TData = Awaited<ReturnType<typeof getApiMaps>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMaps>>, TError, TData>>, fetch?: RequestInit}
+export const getGetApiMapsQueryOptions = <TData = Awaited<ReturnType<typeof getApiMaps>>, TError = unknown>(params?: GetApiMapsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMaps>>, TError, TData>>, fetch?: RequestInit}
 ) => {
 
 const {query: queryOptions, fetch: fetchOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetApiMapsQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getGetApiMapsQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiMaps>>> = ({ signal }) => getApiMaps({ signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiMaps>>> = ({ signal }) => getApiMaps(params, { signal, ...fetchOptions });
 
 
 
@@ -114,7 +129,7 @@ export type GetApiMapsQueryError = unknown
 
 
 export function useGetApiMaps<TData = Awaited<ReturnType<typeof getApiMaps>>, TError = unknown>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMaps>>, TError, TData>> & Pick<
+ params: undefined |  GetApiMapsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMaps>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiMaps>>,
           TError,
@@ -124,7 +139,7 @@ export function useGetApiMaps<TData = Awaited<ReturnType<typeof getApiMaps>>, TE
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetApiMaps<TData = Awaited<ReturnType<typeof getApiMaps>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMaps>>, TError, TData>> & Pick<
+ params?: GetApiMapsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMaps>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiMaps>>,
           TError,
@@ -134,16 +149,16 @@ export function useGetApiMaps<TData = Awaited<ReturnType<typeof getApiMaps>>, TE
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetApiMaps<TData = Awaited<ReturnType<typeof getApiMaps>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMaps>>, TError, TData>>, fetch?: RequestInit}
+ params?: GetApiMapsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMaps>>, TError, TData>>, fetch?: RequestInit}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useGetApiMaps<TData = Awaited<ReturnType<typeof getApiMaps>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMaps>>, TError, TData>>, fetch?: RequestInit}
+ params?: GetApiMapsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMaps>>, TError, TData>>, fetch?: RequestInit}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetApiMapsQueryOptions(options)
+  const queryOptions = getGetApiMapsQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -395,3 +410,196 @@ export function useGetApiMapsMapIdCover<TData = Awaited<ReturnType<typeof getApi
 
 
 
+export type postApiMapsMapIdRefetchResponse202 = {
+  data: void
+  status: 202
+}
+
+export type postApiMapsMapIdRefetchResponse404 = {
+  data: void
+  status: 404
+}
+
+export type postApiMapsMapIdRefetchResponseSuccess = (postApiMapsMapIdRefetchResponse202) & {
+  headers: Headers;
+};
+export type postApiMapsMapIdRefetchResponseError = (postApiMapsMapIdRefetchResponse404) & {
+  headers: Headers;
+};
+
+export type postApiMapsMapIdRefetchResponse = (postApiMapsMapIdRefetchResponseSuccess | postApiMapsMapIdRefetchResponseError)
+
+export const getPostApiMapsMapIdRefetchUrl = (mapId: string,) => {
+
+
+
+
+  return `/api/maps/${mapId}/refetch`
+}
+
+export const postApiMapsMapIdRefetch = async (mapId: string, options?: RequestInit): Promise<postApiMapsMapIdRefetchResponse> => {
+
+  const res = await fetch(getPostApiMapsMapIdRefetchUrl(mapId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: postApiMapsMapIdRefetchResponse['data'] = body ? JSON.parse(body) : undefined
+  return { data, status: res.status, headers: res.headers } as postApiMapsMapIdRefetchResponse
+}
+
+
+
+
+
+export const getPostApiMapsMapIdRefetchMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiMapsMapIdRefetch>>, TError,{mapId: string}, TContext>, fetch?: RequestInit}
+): UseMutationOptions<Awaited<ReturnType<typeof postApiMapsMapIdRefetch>>, TError,{mapId: string}, TContext> => {
+
+const mutationKey = ['postApiMapsMapIdRefetch'];
+const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, fetch: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiMapsMapIdRefetch>>, {mapId: string}> = (props) => {
+          const {mapId} = props ?? {};
+
+          return  postApiMapsMapIdRefetch(mapId,fetchOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostApiMapsMapIdRefetchMutationResult = NonNullable<Awaited<ReturnType<typeof postApiMapsMapIdRefetch>>>
+
+    export type PostApiMapsMapIdRefetchMutationError = void
+
+    export const usePostApiMapsMapIdRefetch = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiMapsMapIdRefetch>>, TError,{mapId: string}, TContext>, fetch?: RequestInit}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof postApiMapsMapIdRefetch>>,
+        TError,
+        {mapId: string},
+        TContext
+      > => {
+      return useMutation(getPostApiMapsMapIdRefetchMutationOptions(options), queryClient);
+    }
+    export type postApiMapsImportResponse200 = {
+  data: MapImportResultDto
+  status: 200
+}
+
+export type postApiMapsImportResponse400 = {
+  data: void
+  status: 400
+}
+
+export type postApiMapsImportResponse401 = {
+  data: void
+  status: 401
+}
+
+export type postApiMapsImportResponseSuccess = (postApiMapsImportResponse200) & {
+  headers: Headers;
+};
+export type postApiMapsImportResponseError = (postApiMapsImportResponse400 | postApiMapsImportResponse401) & {
+  headers: Headers;
+};
+
+export type postApiMapsImportResponse = (postApiMapsImportResponseSuccess | postApiMapsImportResponseError)
+
+export const getPostApiMapsImportUrl = () => {
+
+
+
+
+  return `/api/maps/import`
+}
+
+export const postApiMapsImport = async (postApiMapsImportBody: PostApiMapsImportBody, options?: RequestInit): Promise<postApiMapsImportResponse> => {
+    const formData = new FormData();
+if(postApiMapsImportBody.metadata !== undefined) {
+ formData.append(`metadata`, postApiMapsImportBody.metadata);
+ }
+
+if(postApiMapsImportBody.cover !== undefined) {
+ formData.append(`cover`, postApiMapsImportBody.cover);
+ }
+
+  const res = await fetch(getPostApiMapsImportUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: postApiMapsImportResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as postApiMapsImportResponse
+}
+
+
+
+
+
+export const getPostApiMapsImportMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiMapsImport>>, TError,{data: PostApiMapsImportBody}, TContext>, fetch?: RequestInit}
+): UseMutationOptions<Awaited<ReturnType<typeof postApiMapsImport>>, TError,{data: PostApiMapsImportBody}, TContext> => {
+
+const mutationKey = ['postApiMapsImport'];
+const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, fetch: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiMapsImport>>, {data: PostApiMapsImportBody}> = (props) => {
+          const {data} = props ?? {};
+
+          return  postApiMapsImport(data,fetchOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostApiMapsImportMutationResult = NonNullable<Awaited<ReturnType<typeof postApiMapsImport>>>
+    export type PostApiMapsImportMutationBody = PostApiMapsImportBody
+    export type PostApiMapsImportMutationError = void
+
+    export const usePostApiMapsImport = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiMapsImport>>, TError,{data: PostApiMapsImportBody}, TContext>, fetch?: RequestInit}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof postApiMapsImport>>,
+        TError,
+        {data: PostApiMapsImportBody},
+        TContext
+      > => {
+      return useMutation(getPostApiMapsImportMutationOptions(options), queryClient);
+    }
