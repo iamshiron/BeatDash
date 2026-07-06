@@ -39,6 +39,13 @@ public interface IRealtimeBroadcaster {
     Task SendLiveStatsAsync(Guid userId, LiveStatsEvent payload);
 
     /// <summary>
+    /// Broadcasts BeatSaver import/processing progress to <b>all</b> connected clients
+    /// (this is global, not scoped to a single user).
+    /// </summary>
+    /// <param name="payload">The processing progress snapshot.</param>
+    Task SendMapProcessingAsync(MapProcessingEvent payload);
+
+    /// <summary>
     /// Notifies a user's web clients that a score-relevant event occurred during gameplay.
     /// </summary>
     Task SendScoreUpdateAsync(Guid userId, ScoreUpdateEvent payload);

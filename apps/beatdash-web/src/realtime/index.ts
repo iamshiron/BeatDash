@@ -12,6 +12,7 @@ export type {
 	DeviceStatusEvent,
 	LiveMapStartedEvent,
 	LiveMapStateChangedEvent,
+	MapProcessingEvent,
 	MapResults,
 	ScoreUpdateEvent,
 } from "./types";

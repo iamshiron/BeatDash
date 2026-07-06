@@ -10,6 +10,14 @@ export interface DeviceStatusEvent {
 	timestamp: string;
 }
 
+/** Mirrors `Shiron.BeatDash.Data.Realtime.Events.MapProcessingEvent`. */
+export interface MapProcessingEvent {
+	total: number;
+	processed: number;
+	pending: number;
+	timestamp: string;
+}
+
 /** Mirrors `Shiron.BeatDash.Data.Realtime.Events.DevicePairedEvent`. */
 export interface DevicePairedEvent {
 	clientId: string;

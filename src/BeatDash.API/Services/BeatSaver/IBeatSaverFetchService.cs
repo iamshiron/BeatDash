@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Shiron.BeatDash.API.Configuration;
 using Shiron.BeatDash.API.Services.BeatmapAnalysis;
+using Shiron.BeatDash.API.Services.Realtime;
+using Shiron.BeatDash.Data.Realtime.Events;
 using Shiron.BeatDash.DB;
 using Shiron.BeatDash.DB.Schema;
 using Shiron.BeatDash.DB.Schema.BeatSaver;
@@ -41,6 +43,7 @@ public sealed class BeatSaverFetchService(
     IOptions<StorageOptions> storageOptions,
     IOptions<BeatSaverOptions> beatSaverOptions,
     IBeatmapAnalysisService analysis,
+    IRealtimeBroadcaster broadcaster,
     ILogger<BeatSaverFetchService> logger
 ) : IBeatSaverFetchService {
 
@@ -88,6 +91,25 @@ public sealed class BeatSaverFetchService(
 
     /// <inheritdoc/>
     public async Task<BeatSaverFetchStatus> FetchAsync(Guid beatmapId, bool force, CancellationToken ct) {
+        var status = await FetchInternalAsync(beatmapId, force, ct);
+        await NotifyProgressAsync(ct);
+        return status;
+    }
+
+    /// <summary>Broadcasts a snapshot of import progress (total / processed / pending) to all clients.</summary>
+    private async Task NotifyProgressAsync(CancellationToken ct) {
+        try {
+            await using var db = await dbFactory.CreateDbContextAsync(ct);
+            var total = await db.Beatmaps.CountAsync(ct);
+            var pending = await db.Beatmaps.CountAsync(b => b.FetchStatus == BeatSaverFetchStatus.Pending, ct);
+            await broadcaster.SendMapProcessingAsync(
+                new MapProcessingEvent(total, total - pending, pending, DateTime.UtcNow));
+        } catch (Exception ex) when (ex is not OperationCanceledException) {
+            logger.LogWarning(ex, "Failed to broadcast map processing progress");
+        }
+    }
+
+    private async Task<BeatSaverFetchStatus> FetchInternalAsync(Guid beatmapId, bool force, CancellationToken ct) {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
         var beatmap = await db.Beatmaps

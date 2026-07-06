@@ -35,6 +35,12 @@ public interface IRealtimeClient {
     Task ReceiveLiveStats(LiveStatsEvent payload);
 
     /// <summary>
+    /// Notifies the client of the current BeatSaver import/processing progress.
+    /// </summary>
+    /// <param name="payload">The processing progress snapshot.</param>
+    Task ReceiveMapProcessing(MapProcessingEvent payload);
+
+    /// <summary>
     /// Notifies the client that a score-relevant event occurred during gameplay.
     /// </summary>
     Task ReceiveScoreUpdate(ScoreUpdateEvent payload);

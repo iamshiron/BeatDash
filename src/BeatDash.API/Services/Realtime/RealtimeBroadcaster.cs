@@ -44,6 +44,11 @@ public sealed class RealtimeBroadcaster(
     }
 
     /// <inheritdoc/>
+    public Task SendMapProcessingAsync(MapProcessingEvent payload) {
+        return hubContext.Clients.All.ReceiveMapProcessing(payload);
+    }
+
+    /// <inheritdoc/>
     public Task SendScoreUpdateAsync(Guid userId, ScoreUpdateEvent payload) {
         return hubContext.Clients
             .Group(RealtimeHub.GroupForUser(userId))

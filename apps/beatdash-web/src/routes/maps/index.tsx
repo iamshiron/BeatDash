@@ -28,6 +28,7 @@ import { useGetApiMaps } from "@/api/maps/maps";
 import type { MapListItemDto } from "@/api/model";
 import { AppShell } from "@/components/layout/AppShell";
 import { MapCard } from "@/components/maps/MapCard";
+import { type MapProcessingEvent, useRealtimeEvent } from "@/realtime";
 
 const PAGE_SIZE = 24;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -82,6 +83,10 @@ function MapsPage() {
 	const { q = "", p = 1 } = Route.useSearch();
 	const navigate = useNavigate();
 
+	// Live BeatSaver import/processing progress, pushed over SignalR.
+	const [processing, setProcessing] = useState<MapProcessingEvent | null>(null);
+	useRealtimeEvent("receiveMapProcessing", setProcessing);
+
 	// The box tracks keystrokes immediately; the URL (and thus the query) is only
 	// updated once typing settles, so the grid isn't refetched on every character.
 	const [input, setInput] = useState(q);
@@ -125,6 +130,33 @@ function MapsPage() {
 					/>
 				</div>
 			</div>
+
+			{processing && processing.pending > 0 && (
+				<div className="mt-3 flex items-center gap-2.5 rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+					<span className="relative flex size-2">
+						<span className="absolute inline-flex size-full animate-ping rounded-full bg-primary/60" />
+						<span className="relative inline-flex size-2 rounded-full bg-primary" />
+					</span>
+					<span>
+						Processing…{" "}
+						<span className="font-mono tabular-nums text-foreground">
+							({processing.processed}/{processing.total})
+						</span>
+					</span>
+					<div className="ml-auto h-1 w-28 overflow-hidden rounded-full bg-muted">
+						<div
+							className="h-full rounded-full bg-primary transition-[width]"
+							style={{
+								width: `${
+									processing.total > 0
+										? (processing.processed / processing.total) * 100
+										: 0
+								}%`,
+							}}
+						/>
+					</div>
+				</div>
+			)}
 
 			{isLoading && (
 				<div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
