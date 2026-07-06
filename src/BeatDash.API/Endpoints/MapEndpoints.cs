@@ -14,20 +14,107 @@ using Shiron.BeatDash.DB.Schema.BeatSaver;
 namespace Shiron.BeatDash.API.Endpoints;
 
 public static class MapEndpoints {
+    private static IOrderedQueryable<Beatmap> Dir<TKey>(
+        IQueryable<Beatmap> src, System.Linq.Expressions.Expression<Func<Beatmap, TKey>> key, bool asc)
+        => asc ? src.OrderBy(key) : src.OrderByDescending(key);
+
     public static void MapMapEndpoints(this IEndpointRouteBuilder endpoints) {
         var group = endpoints.MapGroup("/maps").WithTags("Maps");
 
         group.MapGet("/", async (
+            [AsParameters] MapQueryParams q,
             BeatDashDbContext db,
             CancellationToken ct) => {
-                var maps = await db.Beatmaps
-                    .AsNoTracking()
-                    .Include(b => b.Difficulties)
-                    .OrderByDescending(b => b.CreatedAt)
+                var page = Math.Max(1, q.Page);
+                var pageSize = Math.Clamp(q.PageSize, 1, 100);
+
+                IQueryable<Beatmap> query = db.Beatmaps.AsNoTracking();
+
+                // --- Text search ---
+                if (!string.IsNullOrWhiteSpace(q.Search)) {
+                    var pattern = $"%{q.Search.Trim()}%";
+                    query = query.Where(b =>
+                        EF.Functions.ILike(b.SongName, pattern) ||
+                        EF.Functions.ILike(b.SongAuthor, pattern) ||
+                        EF.Functions.ILike(b.Mapper, pattern) ||
+                        (b.SongSubName != null && EF.Functions.ILike(b.SongSubName, pattern)));
+                }
+
+                // --- Per-difficulty filters: the map must have ONE difficulty matching all of them ---
+                if (q.Characteristic != null || q.Difficulty != null || q.MinNps != null || q.MaxNps != null
+                    || q.MinDifficulty != null || q.MaxDifficulty != null || q.MinPp != null || q.MaxPp != null) {
+                    query = query.Where(b => b.Difficulties.Any(d =>
+                        (q.Characteristic == null || d.CharacteristicSerializedName == q.Characteristic) &&
+                        (q.Difficulty == null || d.DifficultyRank == q.Difficulty) &&
+                        (q.MinNps == null || d.NotesPerSecond >= q.MinNps) &&
+                        (q.MaxNps == null || d.NotesPerSecond <= q.MaxNps) &&
+                        (q.MinDifficulty == null || (d.Analysis != null && d.Analysis.DifficultyRating >= q.MinDifficulty)) &&
+                        (q.MaxDifficulty == null || (d.Analysis != null && d.Analysis.DifficultyRating <= q.MaxDifficulty)) &&
+                        (q.MinPp == null || (d.Analysis != null && d.Analysis.Pp >= q.MinPp)) &&
+                        (q.MaxPp == null || (d.Analysis != null && d.Analysis.Pp <= q.MaxPp))));
+                }
+
+                // --- Map-level filters ---
+                if (q.MinBpm.HasValue) query = query.Where(b => b.Bpm >= q.MinBpm.Value);
+                if (q.MaxBpm.HasValue) query = query.Where(b => b.Bpm <= q.MaxBpm.Value);
+                if (q.MinDurationSeconds.HasValue) query = query.Where(b => b.DurationMs >= q.MinDurationSeconds.Value * 1000);
+                if (q.MaxDurationSeconds.HasValue) query = query.Where(b => b.DurationMs <= q.MaxDurationSeconds.Value * 1000);
+                if (q.FetchStatus.HasValue) query = query.Where(b => b.FetchStatus == q.FetchStatus.Value);
+
+                if (q.Ranked.HasValue) {
+                    query = q.Ranked.Value
+                        ? query.Where(b => b.BeatSaverMap != null && (b.BeatSaverMap.Ranked || b.BeatSaverMap.BlRanked))
+                        : query.Where(b => b.BeatSaverMap == null || (!b.BeatSaverMap.Ranked && !b.BeatSaverMap.BlRanked));
+                }
+                if (q.Automapper.HasValue) {
+                    query = q.Automapper.Value
+                        ? query.Where(b => b.BeatSaverMap != null && b.BeatSaverMap.Automapper)
+                        : query.Where(b => b.BeatSaverMap == null || !b.BeatSaverMap.Automapper);
+                }
+                if (!string.IsNullOrWhiteSpace(q.Tag)) {
+                    var tag = q.Tag.Trim();
+                    query = query.Where(b => b.BeatSaverMap != null && b.BeatSaverMap.Tags.Contains(tag));
+                }
+
+                // --- Sorting. Nullable keys (metrics, BeatSaver stats) are coalesced to a
+                // direction-appropriate sentinel so unanalyzed / un-fetched maps always sort
+                // LAST, not first (Postgres puts NULLs first on DESC). Stable Id tiebreaker
+                // because CreatedAt collides on bulk import. ---
+                var asc = q.SortDir == SortDirection.Asc;
+                var nf = asc ? float.MaxValue : float.MinValue;
+                var nd = asc ? double.MaxValue : double.MinValue;
+                var ni = asc ? int.MaxValue : int.MinValue;
+                var ndt = asc ? DateTime.MaxValue : DateTime.MinValue;
+                IOrderedQueryable<Beatmap> ordered = q.SortBy switch {
+                    MapSortBy.SongName => Dir(query, b => b.SongName, asc),
+                    MapSortBy.Bpm => Dir(query, b => b.Bpm, asc),
+                    MapSortBy.Duration => Dir(query, b => b.DurationMs, asc),
+                    MapSortBy.Nps => Dir(query, b => b.Difficulties.Max(d => (float?) d.NotesPerSecond) ?? nf, asc),
+                    MapSortBy.Difficulty => Dir(query, b => b.Difficulties.Max(d => d.Analysis!.DifficultyRating) ?? nd, asc),
+                    MapSortBy.Pp => Dir(query, b => b.Difficulties.Max(d => d.Analysis!.Pp) ?? nd, asc),
+                    MapSortBy.Downloads => Dir(query, b => ((int?) b.BeatSaverMap!.Stats.Downloads) ?? ni, asc),
+                    MapSortBy.Upvotes => Dir(query, b => ((int?) b.BeatSaverMap!.Stats.Upvotes) ?? ni, asc),
+                    MapSortBy.Score => Dir(query, b => ((float?) b.BeatSaverMap!.Stats.Score) ?? nf, asc),
+                    MapSortBy.Uploaded => Dir(query, b => b.BeatSaverMap!.Uploaded ?? ndt, asc),
+                    _ => Dir(query, b => b.CreatedAt, asc),
+                };
+                query = ordered.ThenBy(b => b.Id);
+
+                var totalCount = await query.CountAsync(ct);
+                var totalPages = totalCount == 0 ? 0 : (int) Math.Ceiling(totalCount / (double) pageSize);
+
+                var maps = await query
+                    .Include(b => b.Difficulties).ThenInclude(d => d.Analysis)
+                    .Include(b => b.BeatSaverMap)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
                     .ToListAsync(ct);
 
-                return Results.Ok(maps.Select(MapDetailDto.From).ToList());
-            }).RequireAuthorization().Produces<IList<MapDetailDto>>();
+                var items = maps.Select(MapListItemDto.From).ToList();
+                return Results.Ok(new PagedResult<MapListItemDto>(items, totalCount, page, pageSize, totalPages));
+            })
+            .RequireAuthorization()
+            .Produces<PagedResult<MapListItemDto>>();
 
         group.MapGet("/{mapId:Guid}", async (
             Guid mapId,
@@ -123,6 +210,106 @@ public static class MapEndpoints {
 
 /// <summary>Result of a <c>POST /api/maps/import</c> call.</summary>
 public sealed record MapImportResultDto(Guid MapId, bool IsNew);
+
+/// <summary>Query, filter, sort and pagination parameters for the maps list.</summary>
+public sealed record MapQueryParams(
+    int Page = 1,
+    int PageSize = 20,
+    // Free-text search over song name, sub-name, author and mapper.
+    string? Search = null,
+    // Only maps having a difficulty with this characteristic (e.g. "Standard").
+    string? Characteristic = null,
+    BeatmapDifficultyRank? Difficulty = null,
+    float? MinBpm = null,
+    float? MaxBpm = null,
+    int? MinDurationSeconds = null,
+    int? MaxDurationSeconds = null,
+    float? MinNps = null,
+    float? MaxNps = null,
+    // Computed difficulty rating in [0,1].
+    double? MinDifficulty = null,
+    double? MaxDifficulty = null,
+    double? MinPp = null,
+    double? MaxPp = null,
+    // Ranked on ScoreSaber or BeatLeader.
+    bool? Ranked = null,
+    bool? Automapper = null,
+    // A BeatSaver tag the map must carry (e.g. "nightcore").
+    string? Tag = null,
+    BeatSaverFetchStatus? FetchStatus = null,
+    MapSortBy SortBy = MapSortBy.CreatedAt,
+    SortDirection SortDir = SortDirection.Desc
+);
+
+public enum MapSortBy { CreatedAt, SongName, Bpm, Duration, Nps, Difficulty, Pp, Downloads, Upvotes, Score, Uploaded }
+
+/// <summary>A map as it appears in the paginated list.</summary>
+public sealed record MapListItemDto(
+    Guid Id,
+    string LevelId,
+    string SongName,
+    string? SongSubName,
+    string SongAuthor,
+    string Mapper,
+    float Bpm,
+    int DurationMs,
+    string? CoverImageKey,
+    string FetchStatus,
+    DateTime CreatedAt,
+    MapBeatSaverSummaryDto? BeatSaver,
+    IList<MapListDifficultyDto> Difficulties
+) {
+    internal static MapListItemDto From(Beatmap b) => new(
+        b.Id,
+        b.LevelId,
+        b.SongName,
+        b.SongSubName,
+        b.SongAuthor,
+        b.Mapper,
+        b.Bpm,
+        b.DurationMs,
+        b.CoverImageKey,
+        b.FetchStatus.ToString(),
+        b.CreatedAt,
+        b.BeatSaverMap is null ? null : MapBeatSaverSummaryDto.From(b.BeatSaverMap),
+        b.Difficulties
+            .OrderBy(d => d.CharacteristicSerializedName)
+            .ThenBy(d => d.DifficultyRank)
+            .Select(MapListDifficultyDto.From)
+            .ToList()
+    );
+}
+
+/// <summary>Condensed BeatSaver info shown in a map list item.</summary>
+public sealed record MapBeatSaverSummaryDto(
+    bool Ranked,
+    bool Automapper,
+    int Downloads,
+    int Upvotes,
+    float Score,
+    IList<string> Tags
+) {
+    internal static MapBeatSaverSummaryDto From(Shiron.BeatDash.DB.Schema.BeatSaver.BeatSaverMap m) => new(
+        m.Ranked || m.BlRanked, m.Automapper, m.Stats.Downloads, m.Stats.Upvotes, m.Stats.Score, m.Tags);
+}
+
+/// <summary>A single difficulty summary within a map list item, with its computed metrics.</summary>
+public sealed record MapListDifficultyDto(
+    string DifficultyRank,
+    string DifficultyName,
+    string Characteristic,
+    float NotesPerSecond,
+    double? DifficultyRating,
+    double? Pp
+) {
+    internal static MapListDifficultyDto From(BeatmapDifficulty d) => new(
+        d.DifficultyRank.ToString(),
+        d.DifficultyName,
+        d.CharacteristicSerializedName,
+        d.NotesPerSecond,
+        d.Analysis?.DifficultyRating,
+        d.Analysis?.Pp);
+}
 
 public sealed record MapDetailDto(
     Guid Id,
