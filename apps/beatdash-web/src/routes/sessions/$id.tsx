@@ -37,6 +37,7 @@ import {
 } from "@/api/sessions/sessions";
 import { AppShell } from "@/components/layout/AppShell";
 import { NoteGridHeatmap } from "@/components/sessions/NoteGridHeatmap";
+import { PerHandPerformance } from "@/components/sessions/PerHandPerformance";
 import { ScoreBreakdown } from "@/components/sessions/ScoreBreakdown";
 import { SwingAnalysis } from "@/components/sessions/SwingAnalysis";
 import { TopSessions } from "@/components/sessions/TopSessions";
@@ -400,6 +401,13 @@ function SessionDetailPage() {
 
 			{results && notes && notes.length > 0 && (
 				<SwingAnalysis
+					notes={notes}
+					comboBreaks={timeline?.comboBreaks ?? []}
+				/>
+			)}
+
+			{results && notes && notes.length > 0 && (
+				<PerHandPerformance
 					notes={notes}
 					comboBreaks={timeline?.comboBreaks ?? []}
 				/>
