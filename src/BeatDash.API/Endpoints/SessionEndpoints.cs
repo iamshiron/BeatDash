@@ -60,6 +60,40 @@ public static class SessionEndpoints {
                     (queryParams.IncludeIncomplete &&
                         (s.EndReason == PlaySessionEndReason.Incomplete || s.EndReason == null)));
 
+                // Result-based filters. Each guards on Results != null so sessions without
+                // recorded results (e.g. in-progress) are excluded rather than matched.
+                if (queryParams.MinAccuracy.HasValue) {
+                    query = query.Where(s => s.Results != null && s.Results.Accuracy >= queryParams.MinAccuracy.Value);
+                }
+
+                if (queryParams.MaxAccuracy.HasValue) {
+                    query = query.Where(s => s.Results != null && s.Results.Accuracy <= queryParams.MaxAccuracy.Value);
+                }
+
+                if (queryParams.MinScore.HasValue) {
+                    query = query.Where(s => s.Results != null && s.Results.Score >= queryParams.MinScore.Value);
+                }
+
+                if (queryParams.MaxScore.HasValue) {
+                    query = query.Where(s => s.Results != null && s.Results.Score <= queryParams.MaxScore.Value);
+                }
+
+                if (!string.IsNullOrWhiteSpace(queryParams.Rank)) {
+                    query = query.Where(s => s.Results != null && s.Results.Rank == queryParams.Rank);
+                }
+
+                if (queryParams.FullComboOnly) {
+                    query = query.Where(s => s.Results != null && s.Results.FullCombo);
+                }
+
+                if (queryParams.MinBpm.HasValue) {
+                    query = query.Where(s => s.BeatmapDifficulty.Beatmap.Bpm >= queryParams.MinBpm.Value);
+                }
+
+                if (queryParams.MaxBpm.HasValue) {
+                    query = query.Where(s => s.BeatmapDifficulty.Beatmap.Bpm <= queryParams.MaxBpm.Value);
+                }
+
                 if (queryParams.SortBy is SessionSortBy.Score or SessionSortBy.Accuracy
                     or SessionSortBy.MaxCombo or SessionSortBy.Duration) {
                     query = query.Where(s => s.EndedAt != null);
@@ -503,7 +537,15 @@ public sealed record PlaySessionQueryParams(
     bool IncludeAuto = false,
     bool IncludeFailed = false,
     bool IncludeQuit = false,
-    bool IncludeIncomplete = false
+    bool IncludeIncomplete = false,
+    float? MinAccuracy = null,
+    float? MaxAccuracy = null,
+    int? MinScore = null,
+    int? MaxScore = null,
+    string? Rank = null,
+    bool FullComboOnly = false,
+    float? MinBpm = null,
+    float? MaxBpm = null
 );
 
 public enum SessionSortBy { StartedAt, Score, Accuracy, Duration, MaxCombo }

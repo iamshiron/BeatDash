@@ -28,4 +28,30 @@ IncludeAuto?: boolean;
 IncludeFailed?: boolean;
 IncludeQuit?: boolean;
 IncludeIncomplete?: boolean;
+/**
+ * @pattern ^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$
+ */
+MinAccuracy?: number | string;
+/**
+ * @pattern ^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$
+ */
+MaxAccuracy?: number | string;
+/**
+ * @pattern ^-?(?:0|[1-9]\d*)$
+ */
+MinScore?: number | string;
+/**
+ * @pattern ^-?(?:0|[1-9]\d*)$
+ */
+MaxScore?: number | string;
+Rank?: string;
+FullComboOnly?: boolean;
+/**
+ * @pattern ^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$
+ */
+MinBpm?: number | string;
+/**
+ * @pattern ^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$
+ */
+MaxBpm?: number | string;
 };
