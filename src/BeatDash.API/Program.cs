@@ -215,6 +215,7 @@ api.MapIdentityEndpoints();
 api.MapDeviceEndpoints();
 api.MapClientEndpoints();
 api.MapMapEndpoints();
+api.MapAdminMetricsEndpoints();
 api.MapSessionEndpoints();
 api.MapServerInfoEndpoints();
 api.MapHub<RealtimeHub>("/client/web");

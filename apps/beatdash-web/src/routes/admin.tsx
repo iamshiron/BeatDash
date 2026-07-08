@@ -1,4 +1,4 @@
-import { GaugeIcon } from "@phosphor-icons/react";
+import { FlaskIcon, GaugeIcon } from "@phosphor-icons/react";
 import { Separator } from "@shiron/ui/components/ui/separator";
 import {
 	Sidebar,
@@ -45,6 +45,7 @@ interface AdminNavItem {
 /** Admin sidebar navigation. Add admin-only routes here. */
 const NAV_ITEMS: AdminNavItem[] = [
 	{ label: "Overview", to: "/admin", icon: GaugeIcon, exact: true },
+	{ label: "Scoring Lab", to: "/admin/scoring", icon: FlaskIcon },
 ];
 
 function AdminLayout() {

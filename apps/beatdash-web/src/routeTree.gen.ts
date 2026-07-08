@@ -21,6 +21,7 @@ import { Route as SessionsIdRouteImport } from './routes/sessions/$id'
 import { Route as MapsIdRouteImport } from './routes/maps/$id'
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
+import { Route as AdminScoringRouteImport } from './routes/admin/scoring'
 
 const LiveRoute = LiveRouteImport.update({
   id: '/live',
@@ -82,6 +83,11 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => AuthRoute,
 } as any)
+const AdminScoringRoute = AdminScoringRouteImport.update({
+  id: '/scoring',
+  path: '/scoring',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRouteWithChildren
   '/devices': typeof DevicesRoute
   '/live': typeof LiveRoute
+  '/admin/scoring': typeof AdminScoringRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/maps/$id': typeof MapsIdRoute
@@ -102,6 +109,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
   '/devices': typeof DevicesRoute
   '/live': typeof LiveRoute
+  '/admin/scoring': typeof AdminScoringRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/maps/$id': typeof MapsIdRoute
@@ -117,6 +125,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRouteWithChildren
   '/devices': typeof DevicesRoute
   '/live': typeof LiveRoute
+  '/admin/scoring': typeof AdminScoringRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/maps/$id': typeof MapsIdRoute
@@ -133,6 +142,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/devices'
     | '/live'
+    | '/admin/scoring'
     | '/auth/login'
     | '/auth/register'
     | '/maps/$id'
@@ -146,6 +156,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/devices'
     | '/live'
+    | '/admin/scoring'
     | '/auth/login'
     | '/auth/register'
     | '/maps/$id'
@@ -160,6 +171,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/devices'
     | '/live'
+    | '/admin/scoring'
     | '/auth/login'
     | '/auth/register'
     | '/maps/$id'
@@ -267,14 +279,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/admin/scoring': {
+      id: '/admin/scoring'
+      path: '/scoring'
+      fullPath: '/admin/scoring'
+      preLoaderRoute: typeof AdminScoringRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
+  AdminScoringRoute: typeof AdminScoringRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminScoringRoute: AdminScoringRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
