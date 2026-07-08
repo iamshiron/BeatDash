@@ -16,6 +16,12 @@ import {
 	CardTitle,
 } from "@shiron/ui/components/ui/card";
 import {
+	type ChartConfig,
+	ChartContainer,
+	ChartTooltip,
+	ChartTooltipContent,
+} from "@shiron/ui/components/ui/chart";
+import {
 	Empty,
 	EmptyDescription,
 	EmptyHeader,
@@ -26,13 +32,20 @@ import { Skeleton } from "@shiron/ui/components/ui/skeleton";
 import { cn } from "@shiron/ui/lib/utils";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { formatDistanceToNow } from "date-fns";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import {
 	getGetApiMapsMapIdCoverUrl,
 	useGetApiMapsMapId,
 } from "@/api/maps/maps";
-import type { BeatmapDifficultyDto } from "@/api/model";
+import type { BeatmapDifficultyDto, PlaySessionListItemDto } from "@/api/model";
+import { useGetApiSessions } from "@/api/sessions/sessions";
 import { AppShell } from "@/components/layout/AppShell";
+import { formatAccuracy, formatScore } from "@/lib/sessions";
+
+const attemptChartConfig = {
+	accuracy: { label: "Accuracy", color: "oklch(0.62 0.19 255)" },
+} satisfies ChartConfig;
 
 const RANK_ORDER = ["Easy", "Normal", "Hard", "Expert", "ExpertPlus"] as const;
 
@@ -82,6 +95,26 @@ function MapDetailPage() {
 	const { data, isLoading } = useGetApiMapsMapId(id);
 	const map = data?.status === 200 ? data.data : undefined;
 	const [coverFailed, setCoverFailed] = useState(false);
+
+	// The user's completed attempts on this map, oldest first, grouped per difficulty.
+	const attemptsQuery = useGetApiSessions({
+		BeatmapId: id,
+		PageSize: 100,
+		SortBy: 0, // StartedAt
+		SortDir: 0, // Asc
+		IncludeAuto: false,
+	});
+	const attemptsByDifficulty = useMemo(() => {
+		const grouped = new Map<string, PlaySessionListItemDto[]>();
+		if (attemptsQuery.data?.status !== 200) return grouped;
+		for (const s of attemptsQuery.data.data.items) {
+			if (!s.results) continue;
+			const list = grouped.get(s.beatmapDifficultyId) ?? [];
+			list.push(s);
+			grouped.set(s.beatmapDifficultyId, list);
+		}
+		return grouped;
+	}, [attemptsQuery.data]);
 
 	const difficulties = map
 		? [...map.difficulties].sort(
@@ -241,7 +274,11 @@ function MapDetailPage() {
 					{/* Difficulties */}
 					<div className="space-y-3">
 						{difficulties.map((d) => (
-							<DifficultyCard key={d.id} difficulty={d} />
+							<DifficultyCard
+								key={d.id}
+								difficulty={d}
+								attempts={attemptsByDifficulty.get(d.id) ?? []}
+							/>
 						))}
 					</div>
 				</div>
@@ -250,7 +287,13 @@ function MapDetailPage() {
 	);
 }
 
-function DifficultyCard({ difficulty }: { difficulty: BeatmapDifficultyDto }) {
+function DifficultyCard({
+	difficulty,
+	attempts,
+}: {
+	difficulty: BeatmapDifficultyDto;
+	attempts: PlaySessionListItemDto[];
+}) {
 	const a = difficulty.analysis;
 	const analyzed = a?.metricStatus === "Success";
 	const chars = a?.characteristics ?? null;
@@ -320,8 +363,108 @@ function DifficultyCard({ difficulty }: { difficulty: BeatmapDifficultyDto }) {
 						</div>
 					</div>
 				)}
+
+				<AttemptProgression attempts={attempts} />
 			</CardContent>
 		</Card>
+	);
+}
+
+function AttemptProgression({
+	attempts,
+}: {
+	attempts: PlaySessionListItemDto[];
+}) {
+	const stats = useMemo(() => {
+		if (attempts.length === 0) return null;
+		let best = attempts[0];
+		for (const s of attempts) {
+			if (n(s.results?.accuracy) > n(best.results?.accuracy)) best = s;
+		}
+		const first = n(attempts[0].results?.accuracy);
+		const last = n(attempts[attempts.length - 1].results?.accuracy);
+		const chart = attempts.map((s, i) => ({
+			attempt: i + 1,
+			accuracy: n(s.results?.accuracy) * 100,
+			score: n(s.results?.score),
+		}));
+		return { best, first, last, delta: last - first, chart };
+	}, [attempts]);
+
+	if (!stats) return null;
+
+	const bestId = stats.best.id;
+
+	return (
+		<div className="space-y-3 border-t border-border pt-4">
+			<div className="flex flex-wrap items-baseline justify-between gap-2">
+				<span className="text-xs font-medium text-muted-foreground">
+					Your attempts ({attempts.length})
+				</span>
+				<Link
+					to="/sessions/$id"
+					params={{ id: bestId }}
+					className="text-xs text-primary hover:underline"
+				>
+					Best: {formatScore(n(stats.best.results?.score))} ·{" "}
+					{formatAccuracy(n(stats.best.results?.accuracy))}
+				</Link>
+			</div>
+
+			{attempts.length >= 2 && (
+				<>
+					<ChartContainer config={attemptChartConfig} className="h-28 w-full">
+						<LineChart
+							data={stats.chart}
+							margin={{ left: 4, right: 4, top: 4, bottom: 4 }}
+						>
+							<CartesianGrid strokeDasharray="3 3" vertical={false} />
+							<XAxis
+								dataKey="attempt"
+								tickLine={false}
+								axisLine={false}
+								tickMargin={8}
+								tickFormatter={(v: number) => `#${v}`}
+							/>
+							<YAxis
+								domain={["dataMin - 2", "dataMax + 2"]}
+								tickFormatter={(v: number) => `${Math.round(v)}%`}
+								tickLine={false}
+								axisLine={false}
+								width={36}
+							/>
+							<ChartTooltip
+								content={
+									<ChartTooltipContent
+										labelFormatter={(_, payload) => {
+											const attempt = payload?.[0]?.payload?.attempt;
+											return attempt != null ? `Attempt #${attempt}` : "";
+										}}
+										formatter={(value) => (
+											<span className="font-mono tabular-nums">
+												{Number(value).toFixed(1)}%
+											</span>
+										)}
+									/>
+								}
+							/>
+							<Line
+								dataKey="accuracy"
+								stroke="var(--color-accuracy)"
+								strokeWidth={2}
+								dot={{ r: 2 }}
+								type="monotone"
+							/>
+						</LineChart>
+					</ChartContainer>
+					<p className="text-center text-[11px] text-muted-foreground">
+						{stats.delta >= 0 ? "▲" : "▼"}{" "}
+						{Math.abs(stats.delta * 100).toFixed(1)}% accuracy since your first
+						attempt
+					</p>
+				</>
+			)}
+		</div>
 	);
 }
 
