@@ -97,6 +97,10 @@ function SessionDetailPage() {
 	const beatmap = detail?.beatmap;
 	const results = detail?.results;
 
+	// This session is a personal best when it's the top-scoring play on its difficulty.
+	const isPersonalBest =
+		topDifficulties?.find((d) => d.isCurrent)?.sessions?.[0]?.id === id;
+
 	const diffStyle = beatmap
 		? (DIFFICULTY_STYLES[beatmap.difficultyRank] ??
 			"border-border bg-muted text-muted-foreground")
@@ -188,6 +192,11 @@ function SessionDetailPage() {
 										className={cn("shrink-0", diffStyle)}
 									>
 										{beatmap.difficultyName}
+									</Badge>
+								)}
+								{isPersonalBest && (
+									<Badge className="shrink-0 border-amber-500/30 bg-amber-500/15 text-amber-400">
+										Personal Best
 									</Badge>
 								)}
 								{results?.fullCombo && (

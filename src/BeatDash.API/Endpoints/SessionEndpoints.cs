@@ -453,6 +453,41 @@ public static class SessionEndpoints {
             .Produces<IList<TrendBucketDto>>()
             .Produces(401);
 
+        group.MapGet("/pb", async (
+            Guid mapId,
+            string difficulty,
+            string characteristic,
+            ClaimsPrincipal user,
+            BeatDashDbContext db,
+            CancellationToken ct) => {
+                var userId = IdentityUtils.GetUserID(user);
+                if (!userId.HasValue) return Results.Unauthorized();
+                if (!Enum.TryParse<BeatmapDifficultyRank>(difficulty, out var rank))
+                    return Results.BadRequest("Invalid difficulty rank.");
+
+                // Best completed non-auto score on this exact difficulty variant.
+                var best = await db.PlaySessions
+                    .AsNoTracking()
+                    .Where(s =>
+                        s.UserId == userId.Value &&
+                        !s.AutoMode &&
+                        s.EndReason == PlaySessionEndReason.Finished &&
+                        s.Results != null &&
+                        s.BeatmapDifficulty.BeatmapId == mapId &&
+                        s.BeatmapDifficulty.DifficultyRank == rank &&
+                        s.BeatmapDifficulty.CharacteristicSerializedName == characteristic)
+                    .OrderByDescending(s => s.Results!.Score)
+                    .Select(s => new PersonalBestDto(
+                        s.Id, s.Results!.Score, s.Results.Accuracy, s.Results.Rank))
+                    .FirstOrDefaultAsync(ct);
+
+                return Results.Ok(best);
+            })
+            .RequireAuthorization()
+            .Produces<PersonalBestDto>()
+            .Produces(400)
+            .Produces(401);
+
         group.MapGet("/{id:Guid}/top", async (
             Guid id,
             ClaimsPrincipal user,
@@ -561,6 +596,9 @@ public sealed record TrendBucketDto(
     double? AvgAccuracy,
     long PlayTimeMs
 );
+
+/// <summary>The user's best completed score on a specific difficulty variant.</summary>
+public sealed record PersonalBestDto(Guid SessionId, int Score, float Accuracy, string Rank);
 public sealed record MostPlayedMapDto(
     Guid BeatmapId,
     string SongName,

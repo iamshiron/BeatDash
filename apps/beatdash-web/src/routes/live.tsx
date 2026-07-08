@@ -28,6 +28,8 @@ import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { getGetApiDeviceQueryKey, useGetApiDevice } from "@/api/device/device";
 import { getGetApiMapsMapIdCoverUrl } from "@/api/maps/maps";
+import type { PersonalBestDto } from "@/api/model";
+import { useGetApiSessionsPb } from "@/api/sessions/sessions";
 import { AppShell } from "@/components/layout/AppShell";
 import {
 	type LiveMapStartedEvent,
@@ -72,6 +74,17 @@ function LivePage() {
 	useRealtimeEvent("receiveScoreUpdate", (event) => {
 		setScoreUpdate(event);
 	});
+
+	// The user's best previous score on the current difficulty, shown as a target.
+	const pbQuery = useGetApiSessionsPb(
+		{
+			mapId: currentMap?.mapId ?? "",
+			difficulty: currentMap?.difficulty ?? "",
+			characteristic: currentMap?.characteristic ?? "",
+		},
+		{ query: { enabled: !!currentMap?.mapId } },
+	);
+	const personalBest = pbQuery.data?.status === 200 ? pbQuery.data.data : null;
 
 	if (isLoading) {
 		return (
@@ -144,7 +157,7 @@ function LivePage() {
 					onCoverError={() => setCoverFailed(true)}
 				/>
 
-				<ScoreOverlay data={scoreUpdate} />
+				<ScoreOverlay data={scoreUpdate} personalBest={personalBest} />
 			</div>
 		</AppShell>
 	);
@@ -353,7 +366,13 @@ function usePulseAnimation(
 
 const scoreFmt = new Intl.NumberFormat("en-US", { minimumIntegerDigits: 7 });
 
-function ScoreOverlay({ data }: { data: ScoreUpdateEvent | null }) {
+function ScoreOverlay({
+	data,
+	personalBest,
+}: {
+	data: ScoreUpdateEvent | null;
+	personalBest: PersonalBestDto | null;
+}) {
 	const score = data?.score ?? 0;
 	const rank = data?.rank ?? "—";
 	const accuracy = data?.accuracy ?? 0;
@@ -369,20 +388,44 @@ function ScoreOverlay({ data }: { data: ScoreUpdateEvent | null }) {
 	const scoreReal = score.toLocaleString("en-US");
 	const splitAt = scoreStr.length - scoreReal.length;
 
+	const pbScore = personalBest ? Number(personalBest.score) : null;
+	const beatenPb = pbScore !== null && score > pbScore;
+
 	return (
 		<div className="flex flex-col items-center gap-8 py-8">
 			<div className="mx-auto grid w-fit grid-cols-2 items-center gap-x-8 gap-y-6 px-4 sm:grid-cols-3 md:grid-cols-5">
-				<div className="col-span-full flex items-center justify-between px-4 py-2">
-					<span
-						ref={scoreRef}
-						className="inline-block font-heading text-8xl font-bold tracking-normal tabular-nums md:text-9xl"
-					>
-						<span className="text-transparent">
-							{scoreStr.slice(0, splitAt)}
+				<div className="col-span-full flex flex-col px-4 py-2">
+					{pbScore !== null && (
+						<div className="mb-1 flex items-center gap-2 text-xs font-medium">
+							{beatenPb ? (
+								<span className="rounded-full bg-amber-500/15 px-2 py-0.5 font-semibold uppercase tracking-wide text-amber-400">
+									New personal best!
+								</span>
+							) : (
+								<span className="text-muted-foreground">
+									PB to beat:{" "}
+									<span className="font-mono tabular-nums text-foreground">
+										{pbScore.toLocaleString("en-US")}
+									</span>
+								</span>
+							)}
+						</div>
+					)}
+					<div className="flex items-center justify-between">
+						<span
+							ref={scoreRef}
+							className={cn(
+								"inline-block font-heading text-8xl font-bold tracking-normal tabular-nums md:text-9xl",
+								beatenPb && "text-amber-400",
+							)}
+						>
+							<span className="text-transparent">
+								{scoreStr.slice(0, splitAt)}
+							</span>
+							{scoreStr.slice(splitAt)}
 						</span>
-						{scoreStr.slice(splitAt)}
-					</span>
-					<MultiplierRing combo={combo} pulseRef={multiplierRef} />
+						<MultiplierRing combo={combo} pulseRef={multiplierRef} />
+					</div>
 				</div>
 				<div className="flex flex-col items-center gap-1">
 					<span

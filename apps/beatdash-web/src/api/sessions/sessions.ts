@@ -21,8 +21,10 @@ import type {
 
 import type {
   GetApiSessionsParams,
+  GetApiSessionsPbParams,
   NoteItemDto,
   PagedResultOfPlaySessionListItemDto,
+  PersonalBestDto,
   PlaySessionDetailDto,
   PlaySessionMotionDto,
   PlaySessionTimelineDto,
@@ -1027,6 +1029,138 @@ export function useGetApiSessionsTrends<TData = Awaited<ReturnType<typeof getApi
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetApiSessionsTrendsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export type getApiSessionsPbResponse200 = {
+  data: PersonalBestDto
+  status: 200
+}
+
+export type getApiSessionsPbResponse400 = {
+  data: void
+  status: 400
+}
+
+export type getApiSessionsPbResponse401 = {
+  data: void
+  status: 401
+}
+
+export type getApiSessionsPbResponseSuccess = (getApiSessionsPbResponse200) & {
+  headers: Headers;
+};
+export type getApiSessionsPbResponseError = (getApiSessionsPbResponse400 | getApiSessionsPbResponse401) & {
+  headers: Headers;
+};
+
+export type getApiSessionsPbResponse = (getApiSessionsPbResponseSuccess | getApiSessionsPbResponseError)
+
+export const getGetApiSessionsPbUrl = (params: GetApiSessionsPbParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/sessions/pb?${stringifiedParams}` : `/api/sessions/pb`
+}
+
+export const getApiSessionsPb = async (params: GetApiSessionsPbParams, options?: RequestInit): Promise<getApiSessionsPbResponse> => {
+
+  const res = await fetch(getGetApiSessionsPbUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: getApiSessionsPbResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as getApiSessionsPbResponse
+}
+
+
+
+
+
+export const getGetApiSessionsPbQueryKey = (params?: GetApiSessionsPbParams,) => {
+    return [
+    `/api/sessions/pb`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetApiSessionsPbQueryOptions = <TData = Awaited<ReturnType<typeof getApiSessionsPb>>, TError = void>(params: GetApiSessionsPbParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiSessionsPb>>, TError, TData>>, fetch?: RequestInit}
+) => {
+
+const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetApiSessionsPbQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiSessionsPb>>> = ({ signal }) => getApiSessionsPb(params, { signal, ...fetchOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiSessionsPb>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetApiSessionsPbQueryResult = NonNullable<Awaited<ReturnType<typeof getApiSessionsPb>>>
+export type GetApiSessionsPbQueryError = void
+
+
+export function useGetApiSessionsPb<TData = Awaited<ReturnType<typeof getApiSessionsPb>>, TError = void>(
+ params: GetApiSessionsPbParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiSessionsPb>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiSessionsPb>>,
+          TError,
+          Awaited<ReturnType<typeof getApiSessionsPb>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiSessionsPb<TData = Awaited<ReturnType<typeof getApiSessionsPb>>, TError = void>(
+ params: GetApiSessionsPbParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiSessionsPb>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiSessionsPb>>,
+          TError,
+          Awaited<ReturnType<typeof getApiSessionsPb>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiSessionsPb<TData = Awaited<ReturnType<typeof getApiSessionsPb>>, TError = void>(
+ params: GetApiSessionsPbParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiSessionsPb>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetApiSessionsPb<TData = Awaited<ReturnType<typeof getApiSessionsPb>>, TError = void>(
+ params: GetApiSessionsPbParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiSessionsPb>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetApiSessionsPbQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
