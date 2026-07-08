@@ -8,6 +8,7 @@ export interface AuthValue {
 	user: UserInfoDto | undefined;
 	isLoading: boolean;
 	isAuthenticated: boolean;
+	isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthValue | null>(null);
@@ -23,6 +24,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		user,
 		isLoading: query.isLoading,
 		isAuthenticated: !!user,
+		isAdmin: !!user?.roles?.includes("Admin"),
 	};
 
 	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

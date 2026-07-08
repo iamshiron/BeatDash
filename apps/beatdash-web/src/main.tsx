@@ -26,6 +26,7 @@ const router = createRouter({
 			user: undefined,
 			isLoading: true,
 			isAuthenticated: false,
+			isAdmin: false,
 		},
 		queryClient,
 	} satisfies RouterContext,

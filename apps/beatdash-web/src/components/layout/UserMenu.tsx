@@ -9,7 +9,7 @@ import {
 	DropdownMenuTrigger,
 } from "@shiron/ui/components/ui/dropdown-menu";
 import { useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useLogout } from "@/api/auth/auth";
 import { getGetMeQueryKey, useAuth } from "@/contexts/auth";
@@ -22,7 +22,7 @@ function getInitials(name: string): string {
 }
 
 export function UserMenu() {
-	const { user } = useAuth();
+	const { user, isAdmin } = useAuth();
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 
@@ -56,6 +56,14 @@ export function UserMenu() {
 			<DropdownMenuContent align="end" className="min-w-52">
 				<DropdownMenuLabel className="truncate">{name}</DropdownMenuLabel>
 				<DropdownMenuSeparator />
+				{isAdmin && (
+					<>
+						<DropdownMenuItem asChild>
+							<Link to="/admin">Dashboard</Link>
+						</DropdownMenuItem>
+						<DropdownMenuSeparator />
+					</>
+				)}
 				<DropdownMenuItem disabled>Profile</DropdownMenuItem>
 				<DropdownMenuItem disabled>Settings</DropdownMenuItem>
 				<DropdownMenuSeparator />

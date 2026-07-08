@@ -12,9 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LiveRouteImport } from './routes/live'
 import { Route as DevicesRouteImport } from './routes/devices'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SessionsIndexRouteImport } from './routes/sessions/index'
 import { Route as MapsIndexRouteImport } from './routes/maps/index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as SessionsIdRouteImport } from './routes/sessions/$id'
 import { Route as MapsIdRouteImport } from './routes/maps/$id'
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
@@ -35,6 +37,11 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -49,6 +56,11 @@ const MapsIndexRoute = MapsIndexRouteImport.update({
   id: '/maps/',
   path: '/maps/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
 } as any)
 const SessionsIdRoute = SessionsIdRouteImport.update({
   id: '/sessions/$id',
@@ -73,6 +85,7 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
   '/devices': typeof DevicesRoute
   '/live': typeof LiveRoute
@@ -80,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/auth/register': typeof AuthRegisterRoute
   '/maps/$id': typeof MapsIdRoute
   '/sessions/$id': typeof SessionsIdRoute
+  '/admin/': typeof AdminIndexRoute
   '/maps/': typeof MapsIndexRoute
   '/sessions/': typeof SessionsIndexRoute
 }
@@ -92,12 +106,14 @@ export interface FileRoutesByTo {
   '/auth/register': typeof AuthRegisterRoute
   '/maps/$id': typeof MapsIdRoute
   '/sessions/$id': typeof SessionsIdRoute
+  '/admin': typeof AdminIndexRoute
   '/maps': typeof MapsIndexRoute
   '/sessions': typeof SessionsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
   '/devices': typeof DevicesRoute
   '/live': typeof LiveRoute
@@ -105,6 +121,7 @@ export interface FileRoutesById {
   '/auth/register': typeof AuthRegisterRoute
   '/maps/$id': typeof MapsIdRoute
   '/sessions/$id': typeof SessionsIdRoute
+  '/admin/': typeof AdminIndexRoute
   '/maps/': typeof MapsIndexRoute
   '/sessions/': typeof SessionsIndexRoute
 }
@@ -112,6 +129,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/auth'
     | '/devices'
     | '/live'
@@ -119,6 +137,7 @@ export interface FileRouteTypes {
     | '/auth/register'
     | '/maps/$id'
     | '/sessions/$id'
+    | '/admin/'
     | '/maps/'
     | '/sessions/'
   fileRoutesByTo: FileRoutesByTo
@@ -131,11 +150,13 @@ export interface FileRouteTypes {
     | '/auth/register'
     | '/maps/$id'
     | '/sessions/$id'
+    | '/admin'
     | '/maps'
     | '/sessions'
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/auth'
     | '/devices'
     | '/live'
@@ -143,12 +164,14 @@ export interface FileRouteTypes {
     | '/auth/register'
     | '/maps/$id'
     | '/sessions/$id'
+    | '/admin/'
     | '/maps/'
     | '/sessions/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
   DevicesRoute: typeof DevicesRoute
   LiveRoute: typeof LiveRoute
@@ -181,6 +204,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -201,6 +231,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/maps/'
       preLoaderRoute: typeof MapsIndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/sessions/$id': {
       id: '/sessions/$id'
@@ -233,6 +270,16 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminRouteChildren {
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 interface AuthRouteChildren {
   AuthLoginRoute: typeof AuthLoginRoute
   AuthRegisterRoute: typeof AuthRegisterRoute
@@ -247,6 +294,7 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
   DevicesRoute: DevicesRoute,
   LiveRoute: LiveRoute,
