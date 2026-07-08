@@ -17,6 +17,7 @@ export interface PlaySessionListItemDto {
      */
   duration: string | null;
   beatmapId: string;
+  beatmapDifficultyId: string;
   songName: string;
   /** @nullable */
   songSubName: string | null;

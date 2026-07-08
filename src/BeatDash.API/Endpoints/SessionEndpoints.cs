@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Shiron.BeatDash.DB;
 using Shiron.BeatDash.DB.Schema;
@@ -331,6 +332,127 @@ public static class SessionEndpoints {
             .Produces<UserStatsDto>()
             .Produces(401);
 
+        group.MapGet("/skill", async (
+            ClaimsPrincipal user,
+            BeatDashDbContext db,
+            CancellationToken ct) => {
+                var userId = IdentityUtils.GetUserID(user);
+                if (!userId.HasValue) return Results.Unauthorized();
+
+                // Each completed non-auto play, with the difficulty it was played on.
+                var plays = await db.PlaySessions
+                    .AsNoTracking()
+                    .Where(s =>
+                        s.UserId == userId.Value &&
+                        !s.AutoMode &&
+                        s.EndReason == PlaySessionEndReason.Finished &&
+                        s.Results != null)
+                    .Select(s => new { s.BeatmapDifficultyId, s.Results!.Accuracy })
+                    .ToListAsync(ct);
+
+                if (plays.Count == 0)
+                    return Results.Ok(new SkillProfileDto([], 0));
+
+                // Load characteristic vectors for the difficulties actually played.
+                var difficultyIds = plays.Select(p => p.BeatmapDifficultyId).Distinct().ToList();
+                var analyses = await db.BeatmapDifficultyAnalyses
+                    .AsNoTracking()
+                    .Where(a =>
+                        difficultyIds.Contains(a.BeatmapDifficultyId) &&
+                        a.MetricStatus == MetricStatus.Success &&
+                        a.Characteristics != null)
+                    .Select(a => new { a.BeatmapDifficultyId, a.Characteristics })
+                    .ToListAsync(ct);
+
+                var charsByDifficulty = new Dictionary<Guid, Dictionary<string, double>>();
+                foreach (var a in analyses) {
+                    var parsed = ParseCharacteristics(a.Characteristics);
+                    if (parsed != null) charsByDifficulty[a.BeatmapDifficultyId] = parsed;
+                }
+
+                // Accumulate per characteristic: exposure (map intensity) and
+                // skill (intensity weighted by the accuracy you achieved).
+                var exposure = new Dictionary<string, double>();
+                var skill = new Dictionary<string, double>();
+                var considered = 0;
+
+                foreach (var play in plays) {
+                    if (!charsByDifficulty.TryGetValue(play.BeatmapDifficultyId, out var vector))
+                        continue;
+                    considered++;
+                    foreach (var (key, intensity) in vector) {
+                        exposure[key] = exposure.GetValueOrDefault(key) + intensity;
+                        skill[key] = skill.GetValueOrDefault(key) + intensity * play.Accuracy;
+                    }
+                }
+
+                if (considered == 0)
+                    return Results.Ok(new SkillProfileDto([], 0));
+
+                var characteristics = exposure.Keys
+                    .OrderBy(k => k)
+                    .Select(k => new SkillCharacteristicDto(
+                        k,
+                        skill[k] / considered,
+                        exposure[k] / considered))
+                    .ToList();
+
+                return Results.Ok(new SkillProfileDto(characteristics, considered));
+            })
+            .RequireAuthorization()
+            .Produces<SkillProfileDto>()
+            .Produces(401);
+
+        group.MapGet("/trends", async (
+            ClaimsPrincipal user,
+            BeatDashDbContext db,
+            CancellationToken ct) => {
+                var userId = IdentityUtils.GetUserID(user);
+                if (!userId.HasValue) return Results.Unauthorized();
+
+                const int weeks = 12;
+                var today = DateTime.UtcNow.Date;
+                // Monday of the current week, then back (weeks - 1) weeks for the window start.
+                var weekStart = today.AddDays(-((int) today.DayOfWeek + 6) % 7);
+                var windowStart = weekStart.AddDays(-(weeks - 1) * 7);
+
+                var daily = await db.PlaySessions
+                    .AsNoTracking()
+                    .Where(s =>
+                        s.UserId == userId.Value &&
+                        !s.AutoMode &&
+                        s.EndReason == PlaySessionEndReason.Finished &&
+                        s.Results != null &&
+                        s.StartedAt >= windowStart)
+                    .GroupBy(s => s.StartedAt.Date)
+                    .Select(g => new {
+                        Day = g.Key,
+                        Plays = g.Count(),
+                        AccuracySum = g.Sum(s => (double) s.Results!.Accuracy),
+                        TimeMs = g.Sum(s => (long) s.Results!.EndSongTimeMs)
+                    })
+                    .ToListAsync(ct);
+
+                // Fold daily aggregates into fixed weekly buckets across the window.
+                var buckets = new List<TrendBucketDto>(weeks);
+                for (var i = 0; i < weeks; i++) {
+                    var bucketStart = windowStart.AddDays(i * 7);
+                    var bucketEnd = bucketStart.AddDays(7);
+                    var days = daily.Where(d => d.Day >= bucketStart && d.Day < bucketEnd).ToList();
+                    var plays = days.Sum(d => d.Plays);
+                    buckets.Add(new TrendBucketDto(
+                        DateOnly.FromDateTime(bucketStart),
+                        plays,
+                        plays > 0 ? days.Sum(d => d.AccuracySum) / plays : null,
+                        days.Sum(d => d.TimeMs)));
+                }
+
+                return Results.Ok(buckets);
+            })
+            .RequireAuthorization()
+            .Produces<IList<TrendBucketDto>>()
+            .Produces(401);
+
         group.MapGet("/{id:Guid}/top", async (
             Guid id,
             ClaimsPrincipal user,
@@ -394,6 +516,15 @@ public static class SessionEndpoints {
             .Produces(404)
             .Produces(401);
     }
+
+    private static Dictionary<string, double>? ParseCharacteristics(string? json) {
+        if (string.IsNullOrEmpty(json)) return null;
+        try {
+            return JsonSerializer.Deserialize<Dictionary<string, double>>(json);
+        } catch (JsonException) {
+            return null;
+        }
+    }
 }
 
 public sealed record UserStatsDto(
@@ -411,6 +542,25 @@ public sealed record UserStatsDto(
 
 public sealed record RankCountDto(string Rank, int Count);
 public sealed record ActivityDayDto(DateOnly Date, int Count);
+
+public sealed record SkillProfileDto(
+    IList<SkillCharacteristicDto> Characteristics,
+    int PlaysConsidered
+);
+
+/// <summary>
+/// One characteristic axis of a player's skill profile. <see cref="Skill"/> weights
+/// map intensity by the accuracy achieved; <see cref="Exposure"/> is the raw average
+/// intensity of the maps played (both in <c>[0,1]</c>).
+/// </summary>
+public sealed record SkillCharacteristicDto(string Key, double Skill, double Exposure);
+
+public sealed record TrendBucketDto(
+    DateOnly WeekStart,
+    int Plays,
+    double? AvgAccuracy,
+    long PlayTimeMs
+);
 public sealed record MostPlayedMapDto(
     Guid BeatmapId,
     string SongName,
@@ -452,6 +602,7 @@ public sealed record PlaySessionListItemDto(
     DateTime? EndedAt,
     TimeSpan? Duration,
     Guid BeatmapId,
+    Guid BeatmapDifficultyId,
     string SongName,
     string? SongSubName,
     string SongAuthor,
@@ -470,6 +621,7 @@ public sealed record PlaySessionListItemDto(
         s.EndedAt,
         s.EndedAt.HasValue ? s.EndedAt.Value - s.StartedAt : null,
         s.BeatmapDifficulty.BeatmapId,
+        s.BeatmapDifficultyId,
         s.BeatmapDifficulty.Beatmap.SongName,
         s.BeatmapDifficulty.Beatmap.SongSubName,
         s.BeatmapDifficulty.Beatmap.SongAuthor,

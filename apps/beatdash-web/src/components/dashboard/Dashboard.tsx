@@ -19,7 +19,9 @@ import { useState } from "react";
 import { getGetApiMapsMapIdCoverUrl } from "@/api/maps/maps";
 import type { MostPlayedMapDto, PlaySessionListItemDto } from "@/api/model";
 import { useGetApiSessionsStats } from "@/api/sessions/sessions";
+import { AccuracyTrend } from "@/components/dashboard/AccuracyTrend";
 import { ActivityHeatmap } from "@/components/dashboard/ActivityHeatmap";
+import { SkillProfile } from "@/components/dashboard/SkillProfile";
 import { useAuth } from "@/contexts/auth";
 import {
 	DIFFICULTY_STYLES,
@@ -98,6 +100,10 @@ export function Dashboard() {
 							<ActivityHeatmap activity={stats.activity} />
 						</CardContent>
 					</Card>
+
+					<AccuracyTrend />
+
+					<SkillProfile />
 
 					{stats.rankDistribution.length > 0 && (
 						<Card>
