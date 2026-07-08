@@ -88,7 +88,22 @@ public static class SessionEndpoints {
                     .Take(pageSize)
                     .ToListAsync(ct);
 
-                var items = sessions.Select(PlaySessionListItemDto.From).ToList();
+                // Best completed non-auto score per difficulty (for the page's difficulties),
+                // used to flag which sessions are personal bests.
+                var pageDifficultyIds = sessions.Select(s => s.BeatmapDifficultyId).Distinct().ToList();
+                var bestScores = await db.PlaySessions
+                    .AsNoTracking()
+                    .Where(s =>
+                        s.UserId == userId.Value &&
+                        !s.AutoMode &&
+                        s.EndReason == PlaySessionEndReason.Finished &&
+                        s.Results != null &&
+                        pageDifficultyIds.Contains(s.BeatmapDifficultyId))
+                    .GroupBy(s => s.BeatmapDifficultyId)
+                    .Select(g => new { DifficultyId = g.Key, MaxScore = g.Max(x => x.Results!.Score) })
+                    .ToDictionaryAsync(x => x.DifficultyId, x => x.MaxScore, ct);
+
+                var items = sessions.Select(s => PlaySessionListItemDto.From(s, IsPersonalBest(s, bestScores))).ToList();
 
                 return Results.Ok(new PagedResult<PlaySessionListItemDto>(items, totalCount, page, pageSize, totalPages));
             })
@@ -325,8 +340,8 @@ public static class SessionEndpoints {
                     rankDistribution,
                     activity,
                     mostPlayed,
-                    recentSessions.Select(PlaySessionListItemDto.From).ToList(),
-                    topScores.Select(PlaySessionListItemDto.From).ToList()));
+                    recentSessions.Select(s => PlaySessionListItemDto.From(s)).ToList(),
+                    topScores.Select(s => PlaySessionListItemDto.From(s)).ToList()));
             })
             .RequireAuthorization()
             .Produces<UserStatsDto>()
@@ -540,7 +555,7 @@ public static class SessionEndpoints {
                     sessions
                         .Where(s => s.BeatmapDifficultyId == d.Id)
                         .Take(10)
-                        .Select(PlaySessionListItemDto.From)
+                        .Select(s => PlaySessionListItemDto.From(s))
                         .ToList()
                 )).ToList();
 
@@ -551,6 +566,15 @@ public static class SessionEndpoints {
             .Produces(404)
             .Produces(401);
     }
+
+    // A completed non-auto session is a personal best when its score matches the
+    // top score recorded on its difficulty.
+    private static bool IsPersonalBest(PlaySession s, IReadOnlyDictionary<Guid, int> bestScores) =>
+        !s.AutoMode &&
+        s.EndReason == PlaySessionEndReason.Finished &&
+        s.Results != null &&
+        bestScores.TryGetValue(s.BeatmapDifficultyId, out var max) &&
+        s.Results.Score == max;
 
     private static Dictionary<string, double>? ParseCharacteristics(string? json) {
         if (string.IsNullOrEmpty(json)) return null;
@@ -651,9 +675,10 @@ public sealed record PlaySessionListItemDto(
     bool AutoMode,
     string? EndReason,
     int? ModifierFlags,
-    PlaySessionResultsDto? Results
+    PlaySessionResultsDto? Results,
+    bool IsPersonalBest
 ) {
-    internal static PlaySessionListItemDto From(PlaySession s) => new(
+    internal static PlaySessionListItemDto From(PlaySession s, bool isPersonalBest = false) => new(
         s.Id,
         s.StartedAt,
         s.EndedAt,
@@ -670,7 +695,8 @@ public sealed record PlaySessionListItemDto(
         s.AutoMode,
         s.EndReason?.ToString(),
         s.ModifierFlags,
-        PlaySessionResultsDto.From(s.Results)
+        PlaySessionResultsDto.From(s.Results),
+        isPersonalBest
     );
 }
 

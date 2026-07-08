@@ -68,6 +68,11 @@ export function SessionCard({ session }: { session: PlaySessionListItemDto }) {
 						>
 							{session.difficultyName}
 						</Badge>
+						{session.isPersonalBest && (
+							<Badge className="h-5 border-amber-500/30 bg-amber-500/15 px-1.5 text-[10px] text-amber-400">
+								PB
+							</Badge>
+						)}
 						{results?.fullCombo && (
 							<span className="text-[10px] font-bold uppercase tracking-wide text-amber-400">
 								FC

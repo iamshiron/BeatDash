@@ -36,4 +36,5 @@ export interface PlaySessionListItemDto {
      */
   modifierFlags: number | string | null;
   results: null | PlaySessionResultsDto;
+  isPersonalBest: boolean;
 }

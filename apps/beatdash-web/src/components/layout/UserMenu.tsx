@@ -64,9 +64,7 @@ export function UserMenu() {
 						<DropdownMenuSeparator />
 					</>
 				)}
-				<DropdownMenuItem asChild>
-					<Link to="/">Profile</Link>
-				</DropdownMenuItem>
+				<DropdownMenuItem disabled>Profile</DropdownMenuItem>
 				<DropdownMenuItem asChild>
 					<Link to="/settings">Settings</Link>
 				</DropdownMenuItem>

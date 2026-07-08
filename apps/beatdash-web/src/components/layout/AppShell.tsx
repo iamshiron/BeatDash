@@ -31,6 +31,9 @@ export function AppShell({
 						{isAuthenticated && (
 							<div className="flex items-center gap-1">
 								<Button variant="ghost" size="sm" asChild>
+									<Link to="/">Dashboard</Link>
+								</Button>
+								<Button variant="ghost" size="sm" asChild>
 									<Link to="/devices">Devices</Link>
 								</Button>
 								<Button variant="ghost" size="sm" asChild>
