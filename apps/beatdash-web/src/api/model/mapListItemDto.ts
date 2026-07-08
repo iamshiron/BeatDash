@@ -25,4 +25,6 @@ export interface MapListItemDto {
   createdAt: string;
   beatSaver: null | MapBeatSaverSummaryDto;
   difficulties: MapListDifficultyDto[];
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  playCount: number | string;
 }

@@ -1,4 +1,5 @@
 import {
+	CheckCircleIcon,
 	FireIcon,
 	MetronomeIcon,
 	MusicNotesSimpleIcon,
@@ -51,6 +52,7 @@ function rankIndex(rank: string): number {
 export function MapCard({ map }: { map: MapListItemDto }) {
 	const [coverFailed, setCoverFailed] = useState(false);
 	const hasCover = map.coverImageKey != null && !coverFailed;
+	const playCount = num(map.playCount);
 
 	const difficulties = [...map.difficulties].sort(
 		(a, b) => rankIndex(a.difficultyRank) - rankIndex(b.difficultyRank),
@@ -65,8 +67,21 @@ export function MapCard({ map }: { map: MapListItemDto }) {
 		<Link
 			to="/maps/$id"
 			params={{ id: map.id }}
-			className="flex overflow-hidden rounded-xl border border-border bg-card transition-colors hover:border-primary/40 focus-within:border-primary/40"
+			className="relative flex overflow-hidden rounded-xl border border-border bg-card transition-colors hover:border-primary/40 focus-within:border-primary/40"
 		>
+			{playCount > 0 && (
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<span className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-medium text-emerald-400">
+							<CheckCircleIcon className="size-3" weight="fill" />
+							{playCount}
+						</span>
+					</TooltipTrigger>
+					<TooltipContent>
+						You've played this {playCount} time{playCount === 1 ? "" : "s"}
+					</TooltipContent>
+				</Tooltip>
+			)}
 			<div className="flex shrink-0 items-center justify-center bg-gradient-to-br from-primary/40 to-[oklch(0.62_0.19_255)]/40 p-3">
 				{hasCover ? (
 					<img

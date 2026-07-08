@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -23,10 +24,12 @@ public static class MapEndpoints {
 
         group.MapGet("/", async (
             [AsParameters] MapQueryParams q,
+            ClaimsPrincipal user,
             BeatDashDbContext db,
             CancellationToken ct) => {
                 var page = Math.Max(1, q.Page);
                 var pageSize = Math.Clamp(q.PageSize, 1, 100);
+                var userId = IdentityUtils.GetUserID(user);
 
                 IQueryable<Beatmap> query = db.Beatmaps.AsNoTracking();
 
@@ -76,6 +79,15 @@ public static class MapEndpoints {
                     query = query.Where(b => b.BeatSaverMap != null && b.BeatSaverMap.Tags.Contains(tag));
                 }
 
+                // --- Played / unplayed: maps the user has (or hasn't) a non-auto session on ---
+                if (q.Played.HasValue && userId.HasValue) {
+                    query = q.Played.Value
+                        ? query.Where(b => db.PlaySessions.Any(s =>
+                            s.UserId == userId.Value && !s.AutoMode && s.BeatmapDifficulty.BeatmapId == b.Id))
+                        : query.Where(b => !db.PlaySessions.Any(s =>
+                            s.UserId == userId.Value && !s.AutoMode && s.BeatmapDifficulty.BeatmapId == b.Id));
+                }
+
                 // --- Sorting. Nullable keys (metrics, BeatSaver stats) are coalesced to a
                 // direction-appropriate sentinel so unanalyzed / un-fetched maps always sort
                 // LAST, not first (Postgres puts NULLs first on DESC). Stable Id tiebreaker
@@ -110,7 +122,22 @@ public static class MapEndpoints {
                     .Take(pageSize)
                     .ToListAsync(ct);
 
-                var items = maps.Select(MapListItemDto.From).ToList();
+                // The user's non-auto play count per map, for the page's maps only.
+                var playCounts = new Dictionary<Guid, int>();
+                if (userId.HasValue) {
+                    var pageIds = maps.Select(m => m.Id).ToList();
+                    playCounts = await db.PlaySessions
+                        .AsNoTracking()
+                        .Where(s => s.UserId == userId.Value && !s.AutoMode
+                            && pageIds.Contains(s.BeatmapDifficulty.BeatmapId))
+                        .GroupBy(s => s.BeatmapDifficulty.BeatmapId)
+                        .Select(g => new { BeatmapId = g.Key, Count = g.Count() })
+                        .ToDictionaryAsync(x => x.BeatmapId, x => x.Count, ct);
+                }
+
+                var items = maps
+                    .Select(m => MapListItemDto.From(m, playCounts.GetValueOrDefault(m.Id)))
+                    .ToList();
                 return Results.Ok(new PagedResult<MapListItemDto>(items, totalCount, page, pageSize, totalPages));
             })
             .RequireAuthorization()
@@ -238,6 +265,8 @@ public sealed record MapQueryParams(
     // A BeatSaver tag the map must carry (e.g. "nightcore").
     string? Tag = null,
     BeatSaverFetchStatus? FetchStatus = null,
+    // Filter by whether the current user has played the map (non-auto sessions).
+    bool? Played = null,
     MapSortBy SortBy = MapSortBy.CreatedAt,
     SortDirection SortDir = SortDirection.Desc
 );
@@ -258,9 +287,10 @@ public sealed record MapListItemDto(
     string FetchStatus,
     DateTime CreatedAt,
     MapBeatSaverSummaryDto? BeatSaver,
-    IList<MapListDifficultyDto> Difficulties
+    IList<MapListDifficultyDto> Difficulties,
+    int PlayCount
 ) {
-    internal static MapListItemDto From(Beatmap b) => new(
+    internal static MapListItemDto From(Beatmap b, int playCount = 0) => new(
         b.Id,
         b.LevelId,
         b.SongName,
@@ -277,7 +307,8 @@ public sealed record MapListItemDto(
             .OrderBy(d => d.CharacteristicSerializedName)
             .ThenBy(d => d.DifficultyRank)
             .Select(MapListDifficultyDto.From)
-            .ToList()
+            .ToList(),
+        playCount
     );
 }
 

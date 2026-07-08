@@ -2,6 +2,7 @@ import {
 	MagnifyingGlassIcon,
 	MusicNotesSimpleIcon,
 } from "@phosphor-icons/react";
+import { Button } from "@shiron/ui/components/ui/button";
 import {
 	Empty,
 	EmptyDescription,
@@ -33,7 +34,14 @@ import { type MapProcessingEvent, useRealtimeEvent } from "@/realtime";
 const PAGE_SIZE = 24;
 const SEARCH_DEBOUNCE_MS = 300;
 
-type MapsSearch = { q?: string; p?: number };
+type PlayedFilter = "played" | "unplayed";
+type MapsSearch = { q?: string; p?: number; played?: PlayedFilter };
+
+const PLAYED_FILTERS: { value: PlayedFilter | undefined; label: string }[] = [
+	{ value: undefined, label: "All" },
+	{ value: "played", label: "Played" },
+	{ value: "unplayed", label: "Unplayed" },
+];
 
 /** A compact page list: first, last, and a window around the current page, gaps → ellipsis. */
 function pageItems(
@@ -64,6 +72,10 @@ export const Route = createFileRoute("/maps/")({
 	validateSearch: (search: Record<string, unknown>): MapsSearch => ({
 		q: typeof search.q === "string" ? search.q : "",
 		p: Math.max(1, Number(search.p) || 1),
+		played:
+			search.played === "played" || search.played === "unplayed"
+				? search.played
+				: undefined,
 	}),
 	component: MapsPage,
 });
@@ -80,7 +92,7 @@ const MapGrid = memo(function MapGrid({ maps }: { maps: MapListItemDto[] }) {
 });
 
 function MapsPage() {
-	const { q = "", p = 1 } = Route.useSearch();
+	const { q = "", p = 1, played } = Route.useSearch();
 	const navigate = useNavigate();
 
 	// Live BeatSaver import/processing progress, pushed over SignalR.
@@ -94,13 +106,19 @@ function MapsPage() {
 
 	const commitSearch = useDebouncedCallback(
 		(value: string) => {
-			navigate({ to: "/maps", search: { q: value, p: 1 } });
+			navigate({ to: "/maps", search: { q: value, p: 1, played } });
 		},
 		{ wait: SEARCH_DEBOUNCE_MS },
 	);
 
 	const { data, isLoading } = useGetApiMaps(
-		{ Page: p, PageSize: PAGE_SIZE, Search: q.trim() || undefined },
+		{
+			Page: p,
+			PageSize: PAGE_SIZE,
+			Search: q.trim() || undefined,
+			Played:
+				played === "played" ? true : played === "unplayed" ? false : undefined,
+		},
 		{ query: { placeholderData: keepPreviousData } },
 	);
 
@@ -109,25 +127,49 @@ function MapsPage() {
 	const totalPages = result ? Number(result.totalPages) : 0;
 
 	const goToPage = (page: number) =>
-		navigate({ to: "/maps", search: { q, p: page } });
+		navigate({ to: "/maps", search: { q, p: page, played } });
 
 	return (
 		<AppShell wide>
-			<div className="flex items-center justify-between gap-3">
+			<div className="flex flex-wrap items-center justify-between gap-3">
 				<h1 className="font-heading text-lg font-semibold tracking-tight">
 					Maps
 				</h1>
-				<div className="relative w-full max-w-xs">
-					<MagnifyingGlassIcon className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-					<Input
-						value={input}
-						onChange={(e) => {
-							setInput(e.target.value);
-							commitSearch(e.target.value);
-						}}
-						placeholder="Search maps…"
-						className="h-9 pl-8"
-					/>
+				<div className="flex items-center gap-2">
+					<div className="flex items-center gap-1 rounded-lg border border-border bg-muted/30 p-0.5">
+						{PLAYED_FILTERS.map((filter) => {
+							const isActive = played === filter.value;
+							return (
+								<Button
+									key={filter.label}
+									type="button"
+									variant={isActive ? "secondary" : "ghost"}
+									size="sm"
+									className="h-7 px-2.5 text-xs"
+									onClick={() =>
+										navigate({
+											to: "/maps",
+											search: { q, p: 1, played: filter.value },
+										})
+									}
+								>
+									{filter.label}
+								</Button>
+							);
+						})}
+					</div>
+					<div className="relative w-full max-w-xs">
+						<MagnifyingGlassIcon className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+						<Input
+							value={input}
+							onChange={(e) => {
+								setInput(e.target.value);
+								commitSearch(e.target.value);
+							}}
+							placeholder="Search maps…"
+							className="h-9 pl-8"
+						/>
+					</div>
 				</div>
 			</div>
 
