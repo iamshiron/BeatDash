@@ -236,6 +236,101 @@ public static class SessionEndpoints {
             .Produces(404)
             .Produces(401);
 
+        group.MapGet("/stats", async (
+            ClaimsPrincipal user,
+            BeatDashDbContext db,
+            CancellationToken ct) => {
+                var userId = IdentityUtils.GetUserID(user);
+                if (!userId.HasValue) return Results.Unauthorized();
+
+                // Completed, non-auto plays with final results — the basis for all aggregates.
+                var baseQuery = db.PlaySessions
+                    .AsNoTracking()
+                    .Where(s =>
+                        s.UserId == userId.Value &&
+                        !s.AutoMode &&
+                        s.EndReason == PlaySessionEndReason.Finished &&
+                        s.Results != null);
+
+                var totalPlays = await baseQuery.CountAsync(ct);
+                if (totalPlays == 0) {
+                    return Results.Ok(new UserStatsDto(
+                        0, 0, 0, 0, 0,
+                        [], [], [], [], []));
+                }
+
+                var totalPlayTimeMs = await baseQuery.SumAsync(s => (long) s.Results!.EndSongTimeMs, ct);
+                var averageAccuracy = await baseQuery.AverageAsync(s => s.Results!.Accuracy, ct);
+                var fullCombos = await baseQuery.CountAsync(s => s.Results!.FullCombo, ct);
+                var uniqueMaps = await baseQuery
+                    .Select(s => s.BeatmapDifficulty.BeatmapId)
+                    .Distinct()
+                    .CountAsync(ct);
+
+                var rankDistribution = await baseQuery
+                    .GroupBy(s => s.Results!.Rank)
+                    .Select(g => new RankCountDto(g.Key, g.Count()))
+                    .ToListAsync(ct);
+
+                // Daily play counts over the trailing ~26 weeks for the activity heatmap.
+                var since = DateTime.UtcNow.Date.AddDays(-182);
+                var activityRaw = await baseQuery
+                    .Where(s => s.StartedAt >= since)
+                    .GroupBy(s => s.StartedAt.Date)
+                    .Select(g => new { Day = g.Key, Count = g.Count() })
+                    .ToListAsync(ct);
+                var activity = activityRaw
+                    .OrderBy(x => x.Day)
+                    .Select(x => new ActivityDayDto(DateOnly.FromDateTime(x.Day), x.Count))
+                    .ToList();
+
+                var mostPlayedRaw = await baseQuery
+                    .GroupBy(s => s.BeatmapDifficulty.BeatmapId)
+                    .Select(g => new { BeatmapId = g.Key, PlayCount = g.Count() })
+                    .OrderByDescending(x => x.PlayCount)
+                    .Take(6)
+                    .ToListAsync(ct);
+                var mostPlayedIds = mostPlayedRaw.Select(x => x.BeatmapId).ToList();
+                var mostPlayedMaps = await db.Beatmaps
+                    .AsNoTracking()
+                    .Where(b => mostPlayedIds.Contains(b.Id))
+                    .Select(b => new { b.Id, b.SongName, b.SongAuthor, b.Mapper })
+                    .ToListAsync(ct);
+                var mostPlayed = mostPlayedRaw
+                    .Select(x => {
+                        var m = mostPlayedMaps.First(mm => mm.Id == x.BeatmapId);
+                        return new MostPlayedMapDto(x.BeatmapId, m.SongName, m.SongAuthor, m.Mapper, x.PlayCount);
+                    })
+                    .ToList();
+
+                var recentSessions = await baseQuery
+                    .OrderByDescending(s => s.StartedAt)
+                    .Include(s => s.BeatmapDifficulty.Beatmap)
+                    .Take(8)
+                    .ToListAsync(ct);
+
+                var topScores = await baseQuery
+                    .OrderByDescending(s => s.Results!.Accuracy)
+                    .Include(s => s.BeatmapDifficulty.Beatmap)
+                    .Take(8)
+                    .ToListAsync(ct);
+
+                return Results.Ok(new UserStatsDto(
+                    totalPlays,
+                    totalPlayTimeMs,
+                    averageAccuracy,
+                    fullCombos,
+                    uniqueMaps,
+                    rankDistribution,
+                    activity,
+                    mostPlayed,
+                    recentSessions.Select(PlaySessionListItemDto.From).ToList(),
+                    topScores.Select(PlaySessionListItemDto.From).ToList()));
+            })
+            .RequireAuthorization()
+            .Produces<UserStatsDto>()
+            .Produces(401);
+
         group.MapGet("/{id:Guid}/top", async (
             Guid id,
             ClaimsPrincipal user,
@@ -300,6 +395,29 @@ public static class SessionEndpoints {
             .Produces(401);
     }
 }
+
+public sealed record UserStatsDto(
+    int TotalPlays,
+    long TotalPlayTimeMs,
+    float AverageAccuracy,
+    int FullCombos,
+    int UniqueMaps,
+    IList<RankCountDto> RankDistribution,
+    IList<ActivityDayDto> Activity,
+    IList<MostPlayedMapDto> MostPlayedMaps,
+    IList<PlaySessionListItemDto> RecentSessions,
+    IList<PlaySessionListItemDto> TopScores
+);
+
+public sealed record RankCountDto(string Rank, int Count);
+public sealed record ActivityDayDto(DateOnly Date, int Count);
+public sealed record MostPlayedMapDto(
+    Guid BeatmapId,
+    string SongName,
+    string SongAuthor,
+    string Mapper,
+    int PlayCount
+);
 
 public sealed record SessionTopDifficultyDto(
     Guid BeatmapDifficultyId,

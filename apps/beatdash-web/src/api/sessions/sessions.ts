@@ -26,7 +26,8 @@ import type {
   PlaySessionDetailDto,
   PlaySessionMotionDto,
   PlaySessionTimelineDto,
-  SessionTopDifficultyDto
+  SessionTopDifficultyDto,
+  UserStatsDto
 } from '../model';
 
 
@@ -664,6 +665,126 @@ export function useGetApiSessionsIdMotion<TData = Awaited<ReturnType<typeof getA
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetApiSessionsIdMotionQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export type getApiSessionsStatsResponse200 = {
+  data: UserStatsDto
+  status: 200
+}
+
+export type getApiSessionsStatsResponse401 = {
+  data: void
+  status: 401
+}
+
+export type getApiSessionsStatsResponseSuccess = (getApiSessionsStatsResponse200) & {
+  headers: Headers;
+};
+export type getApiSessionsStatsResponseError = (getApiSessionsStatsResponse401) & {
+  headers: Headers;
+};
+
+export type getApiSessionsStatsResponse = (getApiSessionsStatsResponseSuccess | getApiSessionsStatsResponseError)
+
+export const getGetApiSessionsStatsUrl = () => {
+
+
+
+
+  return `/api/sessions/stats`
+}
+
+export const getApiSessionsStats = async ( options?: RequestInit): Promise<getApiSessionsStatsResponse> => {
+
+  const res = await fetch(getGetApiSessionsStatsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: getApiSessionsStatsResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as getApiSessionsStatsResponse
+}
+
+
+
+
+
+export const getGetApiSessionsStatsQueryKey = () => {
+    return [
+    `/api/sessions/stats`
+    ] as const;
+    }
+
+
+export const getGetApiSessionsStatsQueryOptions = <TData = Awaited<ReturnType<typeof getApiSessionsStats>>, TError = void>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiSessionsStats>>, TError, TData>>, fetch?: RequestInit}
+) => {
+
+const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetApiSessionsStatsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiSessionsStats>>> = ({ signal }) => getApiSessionsStats({ signal, ...fetchOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiSessionsStats>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetApiSessionsStatsQueryResult = NonNullable<Awaited<ReturnType<typeof getApiSessionsStats>>>
+export type GetApiSessionsStatsQueryError = void
+
+
+export function useGetApiSessionsStats<TData = Awaited<ReturnType<typeof getApiSessionsStats>>, TError = void>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiSessionsStats>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiSessionsStats>>,
+          TError,
+          Awaited<ReturnType<typeof getApiSessionsStats>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiSessionsStats<TData = Awaited<ReturnType<typeof getApiSessionsStats>>, TError = void>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiSessionsStats>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiSessionsStats>>,
+          TError,
+          Awaited<ReturnType<typeof getApiSessionsStats>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiSessionsStats<TData = Awaited<ReturnType<typeof getApiSessionsStats>>, TError = void>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiSessionsStats>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetApiSessionsStats<TData = Awaited<ReturnType<typeof getApiSessionsStats>>, TError = void>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiSessionsStats>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetApiSessionsStatsQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

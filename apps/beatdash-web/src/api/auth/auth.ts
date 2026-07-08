@@ -30,6 +30,7 @@ import type {
   RefreshTokenRequestDto,
   RegisterDto,
   TokenPairExpiryDto,
+  UpdateProfileDto,
   UserInfoDto
 } from '../model';
 
@@ -447,7 +448,105 @@ export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = voi
 
 
 
-export type changePasswordResponse200 = {
+export type updateProfileResponse200 = {
+  data: UserInfoDto
+  status: 200
+}
+
+export type updateProfileResponse400 = {
+  data: void
+  status: 400
+}
+
+export type updateProfileResponse401 = {
+  data: void
+  status: 401
+}
+
+export type updateProfileResponseSuccess = (updateProfileResponse200) & {
+  headers: Headers;
+};
+export type updateProfileResponseError = (updateProfileResponse400 | updateProfileResponse401) & {
+  headers: Headers;
+};
+
+export type updateProfileResponse = (updateProfileResponseSuccess | updateProfileResponseError)
+
+export const getUpdateProfileUrl = () => {
+
+
+
+
+  return `/api/auth/me`
+}
+
+/**
+ * Update the current user's profile
+ */
+export const updateProfile = async (updateProfileDto: UpdateProfileDto, options?: RequestInit): Promise<updateProfileResponse> => {
+
+  const res = await fetch(getUpdateProfileUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(updateProfileDto)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: updateProfileResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as updateProfileResponse
+}
+
+
+
+
+
+export const getUpdateProfileMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateProfile>>, TError,{data: UpdateProfileDto}, TContext>, fetch?: RequestInit}
+): UseMutationOptions<Awaited<ReturnType<typeof updateProfile>>, TError,{data: UpdateProfileDto}, TContext> => {
+
+const mutationKey = ['updateProfile'];
+const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, fetch: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateProfile>>, {data: UpdateProfileDto}> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateProfile(data,fetchOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateProfileMutationResult = NonNullable<Awaited<ReturnType<typeof updateProfile>>>
+    export type UpdateProfileMutationBody = UpdateProfileDto
+    export type UpdateProfileMutationError = void
+
+    export const useUpdateProfile = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateProfile>>, TError,{data: UpdateProfileDto}, TContext>, fetch?: RequestInit}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateProfile>>,
+        TError,
+        {data: UpdateProfileDto},
+        TContext
+      > => {
+      return useMutation(getUpdateProfileMutationOptions(options), queryClient);
+    }
+    export type changePasswordResponse200 = {
   data: void
   status: 200
 }

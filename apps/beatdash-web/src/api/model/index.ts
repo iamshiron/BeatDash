@@ -5,6 +5,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
+export * from './activityDayDto.ts';
 export * from './anonymousTypeOfstring.ts';
 export * from './authenticateDeviceDto.ts';
 export * from './beatmapDifficultyDto.ts';
@@ -34,6 +35,7 @@ export * from './mapSortBy.ts';
 export * from './metricConfig.ts';
 export * from './metricConfigCharacteristics.ts';
 export * from './metricConfigResponse.ts';
+export * from './mostPlayedMapDto.ts';
 export * from './motionSegmentDto.ts';
 export * from './noteItemDto.ts';
 export * from './pagedResultOfMapListItemDto.ts';
@@ -45,6 +47,7 @@ export * from './playSessionResultsDto.ts';
 export * from './playSessionTimelineDto.ts';
 export * from './postApiMapsImportBody.ts';
 export * from './ppConfig.ts';
+export * from './rankCountDto.ts';
 export * from './refreshTokenRequestDto.ts';
 export * from './registerDeviceResponseDto.ts';
 export * from './registerDto.ts';
@@ -62,6 +65,8 @@ export * from './sessionTopDifficultyDto.ts';
 export * from './sortDirection.ts';
 export * from './tokenPairExpiryDto.ts';
 export * from './updateDeviceDto.ts';
+export * from './updateProfileDto.ts';
 export * from './userInfoDto.ts';
+export * from './userStatsDto.ts';
 export * from './weightedModel.ts';
 export * from './weightedModelWeights.ts';
