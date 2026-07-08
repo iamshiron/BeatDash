@@ -3,7 +3,9 @@ import {
 	CaretRightIcon,
 	ClockIcon,
 	MagnifyingGlassIcon,
+	XIcon,
 } from "@phosphor-icons/react";
+import { Badge } from "@shiron/ui/components/ui/badge";
 import { Button } from "@shiron/ui/components/ui/button";
 import {
 	Empty,
@@ -21,14 +23,17 @@ import {
 	SelectValue,
 } from "@shiron/ui/components/ui/select";
 import { Skeleton } from "@shiron/ui/components/ui/skeleton";
-import { Switch } from "@shiron/ui/components/ui/switch";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useGetApiSessions } from "@/api/sessions/sessions";
 import { AppShell } from "@/components/layout/AppShell";
 import { SessionCard } from "@/components/sessions/SessionCard";
+import { SessionFilters } from "@/components/sessions/SessionFilters";
 import {
-	DIFFICULTY_OPTIONS,
+	FILTER_KEYS,
+	getActiveFilters,
+	hasActiveFilters,
+	parseSessionSearch,
 	type SessionSearchParams,
 	SORT_OPTIONS_COMBINED,
 	toApiParams,
@@ -40,17 +45,7 @@ export const Route = createFileRoute("/sessions/")({
 			throw redirect({ to: "/auth/login", replace: true });
 		}
 	},
-	validateSearch: (search: Record<string, unknown>): SessionSearchParams => ({
-		page: Math.max(1, Number(search.page) || 1),
-		q: typeof search.q === "string" ? search.q : "",
-		difficulty:
-			typeof search.difficulty === "string" && search.difficulty !== "all"
-				? search.difficulty
-				: undefined,
-		sortBy: typeof search.sortBy === "string" ? search.sortBy : "StartedAt",
-		sortDir: typeof search.sortDir === "string" ? search.sortDir : "Desc",
-		includeAuto: search.includeAuto === "true" || search.includeAuto === true,
-	}),
+	validateSearch: parseSessionSearch,
 	component: SessionsListPage,
 });
 
@@ -84,6 +79,20 @@ function SessionsListPage() {
 		});
 	}
 
+	// Any filter change also returns to the first page.
+	function applyFilters(updates: Partial<SessionSearchParams>) {
+		updateSearch({ ...updates, page: 1 });
+	}
+
+	// Clears the given filter keys (used by the removable chips).
+	function clearFilters(keys: (keyof SessionSearchParams)[]) {
+		applyFilters(Object.fromEntries(keys.map((k) => [k, undefined])));
+	}
+
+	function clearAllFilters() {
+		clearFilters([...FILTER_KEYS]);
+	}
+
 	const params = toApiParams(search);
 	const { data, isLoading } = useGetApiSessions(params);
 
@@ -93,12 +102,13 @@ function SessionsListPage() {
 	const totalPages = result ? Number(result.totalPages) : 0;
 	const page = result ? Number(result.page) : (search.page ?? 1);
 
-	const hasFilters = search.q || search.difficulty;
+	const activeFilters = getActiveFilters(search);
+	const hasFilters = Boolean(search.q) || hasActiveFilters(search);
 	const isGenuinelyEmpty = !isLoading && totalCount === 0 && !hasFilters;
 
 	return (
 		<AppShell wide>
-			<div className="flex items-end justify-between gap-4">
+			<div className="flex flex-wrap items-end justify-between gap-3">
 				<div>
 					<h1 className="font-heading text-xl font-bold tracking-tight">
 						Sessions
@@ -107,71 +117,74 @@ function SessionsListPage() {
 						{totalCount} {totalCount === 1 ? "session" : "sessions"}
 					</p>
 				</div>
-				<div className="relative w-full max-w-xs">
-					<MagnifyingGlassIcon className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-					<Input
-						value={inputValue}
-						onChange={(e) => setInputValue(e.target.value)}
-						placeholder="Search…"
-						className="h-9 pl-8"
+				<div className="flex flex-wrap items-center gap-2">
+					<div className="relative w-full min-w-48 max-w-xs flex-1">
+						<MagnifyingGlassIcon className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+						<Input
+							value={inputValue}
+							onChange={(e) => setInputValue(e.target.value)}
+							placeholder="Search…"
+							className="h-9 pl-8"
+						/>
+					</div>
+
+					<Select
+						value={`${search.sort ?? "StartedAt"}:${search.dir ?? "Desc"}`}
+						onValueChange={(v) => {
+							const [sort, dir] = v.split(":") as [string, string];
+							updateSearch({ sort, dir, page: 1 });
+						}}
+					>
+						<SelectTrigger className="h-9! w-[10rem] text-xs">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							{SORT_OPTIONS_COMBINED.map((opt) => (
+								<SelectItem key={opt.value} value={opt.value}>
+									{opt.label}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+
+					<SessionFilters
+						search={search}
+						onChange={applyFilters}
+						onReset={clearAllFilters}
 					/>
 				</div>
 			</div>
 
-			<div className="mt-3 flex flex-wrap items-center gap-1.5 rounded-lg border border-border/60 bg-muted/20 p-1.5">
-				<Select
-					value={search.difficulty ?? "all"}
-					onValueChange={(v) =>
-						updateSearch({
-							difficulty: v === "all" ? undefined : v,
-							page: 1,
-						})
-					}
-				>
-					<SelectTrigger className="h-8 w-[7.5rem] border-transparent bg-background text-xs">
-						<SelectValue placeholder="Difficulty" />
-					</SelectTrigger>
-					<SelectContent>
-						<SelectItem value="all">All Difficulties</SelectItem>
-						{DIFFICULTY_OPTIONS.map((opt) => (
-							<SelectItem key={opt.value} value={opt.value}>
-								{opt.label}
-							</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
-
-				<div className="h-4 w-px bg-border/60" />
-
-				<Select
-					value={`${search.sortBy ?? "StartedAt"}:${search.sortDir ?? "Desc"}`}
-					onValueChange={(v) => {
-						const [sortBy, sortDir] = v.split(":") as [string, string];
-						updateSearch({ sortBy, sortDir, page: 1 });
-					}}
-				>
-					<SelectTrigger className="h-8 w-[10rem] border-transparent bg-background text-xs">
-						<SelectValue />
-					</SelectTrigger>
-					<SelectContent>
-						{SORT_OPTIONS_COMBINED.map((opt) => (
-							<SelectItem key={opt.value} value={opt.value}>
-								{opt.label}
-							</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
-
-				<div className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
-					Auto
-					<Switch
-						checked={search.includeAuto}
-						onCheckedChange={(checked) =>
-							updateSearch({ includeAuto: checked, page: 1 })
-						}
-					/>
+			{activeFilters.length > 0 && (
+				<div className="mt-3 flex flex-wrap items-center gap-1.5">
+					{activeFilters.map((filter) => (
+						<Badge
+							key={filter.id}
+							variant="secondary"
+							className="gap-1 py-1 pl-2.5 pr-1 text-xs font-normal"
+						>
+							{filter.label}
+							<button
+								type="button"
+								aria-label={`Remove ${filter.label} filter`}
+								onClick={() => clearFilters(filter.keys)}
+								className="grid size-4 place-content-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
+							>
+								<XIcon className="size-3" />
+							</button>
+						</Badge>
+					))}
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						className="h-6 px-2 text-xs text-muted-foreground"
+						onClick={clearAllFilters}
+					>
+						Clear all
+					</Button>
 				</div>
-			</div>
+			)}
 
 			{isLoading && (
 				<div className="mt-3 flex flex-col gap-2">

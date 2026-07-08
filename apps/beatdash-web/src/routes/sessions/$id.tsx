@@ -47,8 +47,8 @@ import {
 	formatDuration,
 	formatScore,
 	formatSongTimeMs,
+	parseSessionSearch,
 	RANK_STYLES,
-	type SessionSearchParams,
 } from "@/lib/sessions";
 
 const npsChartConfig = {
@@ -66,15 +66,7 @@ export const Route = createFileRoute("/sessions/$id")({
 			throw redirect({ to: "/auth/login", replace: true });
 		}
 	},
-	validateSearch: (search: Record<string, unknown>): SessionSearchParams => ({
-		page: typeof search.page === "number" ? search.page : undefined,
-		q: typeof search.q === "string" ? search.q : undefined,
-		difficulty:
-			typeof search.difficulty === "string" ? search.difficulty : undefined,
-		sortBy: typeof search.sortBy === "string" ? search.sortBy : undefined,
-		sortDir: typeof search.sortDir === "string" ? search.sortDir : undefined,
-		includeAuto: search.includeAuto === true,
-	}),
+	validateSearch: parseSessionSearch,
 	component: SessionDetailPage,
 });
 
