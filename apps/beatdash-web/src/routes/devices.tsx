@@ -1,9 +1,9 @@
 import {
-	MonitorIcon,
-	PencilSimpleIcon,
-	PlusIcon,
-	TrashIcon,
-} from "@phosphor-icons/react";
+	Monitor,
+	Pen,
+	AddCircle,
+	TrashBinMinimalistic,
+} from "@solar-icons/react";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -110,7 +110,7 @@ function DevicesPage() {
 					Devices
 				</h1>
 				<Button size="sm" onClick={() => setPairDialogOpen(true)}>
-					<PlusIcon />
+					<AddCircle />
 					Pair a Device
 				</Button>
 			</div>
@@ -126,7 +126,7 @@ function DevicesPage() {
 				<Empty className="mt-10">
 					<EmptyHeader>
 						<EmptyMedia variant="icon">
-							<MonitorIcon />
+							<Monitor />
 						</EmptyMedia>
 						<EmptyTitle>No devices paired</EmptyTitle>
 						<EmptyDescription>
@@ -135,7 +135,7 @@ function DevicesPage() {
 					</EmptyHeader>
 					<EmptyContent>
 						<Button onClick={() => setPairDialogOpen(true)}>
-							<PlusIcon />
+							<AddCircle />
 							Pair a Device
 						</Button>
 					</EmptyContent>
@@ -222,7 +222,7 @@ function DeviceRow({
 						onClick={onRename}
 						aria-label="Rename device"
 					>
-						<PencilSimpleIcon />
+						<Pen />
 					</Button>
 					<Button
 						variant="ghost"
@@ -230,7 +230,7 @@ function DeviceRow({
 						onClick={onDelete}
 						aria-label="Remove device"
 					>
-						<TrashIcon />
+						<TrashBinMinimalistic />
 					</Button>
 				</div>
 			</CardContent>

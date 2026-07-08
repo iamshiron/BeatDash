@@ -1,4 +1,4 @@
-import { MusicNotesSimpleIcon } from "@phosphor-icons/react";
+import { MusicNotes } from "@solar-icons/react";
 import { Badge } from "@shiron/ui/components/ui/badge";
 import { cn } from "@shiron/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
@@ -50,7 +50,7 @@ export function SessionRow({
 					/>
 				) : (
 					<div className="flex size-full items-center justify-center">
-						<MusicNotesSimpleIcon className="size-4 text-muted-foreground/40" />
+						<MusicNotes className="size-4 text-muted-foreground/40" />
 					</div>
 				)}
 			</div>

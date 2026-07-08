@@ -1,4 +1,4 @@
-import { ArrowLeftIcon, MusicNotesSimpleIcon } from "@phosphor-icons/react";
+import { ArrowLeft, MusicNotes } from "@solar-icons/react";
 import { Badge } from "@shiron/ui/components/ui/badge";
 import { Button } from "@shiron/ui/components/ui/button";
 import {
@@ -150,7 +150,7 @@ function SessionDetailPage() {
 		<AppShell wide>
 			<Button variant="ghost" size="sm" asChild className="mb-4 -ml-2 w-fit">
 				<Link to="/sessions" search={listSearch}>
-					<ArrowLeftIcon className="size-4" />
+					<ArrowLeft className="size-4" />
 					Sessions
 				</Link>
 			</Button>
@@ -170,7 +170,7 @@ function SessionDetailPage() {
 									className="size-full object-cover"
 								/>
 							) : (
-								<MusicNotesSimpleIcon className="size-6 text-muted-foreground/60" />
+								<MusicNotes className="size-6 text-muted-foreground/60" />
 							)}
 						</div>
 						<div className="min-w-0 flex-1">

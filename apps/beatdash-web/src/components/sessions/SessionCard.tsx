@@ -1,4 +1,4 @@
-import { MusicNotesSimpleIcon, RobotIcon } from "@phosphor-icons/react";
+import { MusicNotes, Cpu } from "@solar-icons/react";
 import { Badge } from "@shiron/ui/components/ui/badge";
 import { cn } from "@shiron/ui/lib/utils";
 import { Link, useSearch } from "@tanstack/react-router";
@@ -41,7 +41,7 @@ export function SessionCard({ session }: { session: PlaySessionListItemDto }) {
 						/>
 					) : (
 						<div className="flex size-full items-center justify-center">
-							<MusicNotesSimpleIcon className="size-5 text-muted-foreground/40" />
+							<MusicNotes className="size-5 text-muted-foreground/40" />
 						</div>
 					)}
 				</div>
@@ -56,7 +56,7 @@ export function SessionCard({ session }: { session: PlaySessionListItemDto }) {
 								variant="secondary"
 								className="shrink-0 gap-0.5 px-1.5 py-0 text-[10px] text-muted-foreground"
 							>
-								<RobotIcon className="size-2.5" />
+								<Cpu className="size-2.5" />
 								Auto
 							</Badge>
 						)}

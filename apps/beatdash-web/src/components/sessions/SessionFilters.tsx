@@ -1,4 +1,4 @@
-import { CalendarBlankIcon, FunnelIcon } from "@phosphor-icons/react";
+import { Calendar as CalendarIcon, Filter } from "@solar-icons/react";
 import { Badge } from "@shiron/ui/components/ui/badge";
 import { Button } from "@shiron/ui/components/ui/button";
 import { Calendar } from "@shiron/ui/components/ui/calendar";
@@ -58,7 +58,7 @@ export function SessionFilters({
 		<Popover>
 			<PopoverTrigger asChild>
 				<Button type="button" variant="outline" className="h-9 gap-1.5">
-					<FunnelIcon className="size-4" />
+					<Filter className="size-4" />
 					Filters
 					{activeCount > 0 && (
 						<Badge
@@ -237,7 +237,7 @@ function DateRangeField({
 						variant="outline"
 						className="h-8 w-full justify-start gap-2 px-2.5 text-xs font-normal"
 					>
-						<CalendarBlankIcon className="size-4 text-muted-foreground" />
+						<CalendarIcon className="size-4 text-muted-foreground" />
 						<span className={cn(!hasRange && "text-muted-foreground")}>
 							{label}
 						</span>

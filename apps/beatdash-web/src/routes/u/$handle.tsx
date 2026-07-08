@@ -1,13 +1,13 @@
 import {
-	ClockIcon,
-	HeartIcon,
-	LockIcon,
-	MusicNotesSimpleIcon,
-	PlaylistIcon,
-	ShareNetworkIcon,
-	TargetIcon,
-	UserIcon,
-} from "@phosphor-icons/react";
+	ClockCircle,
+	Heart,
+	Lock,
+	MusicNotes,
+	Playlist,
+	Share,
+	Target,
+	User,
+} from "@solar-icons/react";
 import { Avatar, AvatarFallback } from "@shiron/ui/components/ui/avatar";
 import { Button } from "@shiron/ui/components/ui/button";
 import {
@@ -59,7 +59,7 @@ function ProfilePage() {
 				<Empty className="mt-10">
 					<EmptyHeader>
 						<EmptyMedia variant="icon">
-							<UserIcon />
+							<User />
 						</EmptyMedia>
 						<EmptyTitle>Profile not found</EmptyTitle>
 						<EmptyDescription>
@@ -103,7 +103,7 @@ function ProfileBody({ profile }: { profile: PublicProfileDto }) {
 					</p>
 				</div>
 				<Button variant="outline" size="sm" onClick={share}>
-					<ShareNetworkIcon className="size-4" />
+					<Share className="size-4" />
 					Share
 				</Button>
 			</div>
@@ -111,17 +111,17 @@ function ProfileBody({ profile }: { profile: PublicProfileDto }) {
 			{stats && (
 				<div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-xl border border-border bg-card px-4 py-3">
 					<Metric
-						icon={<MusicNotesSimpleIcon className="size-3" />}
+						icon={<MusicNotes className="size-3" />}
 						label="Plays"
 						value={formatScore(Number(stats.totalPlays))}
 					/>
 					<Metric
-						icon={<ClockIcon className="size-3" />}
+						icon={<ClockCircle className="size-3" />}
 						label="Play time"
 						value={formatPlayTime(Number(stats.totalPlayTimeMs))}
 					/>
 					<Metric
-						icon={<TargetIcon className="size-3" />}
+						icon={<Target className="size-3" />}
 						label="Avg accuracy"
 						value={formatAccuracy(Number(stats.averageAccuracy))}
 					/>
@@ -214,11 +214,11 @@ function ProfileBody({ profile }: { profile: PublicProfileDto }) {
 			{hasAnySection && (
 				<div className="flex flex-col gap-2 sm:flex-row">
 					<PlaceholderChip
-						icon={<PlaylistIcon className="size-4" />}
+						icon={<Playlist className="size-4" />}
 						label="Playlists"
 					/>
 					<PlaceholderChip
-						icon={<HeartIcon className="size-4" />}
+						icon={<Heart className="size-4" />}
 						label="Liked maps"
 					/>
 				</div>
@@ -228,7 +228,7 @@ function ProfileBody({ profile }: { profile: PublicProfileDto }) {
 				<Empty className="mt-4">
 					<EmptyHeader>
 						<EmptyMedia variant="icon">
-							<LockIcon />
+							<Lock />
 						</EmptyMedia>
 						<EmptyTitle>This profile is private</EmptyTitle>
 						<EmptyDescription>

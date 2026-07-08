@@ -1,7 +1,7 @@
 import {
-	MagnifyingGlassIcon,
-	MusicNotesSimpleIcon,
-} from "@phosphor-icons/react";
+	Magnifer,
+	MusicNotes,
+} from "@solar-icons/react";
 import { Button } from "@shiron/ui/components/ui/button";
 import {
 	Empty,
@@ -159,7 +159,7 @@ function MapsPage() {
 						})}
 					</div>
 					<div className="relative w-full max-w-xs">
-						<MagnifyingGlassIcon className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+						<Magnifer className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 						<Input
 							value={input}
 							onChange={(e) => {
@@ -214,7 +214,7 @@ function MapsPage() {
 				<Empty className="mt-10">
 					<EmptyHeader>
 						<EmptyMedia variant="icon">
-							<MusicNotesSimpleIcon />
+							<MusicNotes />
 						</EmptyMedia>
 						<EmptyTitle>{q ? "No maps found" : "No maps yet"}</EmptyTitle>
 						<EmptyDescription>

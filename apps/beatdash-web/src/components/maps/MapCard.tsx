@@ -1,10 +1,10 @@
 import {
-	CheckCircleIcon,
-	FireIcon,
-	MetronomeIcon,
-	MusicNotesSimpleIcon,
-	TimerIcon,
-} from "@phosphor-icons/react";
+	CheckCircle,
+	Fire,
+	Pulse,
+	MusicNotes,
+	Stopwatch,
+} from "@solar-icons/react";
 import { Badge, badgeVariants } from "@shiron/ui/components/ui/badge";
 import {
 	Tooltip,
@@ -73,7 +73,7 @@ export function MapCard({ map }: { map: MapListItemDto }) {
 				<Tooltip>
 					<TooltipTrigger asChild>
 						<span className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-medium text-emerald-400">
-							<CheckCircleIcon className="size-3" weight="fill" />
+							<CheckCircle className="size-3" weight="Bold" />
 							{playCount}
 						</span>
 					</TooltipTrigger>
@@ -92,7 +92,7 @@ export function MapCard({ map }: { map: MapListItemDto }) {
 						className="size-20 rounded-md object-cover shadow-sm"
 					/>
 				) : (
-					<MusicNotesSimpleIcon className="size-9 text-muted-foreground/40" />
+					<MusicNotes className="size-9 text-muted-foreground/40" />
 				)}
 			</div>
 
@@ -112,17 +112,17 @@ export function MapCard({ map }: { map: MapListItemDto }) {
 
 				<div className="mt-auto flex items-center gap-3 text-xs text-muted-foreground">
 					<Stat
-						icon={<MetronomeIcon />}
+						icon={<Pulse />}
 						value={`${num(map.bpm)}`}
 						label="BPM"
 					/>
 					<Stat
-						icon={<TimerIcon />}
+						icon={<Stopwatch />}
 						value={formatDuration(num(map.durationMs))}
 						label="Length"
 					/>
 					<Stat
-						icon={<FireIcon />}
+						icon={<Fire />}
 						value={maxNps > 0 ? maxNps.toFixed(1) : "—"}
 						label="Max notes / sec"
 					/>

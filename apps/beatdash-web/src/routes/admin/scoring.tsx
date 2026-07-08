@@ -1,11 +1,11 @@
 import {
-	ArrowCounterClockwiseIcon,
-	CheckIcon,
-	CopyIcon,
-	MagnifyingGlassIcon,
-	PlusIcon,
-	XIcon,
-} from "@phosphor-icons/react";
+	Restart,
+	CheckRead,
+	Copy,
+	Magnifer,
+	AddCircle,
+	CloseCircle,
+} from "@solar-icons/react";
 import { Badge } from "@shiron/ui/components/ui/badge";
 import { Button } from "@shiron/ui/components/ui/button";
 import {
@@ -215,7 +215,7 @@ function ScoringLabPage() {
 				</div>
 				<div className="flex items-center gap-2">
 					<Button variant="outline" size="sm" onClick={resetConfig}>
-						<ArrowCounterClockwiseIcon className="size-4" />
+						<Restart className="size-4" />
 						Reset
 					</Button>
 					{draft && <ExportDialog draft={draft} />}
@@ -423,7 +423,7 @@ function ModelEditor({
 							onClick={() => removeWeight(w.key)}
 							aria-label={`Remove ${w.key}`}
 						>
-							<XIcon className="size-3.5" />
+							<CloseCircle className="size-3.5" />
 						</Button>
 					</div>
 				))}
@@ -431,7 +431,7 @@ function ModelEditor({
 
 			{available.length > 0 && (
 				<div className="flex items-center gap-2">
-					<PlusIcon className="size-3.5 shrink-0 text-muted-foreground" />
+					<AddCircle className="size-3.5 shrink-0 text-muted-foreground" />
 					<NativeSelect
 						value=""
 						onChange={(e) => addWeight(e.target.value)}
@@ -513,7 +513,7 @@ function MapPicker({
 			</CardHeader>
 			<CardContent className="space-y-3">
 				<div className="relative">
-					<MagnifyingGlassIcon className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+					<Magnifer className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 					<Input
 						value={input}
 						onChange={(e) => {
@@ -553,9 +553,9 @@ function MapPicker({
 										</span>
 									</span>
 									{already ? (
-										<CheckIcon className="size-4 shrink-0 text-muted-foreground" />
+										<CheckRead className="size-4 shrink-0 text-muted-foreground" />
 									) : (
-										<PlusIcon className="size-4 shrink-0 text-muted-foreground" />
+										<AddCircle className="size-4 shrink-0 text-muted-foreground" />
 									)}
 								</button>
 							);
@@ -582,7 +582,7 @@ function MapPicker({
 									className="rounded-sm p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
 									aria-label={`Remove ${m.songName}`}
 								>
-									<XIcon className="size-3" />
+									<CloseCircle className="size-3" />
 								</button>
 							</Badge>
 						))}
@@ -807,7 +807,7 @@ function ExportDialog({ draft }: { draft: Draft }) {
 		<Dialog>
 			<DialogTrigger asChild>
 				<Button size="sm">
-					<CopyIcon className="size-4" />
+					<Copy className="size-4" />
 					Export config
 				</Button>
 			</DialogTrigger>
@@ -847,9 +847,9 @@ function Snippet({ title, content }: { title: string; content: string }) {
 				</span>
 				<Button variant="ghost" size="sm" onClick={copy}>
 					{copied ? (
-						<CheckIcon className="size-3.5" />
+						<CheckRead className="size-3.5" />
 					) : (
-						<CopyIcon className="size-3.5" />
+						<Copy className="size-3.5" />
 					)}
 					{copied ? "Copied" : "Copy"}
 				</Button>

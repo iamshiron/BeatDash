@@ -1,8 +1,8 @@
 import {
-	ClockIcon,
-	MusicNotesSimpleIcon,
-	TargetIcon,
-} from "@phosphor-icons/react";
+	ClockCircle,
+	MusicNotes,
+	Target,
+} from "@solar-icons/react";
 import { Button } from "@shiron/ui/components/ui/button";
 import {
 	Card,
@@ -64,17 +64,17 @@ export function Dashboard() {
 				<>
 					<div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
 						<StatTile
-							icon={<MusicNotesSimpleIcon className="size-4" />}
+							icon={<MusicNotes className="size-4" />}
 							label="Plays"
 							value={formatScore(Number(stats.totalPlays))}
 						/>
 						<StatTile
-							icon={<ClockIcon className="size-4" />}
+							icon={<ClockCircle className="size-4" />}
 							label="Play time"
 							value={formatPlayTime(Number(stats.totalPlayTimeMs))}
 						/>
 						<StatTile
-							icon={<TargetIcon className="size-4" />}
+							icon={<Target className="size-4" />}
 							label="Avg accuracy"
 							value={formatAccuracy(Number(stats.averageAccuracy))}
 						/>
@@ -179,7 +179,7 @@ function EmptyState() {
 	return (
 		<Card>
 			<CardContent className="flex flex-col items-center gap-3 py-12 text-center">
-				<MusicNotesSimpleIcon className="size-8 text-muted-foreground/40" />
+				<MusicNotes className="size-8 text-muted-foreground/40" />
 				<div>
 					<p className="font-heading text-sm font-semibold">No plays yet</p>
 					<p className="mt-1 text-xs text-muted-foreground">

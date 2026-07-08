@@ -1,12 +1,12 @@
 import {
-	ArrowLeftIcon,
-	FireIcon,
-	MetronomeIcon,
-	MusicNotesSimpleIcon,
-	SealCheckIcon,
-	ThumbsUpIcon,
-	TimerIcon,
-} from "@phosphor-icons/react";
+	ArrowLeft,
+	Fire,
+	Pulse,
+	MusicNotes,
+	VerifiedCheck,
+	Like,
+	Stopwatch,
+} from "@solar-icons/react";
 import { Badge } from "@shiron/ui/components/ui/badge";
 import { Button } from "@shiron/ui/components/ui/button";
 import {
@@ -129,7 +129,7 @@ function MapDetailPage() {
 		<AppShell>
 			<Button variant="ghost" size="sm" asChild className="-ml-2 mb-4">
 				<Link to="/maps">
-					<ArrowLeftIcon className="size-4" />
+					<ArrowLeft className="size-4" />
 					Maps
 				</Link>
 			</Button>
@@ -146,7 +146,7 @@ function MapDetailPage() {
 				<Empty className="mt-10">
 					<EmptyHeader>
 						<EmptyMedia variant="icon">
-							<MusicNotesSimpleIcon />
+							<MusicNotes />
 						</EmptyMedia>
 						<EmptyTitle>Map not found</EmptyTitle>
 						<EmptyDescription>
@@ -169,7 +169,7 @@ function MapDetailPage() {
 									className="size-full object-cover"
 								/>
 							) : (
-								<MusicNotesSimpleIcon className="size-10 text-muted-foreground/40" />
+								<MusicNotes className="size-10 text-muted-foreground/40" />
 							)}
 						</div>
 
@@ -189,9 +189,9 @@ function MapDetailPage() {
 							</p>
 
 							<div className="mt-auto flex flex-wrap items-center gap-3 pt-2 text-sm text-muted-foreground">
-								<Stat icon={<MetronomeIcon />} value={`${n(map.bpm)} BPM`} />
+								<Stat icon={<Pulse />} value={`${n(map.bpm)} BPM`} />
 								<Stat
-									icon={<TimerIcon />}
+									icon={<Stopwatch />}
 									value={formatDuration(n(map.durationMs))}
 								/>
 								<Badge
@@ -202,7 +202,7 @@ function MapDetailPage() {
 								</Badge>
 								{map.beatSaver?.ranked && (
 									<Badge className="gap-1 border-emerald-500/25 bg-emerald-500/15 text-emerald-400">
-										<SealCheckIcon className="size-3.5" weight="fill" />
+										<VerifiedCheck className="size-3.5" weight="Bold" />
 										Ranked
 									</Badge>
 								)}
@@ -219,7 +219,7 @@ function MapDetailPage() {
 							<CardContent className="space-y-3 text-sm">
 								<div className="flex flex-wrap items-center gap-4 text-muted-foreground">
 									<span className="flex items-center gap-1.5 text-foreground">
-										<ThumbsUpIcon className="size-4" weight="fill" />
+										<Like className="size-4" weight="Bold" />
 										<span className="font-mono tabular-nums">
 											{n(map.beatSaver.upvotes).toLocaleString()}
 										</span>
@@ -330,7 +330,7 @@ function DifficultyCard({
 			<CardContent className="space-y-4">
 				<div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground">
 					<Stat
-						icon={<FireIcon />}
+						icon={<Fire />}
 						value={`${n(difficulty.notesPerSecond).toFixed(1)} NPS`}
 					/>
 					<span>{n(difficulty.cuttableObjectCount)} notes</span>

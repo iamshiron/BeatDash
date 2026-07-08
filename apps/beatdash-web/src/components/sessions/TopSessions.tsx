@@ -1,4 +1,4 @@
-import { TrophyIcon } from "@phosphor-icons/react";
+import { Cup } from "@solar-icons/react";
 import { Badge } from "@shiron/ui/components/ui/badge";
 import {
 	Card,
@@ -51,7 +51,7 @@ export function TopSessions({
 		<Card>
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2">
-					<TrophyIcon className="size-4 text-amber-300" weight="fill" />
+					<Cup className="size-4 text-amber-300" weight="Bold" />
 					Top Sessions
 				</CardTitle>
 			</CardHeader>

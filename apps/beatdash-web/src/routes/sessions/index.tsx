@@ -1,10 +1,10 @@
 import {
-	CaretLeftIcon,
-	CaretRightIcon,
-	ClockIcon,
-	MagnifyingGlassIcon,
-	XIcon,
-} from "@phosphor-icons/react";
+	AltArrowLeft,
+	AltArrowRight,
+	ClockCircle,
+	Magnifer,
+	CloseCircle,
+} from "@solar-icons/react";
 import { Badge } from "@shiron/ui/components/ui/badge";
 import { Button } from "@shiron/ui/components/ui/button";
 import {
@@ -119,7 +119,7 @@ function SessionsListPage() {
 				</div>
 				<div className="flex flex-wrap items-center gap-2">
 					<div className="relative w-full min-w-48 max-w-xs flex-1">
-						<MagnifyingGlassIcon className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+						<Magnifer className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 						<Input
 							value={inputValue}
 							onChange={(e) => setInputValue(e.target.value)}
@@ -170,7 +170,7 @@ function SessionsListPage() {
 								onClick={() => clearFilters(filter.keys)}
 								className="grid size-4 place-content-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
 							>
-								<XIcon className="size-3" />
+								<CloseCircle className="size-3" />
 							</button>
 						</Badge>
 					))}
@@ -208,7 +208,7 @@ function SessionsListPage() {
 				<Empty className="mt-10">
 					<EmptyHeader>
 						<EmptyMedia variant="icon">
-							<ClockIcon />
+							<ClockCircle />
 						</EmptyMedia>
 						<EmptyTitle>
 							{isGenuinelyEmpty ? "No sessions yet" : "No sessions found"}
@@ -243,7 +243,7 @@ function SessionsListPage() {
 							disabled={page <= 1}
 							onClick={() => updateSearch({ page: page - 1 })}
 						>
-							<CaretLeftIcon className="size-4" />
+							<AltArrowLeft className="size-4" />
 						</Button>
 						<Button
 							variant="outline"
@@ -252,7 +252,7 @@ function SessionsListPage() {
 							disabled={page >= totalPages}
 							onClick={() => updateSearch({ page: page + 1 })}
 						>
-							<CaretRightIcon className="size-4" />
+							<AltArrowRight className="size-4" />
 						</Button>
 					</div>
 				</div>

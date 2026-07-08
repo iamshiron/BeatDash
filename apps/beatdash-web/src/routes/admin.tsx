@@ -1,4 +1,4 @@
-import { FlaskIcon, GaugeIcon } from "@phosphor-icons/react";
+import { TestTube, SpeedometerMiddle } from "@solar-icons/react";
 import { Separator } from "@shiron/ui/components/ui/separator";
 import {
 	Sidebar,
@@ -38,14 +38,14 @@ export const Route = createFileRoute("/admin")({
 interface AdminNavItem {
 	label: string;
 	to: string;
-	icon: typeof GaugeIcon;
+	icon: typeof SpeedometerMiddle;
 	exact?: boolean;
 }
 
 /** Admin sidebar navigation. Add admin-only routes here. */
 const NAV_ITEMS: AdminNavItem[] = [
-	{ label: "Overview", to: "/admin", icon: GaugeIcon, exact: true },
-	{ label: "Scoring Lab", to: "/admin/scoring", icon: FlaskIcon },
+	{ label: "Overview", to: "/admin", icon: SpeedometerMiddle, exact: true },
+	{ label: "Scoring Lab", to: "/admin/scoring", icon: TestTube },
 ];
 
 function AdminLayout() {

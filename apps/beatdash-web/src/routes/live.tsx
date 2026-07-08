@@ -1,16 +1,16 @@
 import {
-	BarbellIcon,
-	FireIcon,
-	GuitarIcon,
-	HeartbeatIcon,
-	LightningIcon,
-	MetronomeIcon,
-	MonitorIcon,
-	MusicNotesSimpleIcon,
-	ScalesIcon,
-	TargetIcon,
-	WallIcon,
-} from "@phosphor-icons/react";
+	Dumbbell,
+	Fire,
+	MusicNote,
+	HeartPulse,
+	Bolt,
+	Pulse,
+	Monitor,
+	MusicNotes,
+	Scale,
+	Target,
+	Widget,
+} from "@solar-icons/react";
 import { Badge } from "@shiron/ui/components/ui/badge";
 import { Button } from "@shiron/ui/components/ui/button";
 import {
@@ -106,7 +106,7 @@ function LivePage() {
 				<Empty className="mt-10">
 					<EmptyHeader>
 						<EmptyMedia variant="icon">
-							<MonitorIcon />
+							<Monitor />
 						</EmptyMedia>
 						<EmptyTitle>No device connected</EmptyTitle>
 						<EmptyDescription>
@@ -243,27 +243,27 @@ function MapHeader({
 
 				<div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
 					<InlineStat
-						icon={<MetronomeIcon />}
+						icon={<Pulse />}
 						value={`${Math.round(map.bpm)}`}
 						label="BPM"
 					/>
 					<InlineStat
-						icon={<FireIcon />}
+						icon={<Fire />}
 						value={map.notesPerSecond.toFixed(1)}
 						label="NPS"
 					/>
 					<InlineStat
-						icon={<GuitarIcon />}
+						icon={<MusicNote />}
 						value={map.cuttableObjectCount.toString()}
 						label="Notes"
 					/>
 					<InlineStat
-						icon={<BarbellIcon />}
+						icon={<Dumbbell />}
 						value={map.bombCount.toString()}
 						label="Bombs"
 					/>
 					<InlineStat
-						icon={<WallIcon />}
+						icon={<Widget />}
 						value={map.obstacleCount.toString()}
 						label="Walls"
 					/>
@@ -328,7 +328,7 @@ function InlineStat({
 function MusicPlaceholder() {
 	return (
 		<div className="flex size-20 items-center justify-center rounded-md bg-background/20">
-			<MusicNotesSimpleIcon className="size-8 text-muted-foreground/40" />
+			<MusicNotes className="size-8 text-muted-foreground/40" />
 		</div>
 	);
 }
@@ -443,7 +443,7 @@ function ScoreOverlay({
 				</div>
 				<div className="flex flex-col items-center gap-1">
 					<span className="flex items-center gap-2 font-mono text-xl tabular-nums">
-						<ScalesIcon className="size-5 text-muted-foreground" />
+						<Scale className="size-5 text-muted-foreground" />
 						{(accuracy * 100).toFixed(1)}%
 					</span>
 					<span className="text-xs uppercase tracking-wider text-muted-foreground/60">
@@ -452,7 +452,7 @@ function ScoreOverlay({
 				</div>
 				<div className="flex flex-col items-center gap-1">
 					<div className="flex items-center gap-2">
-						<HeartbeatIcon className="size-5 text-muted-foreground" />
+						<HeartPulse className="size-5 text-muted-foreground" />
 						<div className="h-2.5 w-24 overflow-hidden rounded-full bg-muted">
 							<div
 								className={cn(
@@ -473,7 +473,7 @@ function ScoreOverlay({
 				</div>
 				<div className="flex flex-col items-center gap-1">
 					<span className="flex items-center gap-2 font-mono text-xl tabular-nums">
-						<LightningIcon className="size-5 text-muted-foreground" />
+						<Bolt className="size-5 text-muted-foreground" />
 						{combo}x
 					</span>
 					<span className="text-xs uppercase tracking-wider text-muted-foreground/60">
@@ -482,7 +482,7 @@ function ScoreOverlay({
 				</div>
 				<div className="flex flex-col items-center gap-1">
 					<span className="flex items-center gap-2 font-mono text-xl tabular-nums">
-						<TargetIcon className="size-5 text-muted-foreground" />
+						<Target className="size-5 text-muted-foreground" />
 						{misses}
 					</span>
 					<span className="text-xs uppercase tracking-wider text-muted-foreground/60">
