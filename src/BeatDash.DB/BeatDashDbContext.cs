@@ -33,6 +33,10 @@ public class BeatDashDbContext(DbContextOptions<BeatDashDbContext> options) : Id
                 .WithOne(x => x.User)
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+            // Unique handle, but many users may have none — filter nulls out of the constraint.
+            c.HasIndex(x => x.Handle)
+                .IsUnique()
+                .HasFilter("\"Handle\" IS NOT NULL");
             c.ToTable("Users");
         });
 

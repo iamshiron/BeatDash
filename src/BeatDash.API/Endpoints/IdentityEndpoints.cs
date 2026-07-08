@@ -103,13 +103,7 @@ public static class IdentityEndpoints {
         if (user == null) return Results.Unauthorized();
 
         var roles = await userManager.GetRolesAsync(user);
-        return Results.Ok(new UserInfoDto {
-            ID = user.Id,
-            DisplayName = user.DisplayName,
-            UserName = user.UserName!,
-            Email = user.Email!,
-            Roles = roles.ToList()
-        });
+        return Results.Ok(ToUserInfo(user, roles));
     }
 
     private static async Task<IResult> UpdateProfile(
@@ -123,20 +117,46 @@ public static class IdentityEndpoints {
         if (displayName.Length is 0 or > 32)
             return Results.BadRequest(new[] { "Display name must be between 1 and 32 characters." });
 
+        // A blank handle leaves the existing one untouched; otherwise validate + ensure uniqueness.
+        var normalizedHandle = HandleUtils.Normalize(dto.Handle);
+        if (normalizedHandle is not null && normalizedHandle != user.Handle) {
+            if (!HandleUtils.IsValid(normalizedHandle))
+                return Results.BadRequest(new[] { "Handle must be 3–32 characters, lowercase letters, numbers or underscores." });
+
+            var taken = await userManager.Users
+                .AnyAsync(u => u.Handle == normalizedHandle && u.Id != user.Id);
+            if (taken)
+                return Results.BadRequest(new[] { "That handle is already taken." });
+
+            user.Handle = normalizedHandle;
+        }
+
         user.DisplayName = displayName;
+        user.ProfileStatsPublic = dto.ProfileStatsPublic;
+        user.ProfileActivityPublic = dto.ProfileActivityPublic;
+        user.ProfileSkillPublic = dto.ProfileSkillPublic;
+        user.ProfileHistoryPublic = dto.ProfileHistoryPublic;
+
         var result = await userManager.UpdateAsync(user);
         if (!result.Succeeded)
             return Results.BadRequest(result.Errors.Select(e => e.Description).ToList());
 
         var roles = await userManager.GetRolesAsync(user);
-        return Results.Ok(new UserInfoDto {
-            ID = user.Id,
-            DisplayName = user.DisplayName,
-            UserName = user.UserName!,
-            Email = user.Email!,
-            Roles = roles.ToList()
-        });
+        return Results.Ok(ToUserInfo(user, roles));
     }
+
+    private static UserInfoDto ToUserInfo(User user, IList<string> roles) => new() {
+        ID = user.Id,
+        DisplayName = user.DisplayName,
+        UserName = user.UserName!,
+        Email = user.Email!,
+        Roles = roles.ToList(),
+        Handle = user.Handle,
+        ProfileStatsPublic = user.ProfileStatsPublic,
+        ProfileActivityPublic = user.ProfileActivityPublic,
+        ProfileSkillPublic = user.ProfileSkillPublic,
+        ProfileHistoryPublic = user.ProfileHistoryPublic
+    };
 
     private static async Task<IResult> ChangePassword(
         ChangePasswordDto dto,
@@ -210,6 +230,14 @@ public record LoginDto {
 
 public record UpdateProfileDto {
     [Required][MaxLength(32)] public required string DisplayName { get; init; }
+
+    /// <summary>New public handle. When null/blank the existing handle is left unchanged.</summary>
+    [MaxLength(32)] public string? Handle { get; init; }
+
+    public bool ProfileStatsPublic { get; init; }
+    public bool ProfileActivityPublic { get; init; }
+    public bool ProfileSkillPublic { get; init; }
+    public bool ProfileHistoryPublic { get; init; }
 }
 
 public record ChangePasswordDto {
@@ -223,4 +251,9 @@ public record UserInfoDto {
     public string UserName { get; init; } = default!;
     public string Email { get; init; } = default!;
     public List<string> Roles { get; init; } = [];
+    public string? Handle { get; init; }
+    public bool ProfileStatsPublic { get; init; }
+    public bool ProfileActivityPublic { get; init; }
+    public bool ProfileSkillPublic { get; init; }
+    public bool ProfileHistoryPublic { get; init; }
 }

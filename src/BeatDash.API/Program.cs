@@ -100,6 +100,7 @@ builder.Services.AddSingleton<IPlaySessionStore, PlaySessionStore>();
 builder.Services.AddSingleton<IMotionFrameBuffer, MotionFrameBuffer>();
 builder.Services.AddSingleton<IMotionFramePersistence, MotionFramePersistence>();
 builder.Services.AddScoped<IPlaySessionService, PlaySessionService>();
+builder.Services.AddScoped<IProfileStatsService, ProfileStatsService>();
 builder.Services.AddSingleton<IStorageService, MinioStorageService>();
 builder.Services.AddScoped<IPinService, PinService>();
 builder.Services.AddScoped<IBeatmapPersistenceService, BeatmapPersistenceService>();
@@ -217,6 +218,7 @@ api.MapClientEndpoints();
 api.MapMapEndpoints();
 api.MapAdminMetricsEndpoints();
 api.MapSessionEndpoints();
+api.MapProfileEndpoints();
 api.MapServerInfoEndpoints();
 api.MapHub<RealtimeHub>("/client/web");
 

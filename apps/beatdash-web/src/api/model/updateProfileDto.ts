@@ -8,4 +8,13 @@
 export interface UpdateProfileDto {
   /** @maxLength 32 */
   displayName: string;
+  /**
+     * @maxLength 32
+     * @nullable
+     */
+  handle?: string | null;
+  profileStatsPublic?: boolean;
+  profileActivityPublic?: boolean;
+  profileSkillPublic?: boolean;
+  profileHistoryPublic?: boolean;
 }

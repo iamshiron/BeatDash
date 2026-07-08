@@ -18,6 +18,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SessionsIndexRouteImport } from './routes/sessions/index'
 import { Route as MapsIndexRouteImport } from './routes/maps/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as UHandleRouteImport } from './routes/u/$handle'
 import { Route as SessionsIdRouteImport } from './routes/sessions/$id'
 import { Route as MapsIdRouteImport } from './routes/maps/$id'
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
@@ -69,6 +70,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const UHandleRoute = UHandleRouteImport.update({
+  id: '/u/$handle',
+  path: '/u/$handle',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SessionsIdRoute = SessionsIdRouteImport.update({
   id: '/sessions/$id',
   path: '/sessions/$id',
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/auth/register': typeof AuthRegisterRoute
   '/maps/$id': typeof MapsIdRoute
   '/sessions/$id': typeof SessionsIdRoute
+  '/u/$handle': typeof UHandleRoute
   '/admin/': typeof AdminIndexRoute
   '/maps/': typeof MapsIndexRoute
   '/sessions/': typeof SessionsIndexRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/auth/register': typeof AuthRegisterRoute
   '/maps/$id': typeof MapsIdRoute
   '/sessions/$id': typeof SessionsIdRoute
+  '/u/$handle': typeof UHandleRoute
   '/admin': typeof AdminIndexRoute
   '/maps': typeof MapsIndexRoute
   '/sessions': typeof SessionsIndexRoute
@@ -139,6 +147,7 @@ export interface FileRoutesById {
   '/auth/register': typeof AuthRegisterRoute
   '/maps/$id': typeof MapsIdRoute
   '/sessions/$id': typeof SessionsIdRoute
+  '/u/$handle': typeof UHandleRoute
   '/admin/': typeof AdminIndexRoute
   '/maps/': typeof MapsIndexRoute
   '/sessions/': typeof SessionsIndexRoute
@@ -157,6 +166,7 @@ export interface FileRouteTypes {
     | '/auth/register'
     | '/maps/$id'
     | '/sessions/$id'
+    | '/u/$handle'
     | '/admin/'
     | '/maps/'
     | '/sessions/'
@@ -172,6 +182,7 @@ export interface FileRouteTypes {
     | '/auth/register'
     | '/maps/$id'
     | '/sessions/$id'
+    | '/u/$handle'
     | '/admin'
     | '/maps'
     | '/sessions'
@@ -188,6 +199,7 @@ export interface FileRouteTypes {
     | '/auth/register'
     | '/maps/$id'
     | '/sessions/$id'
+    | '/u/$handle'
     | '/admin/'
     | '/maps/'
     | '/sessions/'
@@ -202,6 +214,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   MapsIdRoute: typeof MapsIdRoute
   SessionsIdRoute: typeof SessionsIdRoute
+  UHandleRoute: typeof UHandleRoute
   MapsIndexRoute: typeof MapsIndexRoute
   SessionsIndexRoute: typeof SessionsIndexRoute
 }
@@ -270,6 +283,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/u/$handle': {
+      id: '/u/$handle'
+      path: '/u/$handle'
+      fullPath: '/u/$handle'
+      preLoaderRoute: typeof UHandleRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/sessions/$id': {
       id: '/sessions/$id'
@@ -342,6 +362,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   MapsIdRoute: MapsIdRoute,
   SessionsIdRoute: SessionsIdRoute,
+  UHandleRoute: UHandleRoute,
   MapsIndexRoute: MapsIndexRoute,
   SessionsIndexRoute: SessionsIndexRoute,
 }
