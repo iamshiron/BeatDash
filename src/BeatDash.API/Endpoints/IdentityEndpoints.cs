@@ -40,6 +40,14 @@ public static class IdentityEndpoints {
             .Produces<UserInfoDto>()
             .Produces(401);
 
+        group.MapPut("/me", UpdateProfile)
+            .WithName("UpdateProfile")
+            .WithDescription("Update the current user's profile")
+            .RequireAuthorization()
+            .Produces<UserInfoDto>()
+            .Produces(400)
+            .Produces(401);
+
         group.MapPost("/change-password", ChangePassword)
             .WithName("ChangePassword")
             .WithDescription("Change the current user's password")
@@ -93,6 +101,32 @@ public static class IdentityEndpoints {
     private static async Task<IResult> Me(ClaimsPrincipal principal, UserManager<User> userManager) {
         var user = await userManager.GetUserAsync(principal);
         if (user == null) return Results.Unauthorized();
+
+        var roles = await userManager.GetRolesAsync(user);
+        return Results.Ok(new UserInfoDto {
+            ID = user.Id,
+            DisplayName = user.DisplayName,
+            UserName = user.UserName!,
+            Email = user.Email!,
+            Roles = roles.ToList()
+        });
+    }
+
+    private static async Task<IResult> UpdateProfile(
+        UpdateProfileDto dto,
+        ClaimsPrincipal principal,
+        UserManager<User> userManager) {
+        var user = await userManager.GetUserAsync(principal);
+        if (user == null) return Results.Unauthorized();
+
+        var displayName = dto.DisplayName.Trim();
+        if (displayName.Length is 0 or > 32)
+            return Results.BadRequest(new[] { "Display name must be between 1 and 32 characters." });
+
+        user.DisplayName = displayName;
+        var result = await userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+            return Results.BadRequest(result.Errors.Select(e => e.Description).ToList());
 
         var roles = await userManager.GetRolesAsync(user);
         return Results.Ok(new UserInfoDto {
@@ -172,6 +206,10 @@ public record LoginDto {
     [Required][EmailAddress] public required string Email { get; init; }
     [Required] public required string Password { get; init; }
     public bool RememberMe { get; init; }
+}
+
+public record UpdateProfileDto {
+    [Required][MaxLength(32)] public required string DisplayName { get; init; }
 }
 
 public record ChangePasswordDto {

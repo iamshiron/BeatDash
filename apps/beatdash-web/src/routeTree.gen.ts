@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as LiveRouteImport } from './routes/live'
 import { Route as DevicesRouteImport } from './routes/devices'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -23,6 +24,11 @@ import { Route as AuthRegisterRouteImport } from './routes/auth/register'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AdminScoringRouteImport } from './routes/admin/scoring'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LiveRoute = LiveRouteImport.update({
   id: '/live',
   path: '/live',
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRouteWithChildren
   '/devices': typeof DevicesRoute
   '/live': typeof LiveRoute
+  '/settings': typeof SettingsRoute
   '/admin/scoring': typeof AdminScoringRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
   '/devices': typeof DevicesRoute
   '/live': typeof LiveRoute
+  '/settings': typeof SettingsRoute
   '/admin/scoring': typeof AdminScoringRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRouteWithChildren
   '/devices': typeof DevicesRoute
   '/live': typeof LiveRoute
+  '/settings': typeof SettingsRoute
   '/admin/scoring': typeof AdminScoringRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
@@ -142,6 +151,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/devices'
     | '/live'
+    | '/settings'
     | '/admin/scoring'
     | '/auth/login'
     | '/auth/register'
@@ -156,6 +166,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/devices'
     | '/live'
+    | '/settings'
     | '/admin/scoring'
     | '/auth/login'
     | '/auth/register'
@@ -171,6 +182,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/devices'
     | '/live'
+    | '/settings'
     | '/admin/scoring'
     | '/auth/login'
     | '/auth/register'
@@ -187,6 +199,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   DevicesRoute: typeof DevicesRoute
   LiveRoute: typeof LiveRoute
+  SettingsRoute: typeof SettingsRoute
   MapsIdRoute: typeof MapsIdRoute
   SessionsIdRoute: typeof SessionsIdRoute
   MapsIndexRoute: typeof MapsIndexRoute
@@ -195,6 +208,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/live': {
       id: '/live'
       path: '/live'
@@ -319,6 +339,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   DevicesRoute: DevicesRoute,
   LiveRoute: LiveRoute,
+  SettingsRoute: SettingsRoute,
   MapsIdRoute: MapsIdRoute,
   SessionsIdRoute: SessionsIdRoute,
   MapsIndexRoute: MapsIndexRoute,
