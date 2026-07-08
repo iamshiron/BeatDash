@@ -13,13 +13,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useLogout } from "@/api/auth/auth";
 import { getGetMeQueryKey, useAuth } from "@/contexts/auth";
-
-function getInitials(name: string): string {
-	const parts = name.trim().split(/\s+/).filter(Boolean);
-	if (parts.length === 0) return "?";
-	if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-	return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
-}
+import { getInitials } from "@/lib/user";
 
 export function UserMenu() {
 	const { user, isAdmin } = useAuth();
@@ -64,7 +58,17 @@ export function UserMenu() {
 						<DropdownMenuSeparator />
 					</>
 				)}
-				<DropdownMenuItem disabled>Profile</DropdownMenuItem>
+				{user?.handle ? (
+					<DropdownMenuItem asChild>
+						<Link to="/u/$handle" params={{ handle: `@${user.handle}` }}>
+							Profile
+						</Link>
+					</DropdownMenuItem>
+				) : (
+					<DropdownMenuItem asChild>
+						<Link to="/settings">Set up profile</Link>
+					</DropdownMenuItem>
+				)}
 				<DropdownMenuItem asChild>
 					<Link to="/settings">Settings</Link>
 				</DropdownMenuItem>

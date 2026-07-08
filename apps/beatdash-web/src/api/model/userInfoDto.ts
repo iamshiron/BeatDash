@@ -11,4 +11,10 @@ export interface UserInfoDto {
   userName?: string;
   email?: string;
   roles?: string[];
+  /** @nullable */
+  handle?: string | null;
+  profileStatsPublic?: boolean;
+  profileActivityPublic?: boolean;
+  profileSkillPublic?: boolean;
+  profileHistoryPublic?: boolean;
 }

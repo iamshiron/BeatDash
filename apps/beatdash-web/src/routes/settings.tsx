@@ -7,11 +7,18 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@shiron/ui/components/ui/card";
-import { Field, FieldGroup, FieldLabel } from "@shiron/ui/components/ui/field";
+import {
+	Field,
+	FieldDescription,
+	FieldGroup,
+	FieldLabel,
+} from "@shiron/ui/components/ui/field";
 import { Input } from "@shiron/ui/components/ui/input";
+import { Separator } from "@shiron/ui/components/ui/separator";
+import { Switch } from "@shiron/ui/components/ui/switch";
 import { cn } from "@shiron/ui/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -19,6 +26,45 @@ import { useChangePassword, useUpdateProfile } from "@/api/auth/auth";
 import type { ChangePasswordDto, UpdateProfileDto } from "@/api/model";
 import { AppShell } from "@/components/layout/AppShell";
 import { getGetMeQueryKey, useAuth } from "@/contexts/auth";
+
+const HANDLE_PATTERN = /^[a-z0-9_]{3,32}$/;
+
+/** Strips a leading "@", trims, and lowercases a handle for storage/lookup. */
+function normalizeHandle(raw: string): string {
+	return raw.trim().replace(/^@/, "").trim().toLowerCase();
+}
+
+/** Best-effort extraction of a server validation message from a non-200 body. */
+function serverMessage(data: unknown, fallback: string): string {
+	if (Array.isArray(data) && typeof data[0] === "string") return data[0];
+	if (typeof data === "string" && data.length > 0) return data;
+	return fallback;
+}
+
+const VISIBILITY_SECTIONS = [
+	{
+		key: "profileStatsPublic",
+		label: "Headline stats",
+		description: "Plays, accuracy, ranks and most-played maps.",
+	},
+	{
+		key: "profileActivityPublic",
+		label: "Activity",
+		description: "Your play-activity heatmap.",
+	},
+	{
+		key: "profileSkillPublic",
+		label: "Skill profile",
+		description: "Your skill radar across play styles.",
+	},
+	{
+		key: "profileHistoryPublic",
+		label: "Recent & best plays",
+		description: "Your most recent and highest-accuracy plays.",
+	},
+] as const;
+
+type VisibilityKey = (typeof VISIBILITY_SECTIONS)[number]["key"];
 
 export const Route = createFileRoute("/settings")({
 	beforeLoad: ({ context }) => {
@@ -53,17 +99,34 @@ function AccountCard() {
 	const { user } = useAuth();
 	const queryClient = useQueryClient();
 	const [displayName, setDisplayName] = useState("");
+	const [handle, setHandle] = useState("");
+	const [visibility, setVisibility] = useState<Record<VisibilityKey, boolean>>({
+		profileStatsPublic: false,
+		profileActivityPublic: false,
+		profileSkillPublic: false,
+		profileHistoryPublic: false,
+	});
 
-	// Seed the field once the current user loads.
+	// Seed the fields once the current user loads.
 	useEffect(() => {
-		if (user?.displayName) setDisplayName(user.displayName);
-	}, [user?.displayName]);
+		if (!user) return;
+		setDisplayName(user.displayName ?? "");
+		setHandle(user.handle ?? "");
+		setVisibility({
+			profileStatsPublic: user.profileStatsPublic ?? false,
+			profileActivityPublic: user.profileActivityPublic ?? false,
+			profileSkillPublic: user.profileSkillPublic ?? false,
+			profileHistoryPublic: user.profileHistoryPublic ?? false,
+		});
+	}, [user]);
 
 	const updateMutation = useUpdateProfile({
 		mutation: {
 			onSuccess: async (response) => {
 				if (response.status !== 200) {
-					toast.error("Could not update your profile.");
+					toast.error(
+						serverMessage(response.data, "Could not update your profile."),
+					);
 					return;
 				}
 				await queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
@@ -73,23 +136,49 @@ function AccountCard() {
 		},
 	});
 
-	const trimmed = displayName.trim();
-	const unchanged = trimmed === (user?.displayName ?? "");
-	const invalid = trimmed.length === 0 || trimmed.length > 32;
+	const trimmedName = displayName.trim();
+	const normalizedHandle = normalizeHandle(handle);
+	const nameInvalid = trimmedName.length === 0 || trimmedName.length > 32;
+	const handleInvalid =
+		normalizedHandle.length > 0 && !HANDLE_PATTERN.test(normalizedHandle);
+
+	const unchanged =
+		trimmedName === (user?.displayName ?? "") &&
+		normalizedHandle === (user?.handle ?? "") &&
+		visibility.profileStatsPublic === (user?.profileStatsPublic ?? false) &&
+		visibility.profileActivityPublic ===
+			(user?.profileActivityPublic ?? false) &&
+		visibility.profileSkillPublic === (user?.profileSkillPublic ?? false) &&
+		visibility.profileHistoryPublic === (user?.profileHistoryPublic ?? false);
 
 	function handleSubmit(event: React.FormEvent) {
 		event.preventDefault();
-		if (invalid || unchanged) return;
-		const payload: UpdateProfileDto = { displayName: trimmed };
+		if (nameInvalid || handleInvalid || unchanged) return;
+		const payload: UpdateProfileDto = {
+			displayName: trimmedName,
+			handle: normalizedHandle || undefined,
+			...visibility,
+		};
 		updateMutation.mutate({ data: payload });
+	}
+
+	const profilePath = user?.handle ? `/u/@${user.handle}` : null;
+
+	function copyLink() {
+		if (!profilePath) return;
+		navigator.clipboard
+			.writeText(`${window.location.origin}${profilePath}`)
+			.then(() => toast.success("Profile link copied."))
+			.catch(() => toast.error("Could not copy the link."));
 	}
 
 	return (
 		<Card>
 			<CardHeader>
-				<CardTitle>Account</CardTitle>
+				<CardTitle>Public profile</CardTitle>
 				<CardDescription>
-					Your display name is shown across BeatDash.
+					Your profile lives at a shareable link. Choose what's visible — each
+					section is private until you turn it on.
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
@@ -105,6 +194,25 @@ function AccountCard() {
 								onChange={(e) => setDisplayName(e.target.value)}
 								required
 							/>
+						</Field>
+						<Field data-invalid={handleInvalid || undefined}>
+							<FieldLabel htmlFor="handle">Handle</FieldLabel>
+							<Input
+								id="handle"
+								type="text"
+								maxLength={32}
+								placeholder="yourhandle"
+								value={handle}
+								onChange={(e) => setHandle(e.target.value)}
+								aria-invalid={handleInvalid || undefined}
+							/>
+							<FieldDescription>
+								{handleInvalid
+									? "3–32 characters: lowercase letters, numbers or underscores."
+									: normalizedHandle
+										? `Your profile: /u/@${normalizedHandle}`
+										: "Pick a handle to get a shareable profile link."}
+							</FieldDescription>
 						</Field>
 						<Field>
 							<FieldLabel htmlFor="username">Username</FieldLabel>
@@ -126,17 +234,62 @@ function AccountCard() {
 								readOnly
 							/>
 						</Field>
+
+						<Separator />
+
+						<div className="flex flex-col gap-4">
+							<p className="text-sm font-medium">Visible sections</p>
+							{VISIBILITY_SECTIONS.map((section) => (
+								<div
+									key={section.key}
+									className="flex items-center justify-between gap-4"
+								>
+									<div className="min-w-0">
+										<FieldLabel htmlFor={section.key}>
+											{section.label}
+										</FieldLabel>
+										<p className="text-xs text-muted-foreground">
+											{section.description}
+										</p>
+									</div>
+									<Switch
+										id={section.key}
+										checked={visibility[section.key]}
+										onCheckedChange={(checked) =>
+											setVisibility((v) => ({ ...v, [section.key]: checked }))
+										}
+									/>
+								</div>
+							))}
+						</div>
 					</FieldGroup>
 				</form>
 			</CardContent>
-			<CardFooter>
+			<CardFooter className="flex-wrap gap-2">
 				<Button
 					type="submit"
 					form="account-form"
-					disabled={updateMutation.isPending || invalid || unchanged}
+					disabled={
+						updateMutation.isPending ||
+						nameInvalid ||
+						handleInvalid ||
+						unchanged
+					}
 				>
 					{updateMutation.isPending ? "Saving…" : "Save changes"}
 				</Button>
+				{profilePath && (
+					<>
+						<Button type="button" variant="outline" asChild>
+							<Link to="/u/$handle" params={{ handle: `@${user?.handle}` }}>
+								View profile
+							</Link>
+						</Button>
+						<Button type="button" variant="ghost" onClick={copyLink}>
+							Copy link
+						</Button>
+					</>
+				)}
 			</CardFooter>
 		</Card>
 	);
