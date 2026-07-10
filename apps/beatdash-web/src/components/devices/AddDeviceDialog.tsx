@@ -10,12 +10,7 @@ import {
 } from "@shiron/ui/components/ui/dialog";
 import { Input } from "@shiron/ui/components/ui/input";
 import { Spinner } from "@shiron/ui/components/ui/spinner";
-import {
-	AltArrowLeft,
-	AugmentedReality,
-	Copy,
-	Display,
-} from "@solar-icons/react";
+import { AltArrowLeft, Copy, Display, Glasses } from "@solar-icons/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { getApiDeviceRegister } from "@/api/device/device";
@@ -44,7 +39,7 @@ const MODE_OPTIONS: readonly ModeOption[] = [
 		title: "Standalone VR",
 		description:
 			"The game runs directly on the headset — for example a Meta Quest 3 or a similar standalone VR device.",
-		icon: AugmentedReality,
+		icon: Glasses,
 	},
 ];
 
@@ -113,21 +108,24 @@ export function AddDeviceDialog({
 		return () => clearInterval(interval);
 	}, [pinData]);
 
+	// Both modes need the API port the server listens on; PCVR only differs by
+	// using the loopback host instead of the queried LAN address.
 	const {
-		data: serverInfo,
+		data: serverResponse,
 		isLoading: serverLoading,
 		isError: serverError,
 	} = useGetApiServer({
-		query: { enabled: open && mode === "standalone" },
+		query: { enabled: open && mode !== null },
 	});
 
 	const minutes = Math.floor(timeLeft / 60000);
 	const seconds = Math.floor((timeLeft % 60000) / 1000);
 
-	const address =
-		mode === "pcvr" ? "127.0.0.1" : (serverInfo?.data.hostAddress ?? "");
-	const addressLoading = mode === "standalone" && serverLoading;
-	const addressError = mode === "standalone" && serverError;
+	const serverInfo = serverResponse?.data;
+	const host = mode === "pcvr" ? "127.0.0.1" : (serverInfo?.hostAddress ?? "");
+	const address = serverInfo ? `${host}:${serverInfo.apiPort}` : "";
+	const addressLoading = mode !== null && serverLoading;
+	const addressError = mode !== null && serverError;
 
 	const handleCopyAddress = () => {
 		if (!address) return;
