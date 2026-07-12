@@ -47,10 +47,6 @@ export function Dashboard() {
 				</p>
 			</div>
 
-			{stats && Number(stats.totalPlays) > 0 && (
-				<SessionSummary title="Last session" />
-			)}
-
 			{statsQuery.isLoading && (
 				<div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
 					{[0, 1, 2, 3].map((i) => (
@@ -133,6 +129,8 @@ export function Dashboard() {
 							</CardContent>
 						</Card>
 					)}
+
+					<SessionSummary title="Last session" />
 
 					<div className="grid gap-4 lg:grid-cols-2">
 						<Card>
