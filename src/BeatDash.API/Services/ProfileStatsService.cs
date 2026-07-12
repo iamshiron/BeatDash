@@ -31,6 +31,12 @@ public interface IProfileStatsService {
     /// the player's average on the same difficulty. Null if not found or not owned.
     /// </summary>
     Task<SessionRecapDto?> GetRecapAsync(Guid userId, Guid sessionId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Summary of the player's most recent "sitting" — the latest contiguous cluster
+    /// of plays with no long idle gap between them. Null if they've never played.
+    /// </summary>
+    Task<SessionSummaryDto?> GetLatestSessionSummaryAsync(Guid userId, CancellationToken ct = default);
 }
 
 /// <inheritdoc />
@@ -411,6 +417,82 @@ public sealed class ProfileStatsService(BeatDashDbContext db) : IProfileStatsSer
             vsPrevious,
             vsAverage,
             isNewPersonalBest);
+    }
+
+    // Plays farther apart than this start a new sitting.
+    private static readonly TimeSpan SittingGap = TimeSpan.FromMinutes(45);
+
+    /// <inheritdoc />
+    public async Task<SessionSummaryDto?> GetLatestSessionSummaryAsync(Guid userId, CancellationToken ct = default) {
+        // Newest completed non-auto plays; capped since a sitting is a short recent window.
+        var recent = await db.PlaySessions
+            .AsNoTracking()
+            .Where(s =>
+                s.UserId == userId &&
+                !s.AutoMode &&
+                s.EndReason == PlaySessionEndReason.Finished &&
+                s.Results != null)
+            .OrderByDescending(s => s.StartedAt)
+            .Include(s => s.BeatmapDifficulty.Beatmap)
+            .Take(200)
+            .ToListAsync(ct);
+
+        if (recent.Count == 0) return null;
+
+        // Walk back from the most recent play while the idle gap stays small.
+        var sitting = new List<PlaySession> { recent[0] };
+        var earliestStart = recent[0].StartedAt;
+        for (var i = 1; i < recent.Count; i++) {
+            var play = recent[i];
+            var playEnd = play.EndedAt ?? play.StartedAt;
+            if (earliestStart - playEnd > SittingGap) break;
+            sitting.Add(play);
+            if (play.StartedAt < earliestStart) earliestStart = play.StartedAt;
+        }
+        sitting.Reverse(); // chronological
+
+        // Best score per difficulty across all plays, to flag PBs achieved this sitting.
+        var difficultyIds = sitting.Select(s => s.BeatmapDifficultyId).Distinct().ToList();
+        var bestScores = await db.PlaySessions
+            .AsNoTracking()
+            .Where(s =>
+                s.UserId == userId &&
+                !s.AutoMode &&
+                s.EndReason == PlaySessionEndReason.Finished &&
+                s.Results != null &&
+                difficultyIds.Contains(s.BeatmapDifficultyId))
+            .GroupBy(s => s.BeatmapDifficultyId)
+            .Select(g => new { DifficultyId = g.Key, MaxScore = g.Max(x => x.Results!.Score) })
+            .ToDictionaryAsync(x => x.DifficultyId, x => x.MaxScore, ct);
+
+        var playIds = sitting.Select(s => s.Id).ToList();
+        var totalSaberTravel = await db.PlaySessionMotionSummaries
+            .AsNoTracking()
+            .Where(m => playIds.Contains(m.PlaySessionId))
+            .SumAsync(m => m.LeftSaberTravel + m.RightSaberTravel, ct);
+
+        bool IsPb(PlaySession s) =>
+            bestScores.TryGetValue(s.BeatmapDifficultyId, out var max) && s.Results!.Score == max;
+
+        var plays = sitting.Select(s => PlaySessionListItemDto.From(s, IsPb(s))).ToList();
+        var best = sitting.OrderByDescending(s => s.Results!.Accuracy).First();
+
+        return new SessionSummaryDto(
+            sitting.First().StartedAt,
+            sitting.Max(s => s.EndedAt ?? s.StartedAt),
+            sitting.Count,
+            sitting.Sum(s => (long) s.Results!.EndSongTimeMs),
+            sitting.Average(s => s.Results!.Accuracy),
+            sitting.Count(s => s.Results!.FullCombo),
+            sitting.Select(s => s.BeatmapDifficulty.BeatmapId).Distinct().Count(),
+            sitting.Count(IsPb),
+            totalSaberTravel,
+            sitting
+                .GroupBy(s => s.Results!.Rank)
+                .Select(g => new RankCountDto(g.Key, g.Count()))
+                .ToList(),
+            plays,
+            PlaySessionListItemDto.From(best, IsPb(best)));
     }
 
     private static PlaySessionResultsDto? ToResultsDto(AttemptResult? a) => a is { } r

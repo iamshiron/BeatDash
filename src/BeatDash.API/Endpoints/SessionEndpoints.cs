@@ -349,6 +349,21 @@ public static class SessionEndpoints {
             .Produces<SkillProfileDto>()
             .Produces(401);
 
+        group.MapGet("/latest-summary", async (
+            ClaimsPrincipal user,
+            IProfileStatsService profileStats,
+            CancellationToken ct) => {
+                var userId = IdentityUtils.GetUserID(user);
+                if (!userId.HasValue) return Results.Unauthorized();
+
+                var summary = await profileStats.GetLatestSessionSummaryAsync(userId.Value, ct);
+                return summary is null ? Results.NoContent() : Results.Ok(summary);
+            })
+            .RequireAuthorization()
+            .Produces<SessionSummaryDto>()
+            .Produces(204)
+            .Produces(401);
+
         group.MapGet("/recommendations", async (
             int? limit,
             ClaimsPrincipal user,
