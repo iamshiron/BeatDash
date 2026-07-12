@@ -100,7 +100,7 @@ export function SessionRow({
 	}
 
 	return (
-		<Link to="/sessions/$id" params={{ id: session.id }} className={className}>
+		<Link to="/plays/$id" params={{ id: session.id }} className={className}>
 			{content}
 		</Link>
 	);

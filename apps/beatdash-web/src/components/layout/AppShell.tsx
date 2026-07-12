@@ -40,7 +40,7 @@ export function AppShell({
 									<Link to="/maps">Maps</Link>
 								</Button>
 								<Button variant="ghost" size="sm" asChild>
-									<Link to="/sessions">Sessions</Link>
+									<Link to="/plays">Plays</Link>
 								</Button>
 								<Button variant="ghost" size="sm" asChild>
 									<Link to="/analysis">Analysis</Link>

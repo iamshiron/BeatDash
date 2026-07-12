@@ -405,7 +405,7 @@ function AttemptProgression({
 					Your attempts ({attempts.length})
 				</span>
 				<Link
-					to="/sessions/$id"
+					to="/plays/$id"
 					params={{ id: bestId }}
 					className="text-xs text-primary hover:underline"
 				>

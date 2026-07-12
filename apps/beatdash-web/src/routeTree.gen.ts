@@ -16,11 +16,11 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AnalysisRouteImport } from './routes/analysis'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as SessionsIndexRouteImport } from './routes/sessions/index'
+import { Route as PlaysIndexRouteImport } from './routes/plays/index'
 import { Route as MapsIndexRouteImport } from './routes/maps/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as UHandleRouteImport } from './routes/u/$handle'
-import { Route as SessionsIdRouteImport } from './routes/sessions/$id'
+import { Route as PlaysIdRouteImport } from './routes/plays/$id'
 import { Route as MapsIdRouteImport } from './routes/maps/$id'
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
@@ -61,9 +61,9 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SessionsIndexRoute = SessionsIndexRouteImport.update({
-  id: '/sessions/',
-  path: '/sessions/',
+const PlaysIndexRoute = PlaysIndexRouteImport.update({
+  id: '/plays/',
+  path: '/plays/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MapsIndexRoute = MapsIndexRouteImport.update({
@@ -81,9 +81,9 @@ const UHandleRoute = UHandleRouteImport.update({
   path: '/u/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SessionsIdRoute = SessionsIdRouteImport.update({
-  id: '/sessions/$id',
-  path: '/sessions/$id',
+const PlaysIdRoute = PlaysIdRouteImport.update({
+  id: '/plays/$id',
+  path: '/plays/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MapsIdRoute = MapsIdRouteImport.update({
@@ -119,11 +119,11 @@ export interface FileRoutesByFullPath {
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/maps/$id': typeof MapsIdRoute
-  '/sessions/$id': typeof SessionsIdRoute
+  '/plays/$id': typeof PlaysIdRoute
   '/u/$handle': typeof UHandleRoute
   '/admin/': typeof AdminIndexRoute
   '/maps/': typeof MapsIndexRoute
-  '/sessions/': typeof SessionsIndexRoute
+  '/plays/': typeof PlaysIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -136,11 +136,11 @@ export interface FileRoutesByTo {
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/maps/$id': typeof MapsIdRoute
-  '/sessions/$id': typeof SessionsIdRoute
+  '/plays/$id': typeof PlaysIdRoute
   '/u/$handle': typeof UHandleRoute
   '/admin': typeof AdminIndexRoute
   '/maps': typeof MapsIndexRoute
-  '/sessions': typeof SessionsIndexRoute
+  '/plays': typeof PlaysIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -155,11 +155,11 @@ export interface FileRoutesById {
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/maps/$id': typeof MapsIdRoute
-  '/sessions/$id': typeof SessionsIdRoute
+  '/plays/$id': typeof PlaysIdRoute
   '/u/$handle': typeof UHandleRoute
   '/admin/': typeof AdminIndexRoute
   '/maps/': typeof MapsIndexRoute
-  '/sessions/': typeof SessionsIndexRoute
+  '/plays/': typeof PlaysIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -175,11 +175,11 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/register'
     | '/maps/$id'
-    | '/sessions/$id'
+    | '/plays/$id'
     | '/u/$handle'
     | '/admin/'
     | '/maps/'
-    | '/sessions/'
+    | '/plays/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -192,11 +192,11 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/register'
     | '/maps/$id'
-    | '/sessions/$id'
+    | '/plays/$id'
     | '/u/$handle'
     | '/admin'
     | '/maps'
-    | '/sessions'
+    | '/plays'
   id:
     | '__root__'
     | '/'
@@ -210,11 +210,11 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/register'
     | '/maps/$id'
-    | '/sessions/$id'
+    | '/plays/$id'
     | '/u/$handle'
     | '/admin/'
     | '/maps/'
-    | '/sessions/'
+    | '/plays/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -226,10 +226,10 @@ export interface RootRouteChildren {
   LiveRoute: typeof LiveRoute
   SettingsRoute: typeof SettingsRoute
   MapsIdRoute: typeof MapsIdRoute
-  SessionsIdRoute: typeof SessionsIdRoute
+  PlaysIdRoute: typeof PlaysIdRoute
   UHandleRoute: typeof UHandleRoute
   MapsIndexRoute: typeof MapsIndexRoute
-  SessionsIndexRoute: typeof SessionsIndexRoute
+  PlaysIndexRoute: typeof PlaysIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -283,11 +283,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/sessions/': {
-      id: '/sessions/'
-      path: '/sessions'
-      fullPath: '/sessions/'
-      preLoaderRoute: typeof SessionsIndexRouteImport
+    '/plays/': {
+      id: '/plays/'
+      path: '/plays'
+      fullPath: '/plays/'
+      preLoaderRoute: typeof PlaysIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/maps/': {
@@ -311,11 +311,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UHandleRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/sessions/$id': {
-      id: '/sessions/$id'
-      path: '/sessions/$id'
-      fullPath: '/sessions/$id'
-      preLoaderRoute: typeof SessionsIdRouteImport
+    '/plays/$id': {
+      id: '/plays/$id'
+      path: '/plays/$id'
+      fullPath: '/plays/$id'
+      preLoaderRoute: typeof PlaysIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/maps/$id': {
@@ -382,10 +382,10 @@ const rootRouteChildren: RootRouteChildren = {
   LiveRoute: LiveRoute,
   SettingsRoute: SettingsRoute,
   MapsIdRoute: MapsIdRoute,
-  SessionsIdRoute: SessionsIdRoute,
+  PlaysIdRoute: PlaysIdRoute,
   UHandleRoute: UHandleRoute,
   MapsIndexRoute: MapsIndexRoute,
-  SessionsIndexRoute: SessionsIndexRoute,
+  PlaysIndexRoute: PlaysIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

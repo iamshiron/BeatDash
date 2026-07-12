@@ -77,6 +77,7 @@ export * from './serverInfoDto.ts';
 export * from './sessionDto.ts';
 export * from './sessionRecapDto.ts';
 export * from './sessionSortBy.ts';
+export * from './sessionSummaryDto.ts';
 export * from './sessionTopDifficultyDto.ts';
 export * from './skillCharacteristicDto.ts';
 export * from './skillProfileDto.ts';

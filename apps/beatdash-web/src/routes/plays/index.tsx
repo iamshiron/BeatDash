@@ -1,10 +1,3 @@
-import {
-	AltArrowLeft,
-	AltArrowRight,
-	ClockCircle,
-	Magnifer,
-	CloseCircle,
-} from "@solar-icons/react";
 import { Badge } from "@shiron/ui/components/ui/badge";
 import { Button } from "@shiron/ui/components/ui/button";
 import {
@@ -23,6 +16,13 @@ import {
 	SelectValue,
 } from "@shiron/ui/components/ui/select";
 import { Skeleton } from "@shiron/ui/components/ui/skeleton";
+import {
+	AltArrowLeft,
+	AltArrowRight,
+	ClockCircle,
+	CloseCircle,
+	Magnifer,
+} from "@solar-icons/react";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useGetApiSessions } from "@/api/sessions/sessions";
@@ -39,7 +39,7 @@ import {
 	toApiParams,
 } from "@/lib/sessions";
 
-export const Route = createFileRoute("/sessions/")({
+export const Route = createFileRoute("/plays/")({
 	beforeLoad: ({ context }) => {
 		if (!context.auth.isAuthenticated) {
 			throw redirect({ to: "/auth/login", replace: true });
@@ -64,7 +64,7 @@ function SessionsListPage() {
 		const timer = setTimeout(() => {
 			if (inputValue !== search.q) {
 				navigate({
-					to: "/sessions",
+					to: "/plays",
 					search: { ...search, q: inputValue, page: 1 },
 				});
 			}
@@ -74,7 +74,7 @@ function SessionsListPage() {
 
 	function updateSearch(updates: Partial<SessionSearchParams>) {
 		navigate({
-			to: "/sessions",
+			to: "/plays",
 			search: { ...search, ...updates, q: inputValue },
 		});
 	}
@@ -111,10 +111,10 @@ function SessionsListPage() {
 			<div className="flex flex-wrap items-end justify-between gap-3">
 				<div>
 					<h1 className="font-heading text-xl font-bold tracking-tight">
-						Sessions
+						Plays
 					</h1>
 					<p className="mt-0.5 text-xs text-muted-foreground">
-						{totalCount} {totalCount === 1 ? "session" : "sessions"}
+						{totalCount} {totalCount === 1 ? "play" : "plays"}
 					</p>
 				</div>
 				<div className="flex flex-wrap items-center gap-2">
@@ -211,11 +211,11 @@ function SessionsListPage() {
 							<ClockCircle />
 						</EmptyMedia>
 						<EmptyTitle>
-							{isGenuinelyEmpty ? "No sessions yet" : "No sessions found"}
+							{isGenuinelyEmpty ? "No plays yet" : "No plays found"}
 						</EmptyTitle>
 						<EmptyDescription>
 							{isGenuinelyEmpty
-								? "Play a map on your headset to see sessions here."
+								? "Play a map on your headset to see plays here."
 								: "Try adjusting your filters or search term."}
 						</EmptyDescription>
 					</EmptyHeader>

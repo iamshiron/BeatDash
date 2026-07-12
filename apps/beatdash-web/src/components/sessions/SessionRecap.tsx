@@ -72,7 +72,7 @@ export function SessionRecap({ recap }: { recap: SessionRecapDto }) {
 				<div className="flex items-center justify-between gap-4">
 					<div className="flex items-center gap-2">
 						<span className="font-heading text-sm font-semibold text-muted-foreground">
-							Session summary
+							Play summary
 						</span>
 						{recap.isNewPersonalBest && (
 							<Badge className="gap-1 border-amber-500/30 bg-amber-500/15 text-amber-400">

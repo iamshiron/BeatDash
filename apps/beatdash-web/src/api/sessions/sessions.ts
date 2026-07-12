@@ -34,6 +34,7 @@ import type {
   PlaySessionTimelineDto,
   PracticeRecommendationDto,
   SessionRecapDto,
+  SessionSummaryDto,
   SessionTopDifficultyDto,
   SkillProfileDto,
   SkillProgressionDto,
@@ -1042,6 +1043,131 @@ export function useGetApiSessionsSkill<TData = Awaited<ReturnType<typeof getApiS
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetApiSessionsSkillQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export type getApiSessionsLatestSummaryResponse200 = {
+  data: SessionSummaryDto
+  status: 200
+}
+
+export type getApiSessionsLatestSummaryResponse204 = {
+  data: void
+  status: 204
+}
+
+export type getApiSessionsLatestSummaryResponse401 = {
+  data: void
+  status: 401
+}
+
+export type getApiSessionsLatestSummaryResponseSuccess = (getApiSessionsLatestSummaryResponse200 | getApiSessionsLatestSummaryResponse204) & {
+  headers: Headers;
+};
+export type getApiSessionsLatestSummaryResponseError = (getApiSessionsLatestSummaryResponse401) & {
+  headers: Headers;
+};
+
+export type getApiSessionsLatestSummaryResponse = (getApiSessionsLatestSummaryResponseSuccess | getApiSessionsLatestSummaryResponseError)
+
+export const getGetApiSessionsLatestSummaryUrl = () => {
+
+
+
+
+  return `/api/sessions/latest-summary`
+}
+
+export const getApiSessionsLatestSummary = async ( options?: RequestInit): Promise<getApiSessionsLatestSummaryResponse> => {
+
+  const res = await fetch(getGetApiSessionsLatestSummaryUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: getApiSessionsLatestSummaryResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as getApiSessionsLatestSummaryResponse
+}
+
+
+
+
+
+export const getGetApiSessionsLatestSummaryQueryKey = () => {
+    return [
+    `/api/sessions/latest-summary`
+    ] as const;
+    }
+
+
+export const getGetApiSessionsLatestSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getApiSessionsLatestSummary>>, TError = void>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiSessionsLatestSummary>>, TError, TData>>, fetch?: RequestInit}
+) => {
+
+const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetApiSessionsLatestSummaryQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiSessionsLatestSummary>>> = ({ signal }) => getApiSessionsLatestSummary({ signal, ...fetchOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiSessionsLatestSummary>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetApiSessionsLatestSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof getApiSessionsLatestSummary>>>
+export type GetApiSessionsLatestSummaryQueryError = void
+
+
+export function useGetApiSessionsLatestSummary<TData = Awaited<ReturnType<typeof getApiSessionsLatestSummary>>, TError = void>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiSessionsLatestSummary>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiSessionsLatestSummary>>,
+          TError,
+          Awaited<ReturnType<typeof getApiSessionsLatestSummary>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiSessionsLatestSummary<TData = Awaited<ReturnType<typeof getApiSessionsLatestSummary>>, TError = void>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiSessionsLatestSummary>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiSessionsLatestSummary>>,
+          TError,
+          Awaited<ReturnType<typeof getApiSessionsLatestSummary>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiSessionsLatestSummary<TData = Awaited<ReturnType<typeof getApiSessionsLatestSummary>>, TError = void>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiSessionsLatestSummary>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetApiSessionsLatestSummary<TData = Awaited<ReturnType<typeof getApiSessionsLatestSummary>>, TError = void>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiSessionsLatestSummary>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetApiSessionsLatestSummaryQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

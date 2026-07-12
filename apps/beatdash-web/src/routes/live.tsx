@@ -31,6 +31,7 @@ import { getGetApiMapsMapIdCoverUrl } from "@/api/maps/maps";
 import type { PersonalBestDto } from "@/api/model";
 import { useGetApiSessionsPb } from "@/api/sessions/sessions";
 import { AppShell } from "@/components/layout/AppShell";
+import { SessionSummary } from "@/components/sessions/SessionSummary";
 import {
 	type LiveMapStartedEvent,
 	type MapResults,
@@ -136,17 +137,21 @@ function LivePage() {
 	if (!currentMap) {
 		return (
 			<AppShell wide>
-				<div className="flex flex-col items-center gap-6 py-24">
-					<div className="relative flex size-5">
-						<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
-						<span className="relative inline-flex size-5 rounded-full bg-emerald-500" />
+				<div className="flex flex-col gap-8 py-10">
+					<div className="flex flex-col items-center gap-4">
+						<div className="relative flex size-5">
+							<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
+							<span className="relative inline-flex size-5 rounded-full bg-emerald-500" />
+						</div>
+						<div className="space-y-1 text-center">
+							<p className="font-medium">{onlineDevice.name}</p>
+							<p className="text-sm text-muted-foreground">
+								Waiting for a map to start…
+							</p>
+						</div>
 					</div>
-					<div className="space-y-1 text-center">
-						<p className="font-medium">{onlineDevice.name}</p>
-						<p className="text-sm text-muted-foreground">
-							Waiting for a map to start…
-						</p>
-					</div>
+					{/* When idle (i.e. done playing), recap the sitting just finished. */}
+					<SessionSummary title="Your last session" />
 				</div>
 			</AppShell>
 		);
@@ -523,7 +528,7 @@ function LiveSessionRecap({
 			<div className="flex items-center justify-between gap-4">
 				<div className="flex items-center gap-2">
 					<span className="font-heading text-sm font-semibold text-muted-foreground">
-						Session complete
+						Play complete
 					</span>
 					{beatenPb && (
 						<Badge className="border-amber-500/30 bg-amber-500/15 text-amber-400">
@@ -574,8 +579,8 @@ function LiveSessionRecap({
 						</>
 					)}
 				</span>
-				<Link to="/sessions" className="text-primary hover:underline">
-					View sessions
+				<Link to="/plays" className="text-primary hover:underline">
+					View plays
 				</Link>
 			</div>
 		</div>

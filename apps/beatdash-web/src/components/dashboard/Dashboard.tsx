@@ -1,8 +1,3 @@
-import {
-	ClockCircle,
-	MusicNotes,
-	Target,
-} from "@solar-icons/react";
 import { Button } from "@shiron/ui/components/ui/button";
 import {
 	Card,
@@ -12,6 +7,7 @@ import {
 } from "@shiron/ui/components/ui/card";
 import { Skeleton } from "@shiron/ui/components/ui/skeleton";
 import { cn } from "@shiron/ui/lib/utils";
+import { ClockCircle, MusicNotes, Target } from "@solar-icons/react";
 import { Link } from "@tanstack/react-router";
 import { useGetApiSessionsStats } from "@/api/sessions/sessions";
 import { AccuracyTrend } from "@/components/dashboard/AccuracyTrend";
@@ -20,6 +16,7 @@ import { SkillProfile } from "@/components/dashboard/SkillProfile";
 import { MostPlayedRow } from "@/components/profile/MostPlayedRow";
 import { SessionRow } from "@/components/profile/SessionRow";
 import { StatTile } from "@/components/profile/StatTile";
+import { SessionSummary } from "@/components/sessions/SessionSummary";
 import { useAuth } from "@/contexts/auth";
 import { formatAccuracy, formatScore, RANK_STYLES } from "@/lib/sessions";
 
@@ -46,9 +43,13 @@ export function Dashboard() {
 					Welcome back, <span className="text-primary">{name}</span>
 				</h1>
 				<p className="mt-1 text-sm text-muted-foreground">
-					Here's how your Beat Saber sessions are shaping up.
+					Here's how your Beat Saber plays are shaping up.
 				</p>
 			</div>
+
+			{stats && Number(stats.totalPlays) > 0 && (
+				<SessionSummary title="Last session" />
+			)}
 
 			{statsQuery.isLoading && (
 				<div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

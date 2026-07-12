@@ -1,6 +1,6 @@
-import { MusicNotes, Cpu } from "@solar-icons/react";
 import { Badge } from "@shiron/ui/components/ui/badge";
 import { cn } from "@shiron/ui/lib/utils";
+import { Cpu, MusicNotes } from "@solar-icons/react";
 import { Link, useSearch } from "@tanstack/react-router";
 import { formatDistanceToNow } from "date-fns";
 import { useState } from "react";
@@ -17,14 +17,14 @@ import {
 export function SessionCard({ session }: { session: PlaySessionListItemDto }) {
 	const results = session.results;
 	const [coverFailed, setCoverFailed] = useState(false);
-	const sessionSearch = useSearch({ from: "/sessions/" });
+	const sessionSearch = useSearch({ from: "/plays/" });
 	const diffStyle =
 		DIFFICULTY_STYLES[session.difficultyRank] ??
 		"border-border bg-muted text-muted-foreground";
 
 	return (
 		<Link
-			to="/sessions/$id"
+			to="/plays/$id"
 			params={{ id: session.id }}
 			search={sessionSearch}
 			className="block"

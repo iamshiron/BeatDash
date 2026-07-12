@@ -63,7 +63,7 @@ const comboMissesChartConfig = {
 	misses: { label: "Misses", color: "oklch(0.64 0.21 25)" },
 } satisfies ChartConfig;
 
-export const Route = createFileRoute("/sessions/$id")({
+export const Route = createFileRoute("/plays/$id")({
 	beforeLoad: ({ context }) => {
 		if (!context.auth.isAuthenticated) {
 			throw redirect({ to: "/auth/login", replace: true });
@@ -157,9 +157,9 @@ function SessionDetailPage() {
 	return (
 		<AppShell wide>
 			<Button variant="ghost" size="sm" asChild className="mb-4 -ml-2 w-fit">
-				<Link to="/sessions" search={listSearch}>
+				<Link to="/plays" search={listSearch}>
 					<ArrowLeft className="size-4" />
-					Sessions
+					Plays
 				</Link>
 			</Button>
 
@@ -453,7 +453,7 @@ function SessionDetailPage() {
 				<Card>
 					<CardContent className="py-12 text-center">
 						<p className="text-sm text-muted-foreground">
-							This session is still in progress. Detailed stats will appear here
+							This play is still in progress. Detailed stats will appear here
 							once it completes.
 						</p>
 					</CardContent>

@@ -1,4 +1,3 @@
-import { Cup } from "@solar-icons/react";
 import { Badge } from "@shiron/ui/components/ui/badge";
 import {
 	Card,
@@ -13,6 +12,7 @@ import {
 	TabsTrigger,
 } from "@shiron/ui/components/ui/tabs";
 import { cn } from "@shiron/ui/lib/utils";
+import { Cup } from "@solar-icons/react";
 import { Link, useSearch } from "@tanstack/react-router";
 import { formatDistanceToNow } from "date-fns";
 import type {
@@ -40,7 +40,7 @@ export function TopSessions({
 	difficulties: SessionTopDifficultyDto[];
 	currentId: string;
 }) {
-	const sessionSearch = useSearch({ from: "/sessions/$id" });
+	const sessionSearch = useSearch({ from: "/plays/$id" });
 
 	if (!difficulties.some((d) => d.sessions.length > 0)) return null;
 
@@ -119,7 +119,7 @@ function TopSessionRow({
 
 	return (
 		<Link
-			to="/sessions/$id"
+			to="/plays/$id"
 			params={{ id: session.id }}
 			search={search}
 			className={cn(
