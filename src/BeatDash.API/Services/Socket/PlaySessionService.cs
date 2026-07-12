@@ -39,6 +39,7 @@ public interface IPlaySessionService {
 public sealed class PlaySessionService(
     IDbContextFactory<BeatDashDbContext> dbFactory,
     IPlaySessionStore sessionStore,
+    IWeaknessAggregationService weaknessAggregation,
     ILogger<PlaySessionService> logger
 ) : IPlaySessionService {
 
@@ -151,6 +152,18 @@ public sealed class PlaySessionService(
         logger.LogInformation(
             "Ended play session {SessionId} with results (corr={CorrelationId}, reason={EndReason}, rank={Rank}, score={Score})",
             sessionId, correlationId, session.EndReason, results.Rank, results.Score);
+
+        // Fold this play's notes into the lifetime weakness aggregate. Cheap (a few
+        // hundred rows), but guarded so an aggregation failure never fails finalization.
+        if (session is { EndReason: PlaySessionEndReason.Finished, AutoMode: false }) {
+            try {
+                await weaknessAggregation.FoldSessionAsync(sessionId, ct);
+            } catch (Exception ex) when (ex is not OperationCanceledException) {
+                logger.LogError(ex,
+                    "Failed to fold weakness aggregate for play session {SessionId} (corr={CorrelationId})",
+                    sessionId, correlationId);
+            }
+        }
     }
 
     /// <summary>

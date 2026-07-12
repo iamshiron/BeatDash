@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Shiron.BeatDash.API.Services;
 using Shiron.BeatDash.DB;
@@ -163,8 +164,9 @@ public static class SessionEndpoints {
                 var noteCount = await db.PlaySessionNoteItems.CountAsync(i => i.PlaySessionId == id, ct);
                 var comboBreakCount = await db.PlaySessionComboBreakItems.CountAsync(i => i.PlaySessionId == id, ct);
                 var hasMotionData = await db.PlaySessionItemMotionFrames.AnyAsync(i => i.PlaySessionId == id, ct);
+                var hasMotionSummary = await db.PlaySessionMotionSummaries.AnyAsync(i => i.PlaySessionId == id, ct);
 
-                return Results.Ok(PlaySessionDetailDto.From(session, noteCount, comboBreakCount, hasMotionData));
+                return Results.Ok(PlaySessionDetailDto.From(session, noteCount, comboBreakCount, hasMotionData, hasMotionSummary));
             })
             .RequireAuthorization()
             .Produces<PlaySessionDetailDto>()
@@ -286,6 +288,41 @@ public static class SessionEndpoints {
             .Produces(404)
             .Produces(401);
 
+        group.MapGet("/{id:Guid}/motion-summary", async (
+            Guid id,
+            ClaimsPrincipal user,
+            BeatDashDbContext db,
+            CancellationToken ct) => {
+                var userId = IdentityUtils.GetUserID(user);
+                if (!userId.HasValue) return Results.Unauthorized();
+
+                var owns = await db.PlaySessions.AnyAsync(s => s.Id == id && s.UserId == userId.Value, ct);
+                if (!owns) return Results.NotFound();
+
+                var summary = await db.PlaySessionMotionSummaries
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(m => m.PlaySessionId == id, ct);
+                if (summary is null) return Results.NotFound();
+
+                var fatigue = DeserializeFatigue(summary.FatigueCurve);
+                return Results.Ok(new MotionSummaryDto(
+                    summary.FrameCount,
+                    summary.SampleRateHz,
+                    summary.LeftSaberTravel,
+                    summary.RightSaberTravel,
+                    summary.HeadTravel,
+                    summary.AvgLeftSaberSpeed,
+                    summary.AvgRightSaberSpeed,
+                    summary.LeftReachRange,
+                    summary.RightReachRange,
+                    summary.HeadRange,
+                    fatigue));
+            })
+            .RequireAuthorization()
+            .Produces<MotionSummaryDto>()
+            .Produces(404)
+            .Produces(401);
+
         group.MapGet("/stats", async (
             ClaimsPrincipal user,
             IProfileStatsService profileStats,
@@ -310,6 +347,48 @@ public static class SessionEndpoints {
             })
             .RequireAuthorization()
             .Produces<SkillProfileDto>()
+            .Produces(401);
+
+        group.MapGet("/recommendations", async (
+            int? limit,
+            ClaimsPrincipal user,
+            IPracticeRecommendationService recommendations,
+            CancellationToken ct) => {
+                var userId = IdentityUtils.GetUserID(user);
+                if (!userId.HasValue) return Results.Unauthorized();
+
+                return Results.Ok(await recommendations.GetRecommendationsAsync(userId.Value, limit ?? 10, ct));
+            })
+            .RequireAuthorization()
+            .Produces<IList<PracticeRecommendationDto>>()
+            .Produces(401);
+
+        group.MapGet("/skill/progression", async (
+            int? weeks,
+            ClaimsPrincipal user,
+            IProfileStatsService profileStats,
+            CancellationToken ct) => {
+                var userId = IdentityUtils.GetUserID(user);
+                if (!userId.HasValue) return Results.Unauthorized();
+
+                return Results.Ok(await profileStats.GetSkillProgressionAsync(userId.Value, weeks ?? 12, ct));
+            })
+            .RequireAuthorization()
+            .Produces<SkillProgressionDto>()
+            .Produces(401);
+
+        group.MapGet("/weakness", async (
+            string? characteristic,
+            ClaimsPrincipal user,
+            IProfileStatsService profileStats,
+            CancellationToken ct) => {
+                var userId = IdentityUtils.GetUserID(user);
+                if (!userId.HasValue) return Results.Unauthorized();
+
+                return Results.Ok(await profileStats.GetWeaknessAsync(userId.Value, characteristic, ct));
+            })
+            .RequireAuthorization()
+            .Produces<WeaknessProfileDto>()
             .Produces(401);
 
         group.MapGet("/trends", async (
@@ -397,6 +476,22 @@ public static class SessionEndpoints {
             .Produces(400)
             .Produces(401);
 
+        group.MapGet("/{id:Guid}/recap", async (
+            Guid id,
+            ClaimsPrincipal user,
+            IProfileStatsService profileStats,
+            CancellationToken ct) => {
+                var userId = IdentityUtils.GetUserID(user);
+                if (!userId.HasValue) return Results.Unauthorized();
+
+                var recap = await profileStats.GetRecapAsync(userId.Value, id, ct);
+                return recap is null ? Results.NotFound() : Results.Ok(recap);
+            })
+            .RequireAuthorization()
+            .Produces<SessionRecapDto>()
+            .Produces(404)
+            .Produces(401);
+
         group.MapGet("/{id:Guid}/top", async (
             Guid id,
             ClaimsPrincipal user,
@@ -461,6 +556,23 @@ public static class SessionEndpoints {
             .Produces(401);
     }
 
+    private static readonly JsonSerializerOptions FatigueJsonOptions = new() { PropertyNameCaseInsensitive = true };
+
+    // Maps the stored fatigue JSON ({tMs,leftSpeed,rightSpeed}) to the response DTO.
+    private static IList<FatiguePointDto> DeserializeFatigue(string json) {
+        if (string.IsNullOrEmpty(json)) return [];
+        try {
+            var raw = JsonSerializer.Deserialize<List<FatigueRow>>(json, FatigueJsonOptions);
+            return raw is null
+                ? []
+                : raw.Select(r => new FatiguePointDto(r.TMs, r.LeftSpeed, r.RightSpeed)).ToList();
+        } catch (JsonException) {
+            return [];
+        }
+    }
+
+    private sealed record FatigueRow(int TMs, double LeftSpeed, double RightSpeed);
+
     // A completed non-auto session is a personal best when its score matches the
     // top score recorded on its difficulty.
     private static bool IsPersonalBest(PlaySession s, IReadOnlyDictionary<Guid, int> bestScores) =>
@@ -488,6 +600,18 @@ public sealed record RankCountDto(string Rank, int Count);
 public sealed record ActivityDayDto(DateOnly Date, int Count);
 
 public sealed record SkillProfileDto(
+    IList<SkillCharacteristicDto> Characteristics,
+    int PlaysConsidered
+);
+
+/// <summary>Weekly skill-profile time series. <see cref="Characteristics"/> lists the union of axes seen across all weeks.</summary>
+public sealed record SkillProgressionDto(
+    IList<SkillProgressionWeekDto> Weeks,
+    IList<string> Characteristics
+);
+
+public sealed record SkillProgressionWeekDto(
+    DateOnly WeekStart,
     IList<SkillCharacteristicDto> Characteristics,
     int PlaysConsidered
 );
@@ -605,10 +729,11 @@ public sealed record PlaySessionDetailDto(
     PlaySessionResultsDto? Results,
     int NoteCount,
     int ComboBreakCount,
-    bool HasMotionData
+    bool HasMotionData,
+    bool HasMotionSummary
 ) {
     internal static PlaySessionDetailDto From(
-        PlaySession s, int noteCount, int comboBreakCount, bool hasMotionData) => new(
+        PlaySession s, int noteCount, int comboBreakCount, bool hasMotionData, bool hasMotionSummary) => new(
         s.Id,
         s.StartedAt,
         s.EndedAt,
@@ -620,7 +745,8 @@ public sealed record PlaySessionDetailDto(
         PlaySessionResultsDto.From(s.Results),
         noteCount,
         comboBreakCount,
-        hasMotionData
+        hasMotionData,
+        hasMotionSummary
     );
 }
 
@@ -725,3 +851,21 @@ public sealed record MotionSegmentDto(
     int FrameCount,
     string Data
 );
+
+/// <summary>Server-computed motion metrics for a play (see <c>MotionSummaryCalculator</c>).</summary>
+public sealed record MotionSummaryDto(
+    int FrameCount,
+    int SampleRateHz,
+    double LeftSaberTravel,
+    double RightSaberTravel,
+    double HeadTravel,
+    double AvgLeftSaberSpeed,
+    double AvgRightSaberSpeed,
+    double LeftReachRange,
+    double RightReachRange,
+    double HeadRange,
+    IList<FatiguePointDto> FatigueCurve
+);
+
+/// <summary>One fatigue-curve point: average saber speed (m/s) at a song time.</summary>
+public sealed record FatiguePointDto(int SongTimeMs, double LeftSpeed, double RightSpeed);

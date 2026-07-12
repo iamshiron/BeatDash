@@ -33,6 +33,13 @@ public class PlaySession {
     /// <summary>Final results, populated when the session reaches a terminal state.</summary>
     public PlaySessionResults? Results { get; set; }
 
+    /// <summary>
+    /// When this session's notes were folded into the per-user
+    /// <see cref="PlayNoteAggregate"/> rollup. Null until folded; the non-null
+    /// transition is the idempotency guard that prevents double-counting.
+    /// </summary>
+    public DateTime? AggregatedAt { get; set; }
+
     // Relations
     public IList<PlaySessionNoteItem> NoteItems { get; set; } = [];
     public IList<PlaySessionComboBreakItem> ComboBreakItems { get; set; } = [];

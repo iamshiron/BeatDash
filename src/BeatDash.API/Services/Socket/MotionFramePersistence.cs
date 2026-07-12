@@ -2,6 +2,9 @@ using System.IO.Compression;
 using System.Runtime.InteropServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Shiron.BeatDash.API.Configuration;
+using Shiron.BeatDash.API.Services.Motion;
 using Shiron.BeatDash.DB;
 using Shiron.BeatDash.DB.Schema;
 
@@ -28,8 +31,10 @@ public interface IMotionFramePersistence {
 public sealed class MotionFramePersistence(
     IMotionFrameBuffer buffer,
     IDbContextFactory<BeatDashDbContext> dbFactory,
+    IOptions<MotionFrameOptions> options,
     ILogger<MotionFramePersistence> logger
 ) : IMotionFramePersistence {
+    private readonly int _sampleRateHz = Math.Max(1, options.Value.TargetHz);
 
     /// <inheritdoc/>
     public async Task PersistAsync(Guid sessionId, int correlationId, Guid playSessionId, CancellationToken ct) {
@@ -42,6 +47,11 @@ public sealed class MotionFramePersistence(
 
             var compressed = await Task.Run(() => Compress(snapshot.Samples), ct);
 
+            // Derive scalar motion metrics from the raw samples while they're still
+            // in memory, so the dashboard never has to re-decompress the blob.
+            var summary = MotionSummaryCalculator.Compute(
+                snapshot.Samples, snapshot.FrameCount, _sampleRateHz, snapshot.LastSongTimeMs, playSessionId);
+
             await using var db = await dbFactory.CreateDbContextAsync(ct);
             db.PlaySessionItemMotionFrames.Add(new PlaySessionItemMotionFrame {
                 PlaySessionId = playSessionId,
@@ -50,6 +60,7 @@ public sealed class MotionFramePersistence(
                 FrameCount = snapshot.FrameCount,
                 Data = compressed,
             });
+            db.PlaySessionMotionSummaries.Add(summary);
             await db.SaveChangesAsync(ct);
 
             logger.LogInformation(

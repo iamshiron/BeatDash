@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Shiron.BeatDash.DB;
@@ -12,9 +13,11 @@ using Shiron.BeatDash.DB;
 namespace Shiron.BeatDash.DB.Migrations
 {
     [DbContext(typeof(BeatDashDbContext))]
-    partial class BeatDashDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260712072032_AddPlayNoteAggregate")]
+    partial class AddPlayNoteAggregate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -779,57 +782,6 @@ namespace Shiron.BeatDash.DB.Migrations
                     b.UseTpcMappingStrategy();
                 });
 
-            modelBuilder.Entity("Shiron.BeatDash.DB.Schema.PlaySessionMotionSummary", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<double>("AvgLeftSaberSpeed")
-                        .HasColumnType("double precision");
-
-                    b.Property<double>("AvgRightSaberSpeed")
-                        .HasColumnType("double precision");
-
-                    b.Property<string>("FatigueCurve")
-                        .IsRequired()
-                        .HasColumnType("jsonb");
-
-                    b.Property<int>("FrameCount")
-                        .HasColumnType("integer");
-
-                    b.Property<double>("HeadRange")
-                        .HasColumnType("double precision");
-
-                    b.Property<double>("HeadTravel")
-                        .HasColumnType("double precision");
-
-                    b.Property<double>("LeftReachRange")
-                        .HasColumnType("double precision");
-
-                    b.Property<double>("LeftSaberTravel")
-                        .HasColumnType("double precision");
-
-                    b.Property<Guid>("PlaySessionId")
-                        .HasColumnType("uuid");
-
-                    b.Property<double>("RightReachRange")
-                        .HasColumnType("double precision");
-
-                    b.Property<double>("RightSaberTravel")
-                        .HasColumnType("double precision");
-
-                    b.Property<int>("SampleRateHz")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PlaySessionId")
-                        .IsUnique();
-
-                    b.ToTable("PlaySessionMotionSummaries", (string)null);
-                });
-
             modelBuilder.Entity("Shiron.BeatDash.DB.Schema.RefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1334,17 +1286,6 @@ namespace Shiron.BeatDash.DB.Migrations
                     b.Navigation("Results");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Shiron.BeatDash.DB.Schema.PlaySessionMotionSummary", b =>
-                {
-                    b.HasOne("Shiron.BeatDash.DB.Schema.PlaySession", "PlaySession")
-                        .WithOne()
-                        .HasForeignKey("Shiron.BeatDash.DB.Schema.PlaySessionMotionSummary", "PlaySessionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("PlaySession");
                 });
 
             modelBuilder.Entity("Shiron.BeatDash.DB.Schema.RefreshToken", b =>

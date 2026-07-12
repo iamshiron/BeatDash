@@ -24,6 +24,8 @@ public class BeatDashDbContext(DbContextOptions<BeatDashDbContext> options) : Id
     public DbSet<PlaySessionEnergyChangeItem> PlaySessionEnergyChangeItems => Set<PlaySessionEnergyChangeItem>();
     public DbSet<PlaySessionScoreChangeItem> PlaySessionScoreChangeItems => Set<PlaySessionScoreChangeItem>();
     public DbSet<PlaySessionItemMotionFrame> PlaySessionItemMotionFrames => Set<PlaySessionItemMotionFrame>();
+    public DbSet<PlayNoteAggregate> PlayNoteAggregates => Set<PlayNoteAggregate>();
+    public DbSet<PlaySessionMotionSummary> PlaySessionMotionSummaries => Set<PlaySessionMotionSummary>();
 
     protected override void OnModelCreating(ModelBuilder builder) {
         base.OnModelCreating(builder);
@@ -194,5 +196,35 @@ public class BeatDashDbContext(DbContextOptions<BeatDashDbContext> options) : Id
         builder.Entity<PlaySessionEnergyChangeItem>().ToTable("PlaySessionEnergyChangeItems");
         builder.Entity<PlaySessionScoreChangeItem>().ToTable("PlaySessionScoreChangeItems");
         builder.Entity<PlaySessionItemMotionFrame>().ToTable("PlaySessionItemMotionFrames");
+
+        builder.Entity<PlayNoteAggregate>(c => {
+            c.HasKey(x => x.Id);
+            // Unique per aggregation key; also the covering index for the ON CONFLICT
+            // upsert and for the per-user read that builds the weakness marginals.
+            c.HasIndex(x => new {
+                x.UserId,
+                x.CharacteristicSerializedName,
+                x.ColorType,
+                x.CutDirection,
+                x.LineIndex,
+                x.NoteLineLayer,
+            }).IsUnique();
+            c.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            c.ToTable("PlayNoteAggregates");
+        });
+
+        builder.Entity<PlaySessionMotionSummary>(c => {
+            c.HasKey(x => x.Id);
+            c.HasIndex(x => x.PlaySessionId).IsUnique();
+            c.Property(x => x.FatigueCurve).HasColumnType("jsonb");
+            c.HasOne(x => x.PlaySession)
+                .WithOne()
+                .HasForeignKey<PlaySessionMotionSummary>(x => x.PlaySessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            c.ToTable("PlaySessionMotionSummaries");
+        });
     }
 }
