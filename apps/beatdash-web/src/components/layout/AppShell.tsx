@@ -43,6 +43,9 @@ export function AppShell({
 									<Link to="/sessions">Sessions</Link>
 								</Button>
 								<Button variant="ghost" size="sm" asChild>
+									<Link to="/analysis">Analysis</Link>
+								</Button>
+								<Button variant="ghost" size="sm" asChild>
 									<Link to="/live">Live</Link>
 								</Button>
 							</div>

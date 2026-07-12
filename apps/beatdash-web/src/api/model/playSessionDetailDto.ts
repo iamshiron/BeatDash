@@ -32,4 +32,5 @@ export interface PlaySessionDetailDto {
   /** @pattern ^-?(?:0|[1-9]\d*)$ */
   comboBreakCount: number | string;
   hasMotionData: boolean;
+  hasMotionSummary: boolean;
 }
