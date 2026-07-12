@@ -1,12 +1,3 @@
-import {
-	ArrowLeft,
-	Fire,
-	Pulse,
-	MusicNotes,
-	VerifiedCheck,
-	Like,
-	Stopwatch,
-} from "@solar-icons/react";
 import { Badge } from "@shiron/ui/components/ui/badge";
 import { Button } from "@shiron/ui/components/ui/button";
 import {
@@ -30,6 +21,15 @@ import {
 } from "@shiron/ui/components/ui/empty";
 import { Skeleton } from "@shiron/ui/components/ui/skeleton";
 import { cn } from "@shiron/ui/lib/utils";
+import {
+	ArrowLeft,
+	Fire,
+	Like,
+	MusicNotes,
+	Pulse,
+	Stopwatch,
+	VerifiedCheck,
+} from "@solar-icons/react";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { formatDistanceToNow } from "date-fns";
 import { useMemo, useState } from "react";
@@ -41,6 +41,7 @@ import {
 import type { BeatmapDifficultyDto, PlaySessionListItemDto } from "@/api/model";
 import { useGetApiSessions } from "@/api/sessions/sessions";
 import { AppShell } from "@/components/layout/AppShell";
+import { AttemptCompare } from "@/components/maps/AttemptCompare";
 import { formatAccuracy, formatScore } from "@/lib/sessions";
 
 const attemptChartConfig = {
@@ -365,6 +366,8 @@ function DifficultyCard({
 				)}
 
 				<AttemptProgression attempts={attempts} />
+
+				{attempts.length >= 2 && <AttemptCompare attempts={attempts} />}
 			</CardContent>
 		</Card>
 	);

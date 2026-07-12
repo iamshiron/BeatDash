@@ -1,16 +1,3 @@
-import {
-	Dumbbell,
-	Fire,
-	MusicNote,
-	HeartPulse,
-	Bolt,
-	Pulse,
-	Monitor,
-	MusicNotes,
-	Scale,
-	Target,
-	Widget,
-} from "@solar-icons/react";
 import { Badge } from "@shiron/ui/components/ui/badge";
 import { Button } from "@shiron/ui/components/ui/button";
 import {
@@ -23,6 +10,19 @@ import {
 } from "@shiron/ui/components/ui/empty";
 import { Skeleton } from "@shiron/ui/components/ui/skeleton";
 import { cn } from "@shiron/ui/lib/utils";
+import {
+	Bolt,
+	Dumbbell,
+	Fire,
+	HeartPulse,
+	Monitor,
+	MusicNote,
+	MusicNotes,
+	Pulse,
+	Scale,
+	Target,
+	Widget,
+} from "@solar-icons/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
@@ -33,6 +33,7 @@ import { useGetApiSessionsPb } from "@/api/sessions/sessions";
 import { AppShell } from "@/components/layout/AppShell";
 import {
 	type LiveMapStartedEvent,
+	type MapResults,
 	type ScoreUpdateEvent,
 	useRealtimeEvent,
 } from "@/realtime";
@@ -51,6 +52,7 @@ function LivePage() {
 		null,
 	);
 	const [scoreUpdate, setScoreUpdate] = useState<ScoreUpdateEvent | null>(null);
+	const [recap, setRecap] = useState<MapResults | null>(null);
 	const [coverFailed, setCoverFailed] = useState(false);
 	const { data, isLoading } = useGetApiDevice();
 	const devices = data?.status === 200 ? data.data : [];
@@ -61,6 +63,7 @@ function LivePage() {
 		if (!event.isOnline) {
 			setCurrentMap(null);
 			setScoreUpdate(null);
+			setRecap(null);
 		}
 		queryClient.invalidateQueries({
 			queryKey: getGetApiDeviceQueryKey(),
@@ -70,9 +73,16 @@ function LivePage() {
 		setCurrentMap(event);
 		setCoverFailed(false);
 		setScoreUpdate(null);
+		setRecap(null);
 	});
 	useRealtimeEvent("receiveScoreUpdate", (event) => {
 		setScoreUpdate(event);
+	});
+	// On a completed play, surface a recap comparing the final score to the PB.
+	useRealtimeEvent("receiveLiveMapStateChanged", (event) => {
+		if (event.results && event.state === "Finished") {
+			setRecap(event.results);
+		}
 	});
 
 	// The user's best previous score on the current difficulty, shown as a target.
@@ -156,6 +166,10 @@ function LivePage() {
 					hasCover={hasCover}
 					onCoverError={() => setCoverFailed(true)}
 				/>
+
+				{recap && (
+					<LiveSessionRecap results={recap} personalBest={personalBest} />
+				)}
 
 				<ScoreOverlay data={scoreUpdate} personalBest={personalBest} />
 			</div>
@@ -489,6 +503,80 @@ function ScoreOverlay({
 						Misses
 					</span>
 				</div>
+			</div>
+		</div>
+	);
+}
+
+function LiveSessionRecap({
+	results,
+	personalBest,
+}: {
+	results: MapResults;
+	personalBest: PersonalBestDto | null;
+}) {
+	const pbScore = personalBest ? Number(personalBest.score) : null;
+	const beatenPb = pbScore !== null && results.score > pbScore;
+
+	return (
+		<div className="mx-auto w-full max-w-2xl rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 to-transparent p-5">
+			<div className="flex items-center justify-between gap-4">
+				<div className="flex items-center gap-2">
+					<span className="font-heading text-sm font-semibold text-muted-foreground">
+						Session complete
+					</span>
+					{beatenPb && (
+						<Badge className="border-amber-500/30 bg-amber-500/15 text-amber-400">
+							New personal best!
+						</Badge>
+					)}
+					{results.fullCombo && (
+						<Badge variant="secondary" className="text-amber-400">
+							Full combo
+						</Badge>
+					)}
+				</div>
+				<div className="flex items-baseline gap-3">
+					<span
+						className={cn(
+							"font-heading text-2xl font-bold",
+							RANK_STYLES[results.rank] ?? "text-muted-foreground",
+						)}
+					>
+						{results.rank}
+					</span>
+					<span className="font-heading text-2xl font-bold tabular-nums">
+						{results.score.toLocaleString("en-US")}
+					</span>
+					<span className="text-sm tabular-nums text-muted-foreground">
+						{(results.accuracy * 100).toFixed(1)}%
+					</span>
+				</div>
+			</div>
+			<div className="mt-3 flex items-center justify-between gap-4 text-xs text-muted-foreground">
+				<span>
+					Max combo{" "}
+					<span className="font-mono tabular-nums text-foreground">
+						{results.maxCombo}x
+					</span>
+					<span className="mx-2">·</span>
+					Misses{" "}
+					<span className="font-mono tabular-nums text-foreground">
+						{results.missedNotes}
+					</span>
+					{pbScore !== null && !beatenPb && (
+						<>
+							<span className="mx-2">·</span>
+							PB{" "}
+							<span className="font-mono tabular-nums text-foreground">
+								{pbScore.toLocaleString("en-US")}
+							</span>
+						</>
+					)}
+				</span>
+				<Link to="/sessions" className="text-primary hover:underline">
+					View sessions
+				</Link>
 			</div>
 		</div>
 	);
