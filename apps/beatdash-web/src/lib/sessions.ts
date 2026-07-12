@@ -151,6 +151,8 @@ export interface SessionSearchParams {
 	bmin?: number;
 	/** Max BPM. */
 	bmax?: number;
+	/** Show the post-session recap surface (set when arriving from a just-finished play). */
+	recap?: boolean;
 }
 
 export function toApiParams(search: SessionSearchParams): GetApiSessionsParams {
@@ -317,6 +319,7 @@ export function parseSessionSearch(
 		fc: asBool(search.fc),
 		bmin: asNumber(search.bmin, 0),
 		bmax: asNumber(search.bmax, 0),
+		recap: asBool(search.recap),
 	};
 }
 

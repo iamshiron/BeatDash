@@ -1,4 +1,3 @@
-import { ArrowLeft, MusicNotes } from "@solar-icons/react";
 import { Badge } from "@shiron/ui/components/ui/badge";
 import { Button } from "@shiron/ui/components/ui/button";
 import {
@@ -15,6 +14,7 @@ import {
 } from "@shiron/ui/components/ui/chart";
 import { Skeleton } from "@shiron/ui/components/ui/skeleton";
 import { cn } from "@shiron/ui/lib/utils";
+import { ArrowLeft, MusicNotes } from "@solar-icons/react";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { formatDistanceToNow } from "date-fns";
 import { useMemo, useState } from "react";
@@ -32,13 +32,16 @@ import { getGetApiMapsMapIdCoverUrl } from "@/api/maps/maps";
 import {
 	useGetApiSessionsId,
 	useGetApiSessionsIdNotes,
+	useGetApiSessionsIdRecap,
 	useGetApiSessionsIdTimeline,
 	useGetApiSessionsIdTop,
 } from "@/api/sessions/sessions";
 import { AppShell } from "@/components/layout/AppShell";
+import { MotionSummary } from "@/components/sessions/MotionSummary";
 import { NoteGridHeatmap } from "@/components/sessions/NoteGridHeatmap";
 import { PerHandPerformance } from "@/components/sessions/PerHandPerformance";
 import { ScoreBreakdown } from "@/components/sessions/ScoreBreakdown";
+import { SessionRecap } from "@/components/sessions/SessionRecap";
 import { SwingAnalysis } from "@/components/sessions/SwingAnalysis";
 import { TopSessions } from "@/components/sessions/TopSessions";
 import {
@@ -78,9 +81,14 @@ function SessionDetailPage() {
 	const timelineQuery = useGetApiSessionsIdTimeline(id);
 	const notesQuery = useGetApiSessionsIdNotes(id);
 	const topQuery = useGetApiSessionsIdTop(id);
+	const showRecap = listSearch.recap === true;
+	const recapQuery = useGetApiSessionsIdRecap(id, {
+		query: { enabled: showRecap },
+	});
 
 	const detail =
 		detailQuery.data?.status === 200 ? detailQuery.data.data : null;
+	const recap = recapQuery.data?.status === 200 ? recapQuery.data.data : null;
 	const timeline =
 		timelineQuery.data?.status === 200 ? timelineQuery.data.data : null;
 	const notes = notesQuery.data?.status === 200 ? notesQuery.data.data : null;
@@ -154,6 +162,8 @@ function SessionDetailPage() {
 					Sessions
 				</Link>
 			</Button>
+
+			{showRecap && recap && <SessionRecap recap={recap} />}
 
 			{detailQuery.isLoading && <Skeleton className="h-32 rounded-xl" />}
 
@@ -413,6 +423,8 @@ function SessionDetailPage() {
 					comboBreaks={timeline?.comboBreaks ?? []}
 				/>
 			)}
+
+			{results && detail?.hasMotionSummary && <MotionSummary sessionId={id} />}
 
 			{results && (
 				<Card className="mb-4">
