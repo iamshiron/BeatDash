@@ -30,4 +30,7 @@ export interface MapDetailDto {
   updatedAt: string;
   beatSaver: null | MapBeatSaverDetailDto;
   difficulties: BeatmapDifficultyDto[];
+  isLiked: boolean;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  likeCount: number | string;
 }

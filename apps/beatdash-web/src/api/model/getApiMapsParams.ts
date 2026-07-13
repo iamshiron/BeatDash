@@ -66,6 +66,7 @@ Automapper?: boolean;
 Tag?: string;
 FetchStatus?: BeatSaverFetchStatus;
 Played?: boolean;
+Liked?: boolean;
 SortBy?: MapSortBy;
 SortDir?: SortDirection;
 };

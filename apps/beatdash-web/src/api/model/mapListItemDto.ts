@@ -27,4 +27,7 @@ export interface MapListItemDto {
   difficulties: MapListDifficultyDto[];
   /** @pattern ^-?(?:0|[1-9]\d*)$ */
   playCount: number | string;
+  isLiked: boolean;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  likeCount: number | string;
 }

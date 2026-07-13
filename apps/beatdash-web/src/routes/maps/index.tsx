@@ -1,7 +1,3 @@
-import {
-	Magnifer,
-	MusicNotes,
-} from "@solar-icons/react";
 import { Button } from "@shiron/ui/components/ui/button";
 import {
 	Empty,
@@ -21,6 +17,7 @@ import {
 	PaginationPrevious,
 } from "@shiron/ui/components/ui/pagination";
 import { Skeleton } from "@shiron/ui/components/ui/skeleton";
+import { Heart, Magnifer, MusicNotes } from "@solar-icons/react";
 import { useDebouncedCallback } from "@tanstack/react-pacer";
 import { keepPreviousData } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
@@ -35,7 +32,12 @@ const PAGE_SIZE = 24;
 const SEARCH_DEBOUNCE_MS = 300;
 
 type PlayedFilter = "played" | "unplayed";
-type MapsSearch = { q?: string; p?: number; played?: PlayedFilter };
+type MapsSearch = {
+	q?: string;
+	p?: number;
+	played?: PlayedFilter;
+	liked?: boolean;
+};
 
 const PLAYED_FILTERS: { value: PlayedFilter | undefined; label: string }[] = [
 	{ value: undefined, label: "All" },
@@ -76,6 +78,7 @@ export const Route = createFileRoute("/maps/")({
 			search.played === "played" || search.played === "unplayed"
 				? search.played
 				: undefined,
+		liked: search.liked === true || search.liked === "true" ? true : undefined,
 	}),
 	component: MapsPage,
 });
@@ -92,7 +95,7 @@ const MapGrid = memo(function MapGrid({ maps }: { maps: MapListItemDto[] }) {
 });
 
 function MapsPage() {
-	const { q = "", p = 1, played } = Route.useSearch();
+	const { q = "", p = 1, played, liked } = Route.useSearch();
 	const navigate = useNavigate();
 
 	// Live BeatSaver import/processing progress, pushed over SignalR.
@@ -106,7 +109,7 @@ function MapsPage() {
 
 	const commitSearch = useDebouncedCallback(
 		(value: string) => {
-			navigate({ to: "/maps", search: { q: value, p: 1, played } });
+			navigate({ to: "/maps", search: { q: value, p: 1, played, liked } });
 		},
 		{ wait: SEARCH_DEBOUNCE_MS },
 	);
@@ -118,6 +121,7 @@ function MapsPage() {
 			Search: q.trim() || undefined,
 			Played:
 				played === "played" ? true : played === "unplayed" ? false : undefined,
+			Liked: liked ? true : undefined,
 		},
 		{ query: { placeholderData: keepPreviousData } },
 	);
@@ -127,7 +131,7 @@ function MapsPage() {
 	const totalPages = result ? Number(result.totalPages) : 0;
 
 	const goToPage = (page: number) =>
-		navigate({ to: "/maps", search: { q, p: page, played } });
+		navigate({ to: "/maps", search: { q, p: page, played, liked } });
 
 	return (
 		<AppShell wide>
@@ -149,7 +153,7 @@ function MapsPage() {
 									onClick={() =>
 										navigate({
 											to: "/maps",
-											search: { q, p: 1, played: filter.value },
+											search: { q, p: 1, played: filter.value, liked },
 										})
 									}
 								>
@@ -158,6 +162,23 @@ function MapsPage() {
 							);
 						})}
 					</div>
+					<Button
+						type="button"
+						variant={liked ? "secondary" : "ghost"}
+						size="sm"
+						className={`h-8 gap-1.5 px-2.5 text-xs ${
+							liked ? "text-rose-500" : ""
+						}`}
+						onClick={() =>
+							navigate({
+								to: "/maps",
+								search: { q, p: 1, played, liked: liked ? undefined : true },
+							})
+						}
+					>
+						<Heart className="size-4" weight={liked ? "Bold" : "Linear"} />
+						Liked
+					</Button>
 					<div className="relative w-full max-w-xs">
 						<Magnifer className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 						<Input

@@ -42,6 +42,7 @@ import type { BeatmapDifficultyDto, PlaySessionListItemDto } from "@/api/model";
 import { useGetApiSessions } from "@/api/sessions/sessions";
 import { AppShell } from "@/components/layout/AppShell";
 import { AttemptCompare } from "@/components/maps/AttemptCompare";
+import { LikeButton } from "@/components/maps/LikeButton";
 import { formatAccuracy, formatScore } from "@/lib/sessions";
 
 const attemptChartConfig = {
@@ -190,6 +191,13 @@ function MapDetailPage() {
 							</p>
 
 							<div className="mt-auto flex flex-wrap items-center gap-3 pt-2 text-sm text-muted-foreground">
+								<LikeButton
+									mapId={map.id}
+									isLiked={map.isLiked}
+									likeCount={n(map.likeCount)}
+									showCount
+									className="border border-border"
+								/>
 								<Stat icon={<Pulse />} value={`${n(map.bpm)} BPM`} />
 								<Stat
 									icon={<Stopwatch />}

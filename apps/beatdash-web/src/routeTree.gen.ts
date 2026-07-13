@@ -20,6 +20,7 @@ import { Route as PlaysIndexRouteImport } from './routes/plays/index'
 import { Route as MapsIndexRouteImport } from './routes/maps/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as UHandleRouteImport } from './routes/u/$handle'
+import { Route as PlaysLikedRouteImport } from './routes/plays/liked'
 import { Route as PlaysIdRouteImport } from './routes/plays/$id'
 import { Route as MapsIdRouteImport } from './routes/maps/$id'
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
@@ -81,6 +82,11 @@ const UHandleRoute = UHandleRouteImport.update({
   path: '/u/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlaysLikedRoute = PlaysLikedRouteImport.update({
+  id: '/plays/liked',
+  path: '/plays/liked',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PlaysIdRoute = PlaysIdRouteImport.update({
   id: '/plays/$id',
   path: '/plays/$id',
@@ -120,6 +126,7 @@ export interface FileRoutesByFullPath {
   '/auth/register': typeof AuthRegisterRoute
   '/maps/$id': typeof MapsIdRoute
   '/plays/$id': typeof PlaysIdRoute
+  '/plays/liked': typeof PlaysLikedRoute
   '/u/$handle': typeof UHandleRoute
   '/admin/': typeof AdminIndexRoute
   '/maps/': typeof MapsIndexRoute
@@ -137,6 +144,7 @@ export interface FileRoutesByTo {
   '/auth/register': typeof AuthRegisterRoute
   '/maps/$id': typeof MapsIdRoute
   '/plays/$id': typeof PlaysIdRoute
+  '/plays/liked': typeof PlaysLikedRoute
   '/u/$handle': typeof UHandleRoute
   '/admin': typeof AdminIndexRoute
   '/maps': typeof MapsIndexRoute
@@ -156,6 +164,7 @@ export interface FileRoutesById {
   '/auth/register': typeof AuthRegisterRoute
   '/maps/$id': typeof MapsIdRoute
   '/plays/$id': typeof PlaysIdRoute
+  '/plays/liked': typeof PlaysLikedRoute
   '/u/$handle': typeof UHandleRoute
   '/admin/': typeof AdminIndexRoute
   '/maps/': typeof MapsIndexRoute
@@ -176,6 +185,7 @@ export interface FileRouteTypes {
     | '/auth/register'
     | '/maps/$id'
     | '/plays/$id'
+    | '/plays/liked'
     | '/u/$handle'
     | '/admin/'
     | '/maps/'
@@ -193,6 +203,7 @@ export interface FileRouteTypes {
     | '/auth/register'
     | '/maps/$id'
     | '/plays/$id'
+    | '/plays/liked'
     | '/u/$handle'
     | '/admin'
     | '/maps'
@@ -211,6 +222,7 @@ export interface FileRouteTypes {
     | '/auth/register'
     | '/maps/$id'
     | '/plays/$id'
+    | '/plays/liked'
     | '/u/$handle'
     | '/admin/'
     | '/maps/'
@@ -227,6 +239,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   MapsIdRoute: typeof MapsIdRoute
   PlaysIdRoute: typeof PlaysIdRoute
+  PlaysLikedRoute: typeof PlaysLikedRoute
   UHandleRoute: typeof UHandleRoute
   MapsIndexRoute: typeof MapsIndexRoute
   PlaysIndexRoute: typeof PlaysIndexRoute
@@ -311,6 +324,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UHandleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/plays/liked': {
+      id: '/plays/liked'
+      path: '/plays/liked'
+      fullPath: '/plays/liked'
+      preLoaderRoute: typeof PlaysLikedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/plays/$id': {
       id: '/plays/$id'
       path: '/plays/$id'
@@ -383,6 +403,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   MapsIdRoute: MapsIdRoute,
   PlaysIdRoute: PlaysIdRoute,
+  PlaysLikedRoute: PlaysLikedRoute,
   UHandleRoute: UHandleRoute,
   MapsIndexRoute: MapsIndexRoute,
   PlaysIndexRoute: PlaysIndexRoute,

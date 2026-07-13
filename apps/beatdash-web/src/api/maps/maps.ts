@@ -603,3 +603,176 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       > => {
       return useMutation(getPostApiMapsImportMutationOptions(options), queryClient);
     }
+    export type putApiMapsMapIdLikeResponse204 = {
+  data: void
+  status: 204
+}
+
+export type putApiMapsMapIdLikeResponse404 = {
+  data: void
+  status: 404
+}
+
+export type putApiMapsMapIdLikeResponseSuccess = (putApiMapsMapIdLikeResponse204) & {
+  headers: Headers;
+};
+export type putApiMapsMapIdLikeResponseError = (putApiMapsMapIdLikeResponse404) & {
+  headers: Headers;
+};
+
+export type putApiMapsMapIdLikeResponse = (putApiMapsMapIdLikeResponseSuccess | putApiMapsMapIdLikeResponseError)
+
+export const getPutApiMapsMapIdLikeUrl = (mapId: string,) => {
+
+
+
+
+  return `/api/maps/${mapId}/like`
+}
+
+export const putApiMapsMapIdLike = async (mapId: string, options?: RequestInit): Promise<putApiMapsMapIdLikeResponse> => {
+
+  const res = await fetch(getPutApiMapsMapIdLikeUrl(mapId),
+  {
+    ...options,
+    method: 'PUT'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: putApiMapsMapIdLikeResponse['data'] = body ? JSON.parse(body) : undefined
+  return { data, status: res.status, headers: res.headers } as putApiMapsMapIdLikeResponse
+}
+
+
+
+
+
+export const getPutApiMapsMapIdLikeMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiMapsMapIdLike>>, TError,{mapId: string}, TContext>, fetch?: RequestInit}
+): UseMutationOptions<Awaited<ReturnType<typeof putApiMapsMapIdLike>>, TError,{mapId: string}, TContext> => {
+
+const mutationKey = ['putApiMapsMapIdLike'];
+const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, fetch: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putApiMapsMapIdLike>>, {mapId: string}> = (props) => {
+          const {mapId} = props ?? {};
+
+          return  putApiMapsMapIdLike(mapId,fetchOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PutApiMapsMapIdLikeMutationResult = NonNullable<Awaited<ReturnType<typeof putApiMapsMapIdLike>>>
+
+    export type PutApiMapsMapIdLikeMutationError = void
+
+    export const usePutApiMapsMapIdLike = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiMapsMapIdLike>>, TError,{mapId: string}, TContext>, fetch?: RequestInit}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof putApiMapsMapIdLike>>,
+        TError,
+        {mapId: string},
+        TContext
+      > => {
+      return useMutation(getPutApiMapsMapIdLikeMutationOptions(options), queryClient);
+    }
+    export type deleteApiMapsMapIdLikeResponse204 = {
+  data: void
+  status: 204
+}
+
+export type deleteApiMapsMapIdLikeResponseSuccess = (deleteApiMapsMapIdLikeResponse204) & {
+  headers: Headers;
+};
+;
+
+export type deleteApiMapsMapIdLikeResponse = (deleteApiMapsMapIdLikeResponseSuccess)
+
+export const getDeleteApiMapsMapIdLikeUrl = (mapId: string,) => {
+
+
+
+
+  return `/api/maps/${mapId}/like`
+}
+
+export const deleteApiMapsMapIdLike = async (mapId: string, options?: RequestInit): Promise<deleteApiMapsMapIdLikeResponse> => {
+
+  const res = await fetch(getDeleteApiMapsMapIdLikeUrl(mapId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: deleteApiMapsMapIdLikeResponse['data'] = body ? JSON.parse(body) : undefined
+  return { data, status: res.status, headers: res.headers } as deleteApiMapsMapIdLikeResponse
+}
+
+
+
+
+
+export const getDeleteApiMapsMapIdLikeMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiMapsMapIdLike>>, TError,{mapId: string}, TContext>, fetch?: RequestInit}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteApiMapsMapIdLike>>, TError,{mapId: string}, TContext> => {
+
+const mutationKey = ['deleteApiMapsMapIdLike'];
+const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, fetch: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteApiMapsMapIdLike>>, {mapId: string}> = (props) => {
+          const {mapId} = props ?? {};
+
+          return  deleteApiMapsMapIdLike(mapId,fetchOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteApiMapsMapIdLikeMutationResult = NonNullable<Awaited<ReturnType<typeof deleteApiMapsMapIdLike>>>
+
+    export type DeleteApiMapsMapIdLikeMutationError = unknown
+
+    export const useDeleteApiMapsMapIdLike = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiMapsMapIdLike>>, TError,{mapId: string}, TContext>, fetch?: RequestInit}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteApiMapsMapIdLike>>,
+        TError,
+        {mapId: string},
+        TContext
+      > => {
+      return useMutation(getDeleteApiMapsMapIdLikeMutationOptions(options), queryClient);
+    }

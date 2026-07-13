@@ -23,7 +23,12 @@ import {
 	CloseCircle,
 	Magnifer,
 } from "@solar-icons/react";
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import {
+	createFileRoute,
+	Link,
+	redirect,
+	useNavigate,
+} from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useGetApiSessions } from "@/api/sessions/sessions";
 import { AppShell } from "@/components/layout/AppShell";
@@ -110,6 +115,23 @@ function SessionsListPage() {
 		<AppShell wide>
 			<div className="flex flex-wrap items-end justify-between gap-3">
 				<div>
+					<div className="mb-2 inline-flex items-center gap-1 rounded-lg border border-border bg-muted/30 p-0.5">
+						<Button
+							variant="secondary"
+							size="sm"
+							className="h-7 px-2.5 text-xs"
+						>
+							Plays
+						</Button>
+						<Button
+							variant="ghost"
+							size="sm"
+							className="h-7 px-2.5 text-xs"
+							asChild
+						>
+							<Link to="/plays/liked">Liked maps</Link>
+						</Button>
+					</div>
 					<h1 className="font-heading text-xl font-bold tracking-tight">
 						Plays
 					</h1>

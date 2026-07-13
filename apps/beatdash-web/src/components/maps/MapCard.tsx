@@ -1,10 +1,3 @@
-import {
-	CheckCircle,
-	Fire,
-	Pulse,
-	MusicNotes,
-	Stopwatch,
-} from "@solar-icons/react";
 import { Badge, badgeVariants } from "@shiron/ui/components/ui/badge";
 import {
 	Tooltip,
@@ -12,10 +5,18 @@ import {
 	TooltipTrigger,
 } from "@shiron/ui/components/ui/tooltip";
 import { cn } from "@shiron/ui/lib/utils";
+import {
+	CheckCircle,
+	Fire,
+	MusicNotes,
+	Pulse,
+	Stopwatch,
+} from "@solar-icons/react";
 import { Link } from "@tanstack/react-router";
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { getGetApiMapsMapIdCoverUrl } from "@/api/maps/maps";
 import type { MapListDifficultyDto, MapListItemDto } from "@/api/model";
+import { LikeButton } from "@/components/maps/LikeButton";
 
 const RANK_ORDER = ["Easy", "Normal", "Hard", "Expert", "ExpertPlus"] as const;
 
@@ -82,6 +83,13 @@ export function MapCard({ map }: { map: MapListItemDto }) {
 					</TooltipContent>
 				</Tooltip>
 			)}
+			<LikeButton
+				mapId={map.id}
+				isLiked={map.isLiked}
+				likeCount={num(map.likeCount)}
+				overlay
+				className="absolute left-2 top-2 z-10"
+			/>
 			<div className="flex shrink-0 items-center justify-center bg-gradient-to-br from-primary/40 to-[oklch(0.62_0.19_255)]/40 p-3">
 				{hasCover ? (
 					<img
@@ -111,11 +119,7 @@ export function MapCard({ map }: { map: MapListItemDto }) {
 				<DifficultyTags difficulties={difficulties} />
 
 				<div className="mt-auto flex items-center gap-3 text-xs text-muted-foreground">
-					<Stat
-						icon={<Pulse />}
-						value={`${num(map.bpm)}`}
-						label="BPM"
-					/>
+					<Stat icon={<Pulse />} value={`${num(map.bpm)}`} label="BPM" />
 					<Stat
 						icon={<Stopwatch />}
 						value={formatDuration(num(map.durationMs))}
