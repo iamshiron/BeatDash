@@ -28,6 +28,8 @@ public class BeatDashDbContext(DbContextOptions<BeatDashDbContext> options) : Id
     public DbSet<PlaySessionMotionSummary> PlaySessionMotionSummaries => Set<PlaySessionMotionSummary>();
 
     public DbSet<MapLike> MapLikes => Set<MapLike>();
+    public DbSet<MapList> MapLists => Set<MapList>();
+    public DbSet<MapListItem> MapListItems => Set<MapListItem>();
 
     protected override void OnModelCreating(ModelBuilder builder) {
         base.OnModelCreating(builder);
@@ -243,6 +245,36 @@ public class BeatDashDbContext(DbContextOptions<BeatDashDbContext> options) : Id
                 .HasForeignKey(x => x.BeatmapId)
                 .OnDelete(DeleteBehavior.Cascade);
             c.ToTable("MapLikes");
+        });
+
+        builder.Entity<MapList>(c => {
+            c.HasKey(x => x.Id);
+            c.HasIndex(x => x.UserId);
+            c.Property(x => x.Name).IsRequired();
+            c.HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            c.HasMany(x => x.Items)
+                .WithOne(x => x.MapList)
+                .HasForeignKey(x => x.MapListId)
+                .OnDelete(DeleteBehavior.Cascade);
+            c.ToTable("MapLists");
+        });
+
+        builder.Entity<MapListItem>(c => {
+            c.HasKey(x => x.Id);
+            // A map appears at most once per list.
+            c.HasIndex(x => new { x.MapListId, x.BeatmapId }).IsUnique();
+            c.HasOne(x => x.MapList)
+                .WithMany(x => x.Items)
+                .HasForeignKey(x => x.MapListId)
+                .OnDelete(DeleteBehavior.Cascade);
+            c.HasOne(x => x.Beatmap)
+                .WithMany()
+                .HasForeignKey(x => x.BeatmapId)
+                .OnDelete(DeleteBehavior.Cascade);
+            c.ToTable("MapListItems");
         });
     }
 }
