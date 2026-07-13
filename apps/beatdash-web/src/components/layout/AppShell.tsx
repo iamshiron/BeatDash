@@ -43,6 +43,9 @@ export function AppShell({
 									<Link to="/plays">Plays</Link>
 								</Button>
 								<Button variant="ghost" size="sm" asChild>
+									<Link to="/lists">Lists</Link>
+								</Button>
+								<Button variant="ghost" size="sm" asChild>
 									<Link to="/analysis">Analysis</Link>
 								</Button>
 								<Button variant="ghost" size="sm" asChild>

@@ -18,11 +18,13 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PlaysIndexRouteImport } from './routes/plays/index'
 import { Route as MapsIndexRouteImport } from './routes/maps/index'
+import { Route as ListsIndexRouteImport } from './routes/lists/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as UHandleRouteImport } from './routes/u/$handle'
 import { Route as PlaysLikedRouteImport } from './routes/plays/liked'
 import { Route as PlaysIdRouteImport } from './routes/plays/$id'
 import { Route as MapsIdRouteImport } from './routes/maps/$id'
+import { Route as ListsIdRouteImport } from './routes/lists/$id'
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AdminScoringRouteImport } from './routes/admin/scoring'
@@ -72,6 +74,11 @@ const MapsIndexRoute = MapsIndexRouteImport.update({
   path: '/maps/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ListsIndexRoute = ListsIndexRouteImport.update({
+  id: '/lists/',
+  path: '/lists/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -95,6 +102,11 @@ const PlaysIdRoute = PlaysIdRouteImport.update({
 const MapsIdRoute = MapsIdRouteImport.update({
   id: '/maps/$id',
   path: '/maps/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ListsIdRoute = ListsIdRouteImport.update({
+  id: '/lists/$id',
+  path: '/lists/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRegisterRoute = AuthRegisterRouteImport.update({
@@ -124,11 +136,13 @@ export interface FileRoutesByFullPath {
   '/admin/scoring': typeof AdminScoringRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
+  '/lists/$id': typeof ListsIdRoute
   '/maps/$id': typeof MapsIdRoute
   '/plays/$id': typeof PlaysIdRoute
   '/plays/liked': typeof PlaysLikedRoute
   '/u/$handle': typeof UHandleRoute
   '/admin/': typeof AdminIndexRoute
+  '/lists/': typeof ListsIndexRoute
   '/maps/': typeof MapsIndexRoute
   '/plays/': typeof PlaysIndexRoute
 }
@@ -142,11 +156,13 @@ export interface FileRoutesByTo {
   '/admin/scoring': typeof AdminScoringRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
+  '/lists/$id': typeof ListsIdRoute
   '/maps/$id': typeof MapsIdRoute
   '/plays/$id': typeof PlaysIdRoute
   '/plays/liked': typeof PlaysLikedRoute
   '/u/$handle': typeof UHandleRoute
   '/admin': typeof AdminIndexRoute
+  '/lists': typeof ListsIndexRoute
   '/maps': typeof MapsIndexRoute
   '/plays': typeof PlaysIndexRoute
 }
@@ -162,11 +178,13 @@ export interface FileRoutesById {
   '/admin/scoring': typeof AdminScoringRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
+  '/lists/$id': typeof ListsIdRoute
   '/maps/$id': typeof MapsIdRoute
   '/plays/$id': typeof PlaysIdRoute
   '/plays/liked': typeof PlaysLikedRoute
   '/u/$handle': typeof UHandleRoute
   '/admin/': typeof AdminIndexRoute
+  '/lists/': typeof ListsIndexRoute
   '/maps/': typeof MapsIndexRoute
   '/plays/': typeof PlaysIndexRoute
 }
@@ -183,11 +201,13 @@ export interface FileRouteTypes {
     | '/admin/scoring'
     | '/auth/login'
     | '/auth/register'
+    | '/lists/$id'
     | '/maps/$id'
     | '/plays/$id'
     | '/plays/liked'
     | '/u/$handle'
     | '/admin/'
+    | '/lists/'
     | '/maps/'
     | '/plays/'
   fileRoutesByTo: FileRoutesByTo
@@ -201,11 +221,13 @@ export interface FileRouteTypes {
     | '/admin/scoring'
     | '/auth/login'
     | '/auth/register'
+    | '/lists/$id'
     | '/maps/$id'
     | '/plays/$id'
     | '/plays/liked'
     | '/u/$handle'
     | '/admin'
+    | '/lists'
     | '/maps'
     | '/plays'
   id:
@@ -220,11 +242,13 @@ export interface FileRouteTypes {
     | '/admin/scoring'
     | '/auth/login'
     | '/auth/register'
+    | '/lists/$id'
     | '/maps/$id'
     | '/plays/$id'
     | '/plays/liked'
     | '/u/$handle'
     | '/admin/'
+    | '/lists/'
     | '/maps/'
     | '/plays/'
   fileRoutesById: FileRoutesById
@@ -237,10 +261,12 @@ export interface RootRouteChildren {
   DevicesRoute: typeof DevicesRoute
   LiveRoute: typeof LiveRoute
   SettingsRoute: typeof SettingsRoute
+  ListsIdRoute: typeof ListsIdRoute
   MapsIdRoute: typeof MapsIdRoute
   PlaysIdRoute: typeof PlaysIdRoute
   PlaysLikedRoute: typeof PlaysLikedRoute
   UHandleRoute: typeof UHandleRoute
+  ListsIndexRoute: typeof ListsIndexRoute
   MapsIndexRoute: typeof MapsIndexRoute
   PlaysIndexRoute: typeof PlaysIndexRoute
 }
@@ -310,6 +336,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MapsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/lists/': {
+      id: '/lists/'
+      path: '/lists'
+      fullPath: '/lists/'
+      preLoaderRoute: typeof ListsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/': {
       id: '/admin/'
       path: '/'
@@ -343,6 +376,13 @@ declare module '@tanstack/react-router' {
       path: '/maps/$id'
       fullPath: '/maps/$id'
       preLoaderRoute: typeof MapsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lists/$id': {
+      id: '/lists/$id'
+      path: '/lists/$id'
+      fullPath: '/lists/$id'
+      preLoaderRoute: typeof ListsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/register': {
@@ -401,10 +441,12 @@ const rootRouteChildren: RootRouteChildren = {
   DevicesRoute: DevicesRoute,
   LiveRoute: LiveRoute,
   SettingsRoute: SettingsRoute,
+  ListsIdRoute: ListsIdRoute,
   MapsIdRoute: MapsIdRoute,
   PlaysIdRoute: PlaysIdRoute,
   PlaysLikedRoute: PlaysLikedRoute,
   UHandleRoute: UHandleRoute,
+  ListsIndexRoute: ListsIndexRoute,
   MapsIndexRoute: MapsIndexRoute,
   PlaysIndexRoute: PlaysIndexRoute,
 }

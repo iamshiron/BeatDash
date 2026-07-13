@@ -41,6 +41,7 @@ import {
 import type { BeatmapDifficultyDto, PlaySessionListItemDto } from "@/api/model";
 import { useGetApiSessions } from "@/api/sessions/sessions";
 import { AppShell } from "@/components/layout/AppShell";
+import { AddToListMenu } from "@/components/lists/AddToListMenu";
 import { AttemptCompare } from "@/components/maps/AttemptCompare";
 import { LikeButton } from "@/components/maps/LikeButton";
 import { formatAccuracy, formatScore } from "@/lib/sessions";
@@ -196,6 +197,10 @@ function MapDetailPage() {
 									isLiked={map.isLiked}
 									likeCount={n(map.likeCount)}
 									showCount
+									className="border border-border"
+								/>
+								<AddToListMenu
+									mapId={map.id}
 									className="border border-border"
 								/>
 								<Stat icon={<Pulse />} value={`${n(map.bpm)} BPM`} />

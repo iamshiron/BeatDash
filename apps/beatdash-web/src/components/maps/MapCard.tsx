@@ -16,6 +16,7 @@ import { Link } from "@tanstack/react-router";
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { getGetApiMapsMapIdCoverUrl } from "@/api/maps/maps";
 import type { MapListDifficultyDto, MapListItemDto } from "@/api/model";
+import { AddToListMenu } from "@/components/lists/AddToListMenu";
 import { LikeButton } from "@/components/maps/LikeButton";
 
 const RANK_ORDER = ["Easy", "Normal", "Hard", "Expert", "ExpertPlus"] as const;
@@ -83,13 +84,15 @@ export function MapCard({ map }: { map: MapListItemDto }) {
 					</TooltipContent>
 				</Tooltip>
 			)}
-			<LikeButton
-				mapId={map.id}
-				isLiked={map.isLiked}
-				likeCount={num(map.likeCount)}
-				overlay
-				className="absolute left-2 top-2 z-10"
-			/>
+			<div className="absolute left-2 top-2 z-10 flex items-center gap-1">
+				<LikeButton
+					mapId={map.id}
+					isLiked={map.isLiked}
+					likeCount={num(map.likeCount)}
+					overlay
+				/>
+				<AddToListMenu mapId={map.id} overlay />
+			</div>
 			<div className="flex shrink-0 items-center justify-center bg-gradient-to-br from-primary/40 to-[oklch(0.62_0.19_255)]/40 p-3">
 				{hasCover ? (
 					<img
