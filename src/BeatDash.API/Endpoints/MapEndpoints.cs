@@ -79,6 +79,13 @@ public static class MapEndpoints {
                     query = query.Where(b => b.BeatSaverMap != null && b.BeatSaverMap.Tags.Contains(tag));
                 }
 
+                // --- Liked / unliked: maps the user has (or hasn't) liked ---
+                if (q.Liked.HasValue && userId.HasValue) {
+                    query = q.Liked.Value
+                        ? query.Where(b => db.MapLikes.Any(l => l.UserId == userId.Value && l.BeatmapId == b.Id))
+                        : query.Where(b => !db.MapLikes.Any(l => l.UserId == userId.Value && l.BeatmapId == b.Id));
+                }
+
                 // --- Played / unplayed: maps the user has (or hasn't) a non-auto session on ---
                 if (q.Played.HasValue && userId.HasValue) {
                     query = q.Played.Value
@@ -122,10 +129,12 @@ public static class MapEndpoints {
                     .Take(pageSize)
                     .ToListAsync(ct);
 
+                var pageIds = maps.Select(m => m.Id).ToList();
+
                 // The user's non-auto play count per map, for the page's maps only.
                 var playCounts = new Dictionary<Guid, int>();
+                var likedIds = new HashSet<Guid>();
                 if (userId.HasValue) {
-                    var pageIds = maps.Select(m => m.Id).ToList();
                     playCounts = await db.PlaySessions
                         .AsNoTracking()
                         .Where(s => s.UserId == userId.Value && !s.AutoMode
@@ -133,10 +142,28 @@ public static class MapEndpoints {
                         .GroupBy(s => s.BeatmapDifficulty.BeatmapId)
                         .Select(g => new { BeatmapId = g.Key, Count = g.Count() })
                         .ToDictionaryAsync(x => x.BeatmapId, x => x.Count, ct);
+
+                    likedIds = (await db.MapLikes
+                        .AsNoTracking()
+                        .Where(l => l.UserId == userId.Value && pageIds.Contains(l.BeatmapId))
+                        .Select(l => l.BeatmapId)
+                        .ToListAsync(ct)).ToHashSet();
                 }
 
+                // Total like count (all users) per map, for the page's maps only.
+                var likeCounts = await db.MapLikes
+                    .AsNoTracking()
+                    .Where(l => pageIds.Contains(l.BeatmapId))
+                    .GroupBy(l => l.BeatmapId)
+                    .Select(g => new { BeatmapId = g.Key, Count = g.Count() })
+                    .ToDictionaryAsync(x => x.BeatmapId, x => x.Count, ct);
+
                 var items = maps
-                    .Select(m => MapListItemDto.From(m, playCounts.GetValueOrDefault(m.Id)))
+                    .Select(m => MapListItemDto.From(
+                        m,
+                        playCounts.GetValueOrDefault(m.Id),
+                        likedIds.Contains(m.Id),
+                        likeCounts.GetValueOrDefault(m.Id)))
                     .ToList();
                 return Results.Ok(new PagedResult<MapListItemDto>(items, totalCount, page, pageSize, totalPages));
             })
@@ -145,6 +172,7 @@ public static class MapEndpoints {
 
         group.MapGet("/{mapId:Guid}", async (
             Guid mapId,
+            ClaimsPrincipal user,
             BeatDashDbContext db,
             CancellationToken ct) => {
                 var map = await db.Beatmaps
@@ -154,7 +182,13 @@ public static class MapEndpoints {
                     .FirstOrDefaultAsync(b => b.Id == mapId, ct);
 
                 if (map is null) return Results.NotFound();
-                return Results.Ok(MapDetailDto.From(map));
+
+                var userId = IdentityUtils.GetUserID(user);
+                var isLiked = userId.HasValue
+                    && await db.MapLikes.AnyAsync(l => l.UserId == userId.Value && l.BeatmapId == mapId, ct);
+                var likeCount = await db.MapLikes.CountAsync(l => l.BeatmapId == mapId, ct);
+
+                return Results.Ok(MapDetailDto.From(map, isLiked, likeCount));
             }).RequireAuthorization().Produces<MapDetailDto>().Produces(404);
 
         group.MapGet("/{mapId:Guid}/cover", async (
@@ -267,6 +301,8 @@ public sealed record MapQueryParams(
     BeatSaverFetchStatus? FetchStatus = null,
     // Filter by whether the current user has played the map (non-auto sessions).
     bool? Played = null,
+    // Filter by whether the current user has liked the map.
+    bool? Liked = null,
     MapSortBy SortBy = MapSortBy.CreatedAt,
     SortDirection SortDir = SortDirection.Desc
 );
@@ -288,9 +324,11 @@ public sealed record MapListItemDto(
     DateTime CreatedAt,
     MapBeatSaverSummaryDto? BeatSaver,
     IList<MapListDifficultyDto> Difficulties,
-    int PlayCount
+    int PlayCount,
+    bool IsLiked,
+    int LikeCount
 ) {
-    internal static MapListItemDto From(Beatmap b, int playCount = 0) => new(
+    internal static MapListItemDto From(Beatmap b, int playCount = 0, bool isLiked = false, int likeCount = 0) => new(
         b.Id,
         b.LevelId,
         b.SongName,
@@ -308,7 +346,9 @@ public sealed record MapListItemDto(
             .ThenBy(d => d.DifficultyRank)
             .Select(MapListDifficultyDto.From)
             .ToList(),
-        playCount
+        playCount,
+        isLiked,
+        likeCount
     );
 }
 
@@ -359,9 +399,11 @@ public sealed record MapDetailDto(
     DateTime CreatedAt,
     DateTime UpdatedAt,
     MapBeatSaverDetailDto? BeatSaver,
-    IList<BeatmapDifficultyDto> Difficulties
+    IList<BeatmapDifficultyDto> Difficulties,
+    bool IsLiked,
+    int LikeCount
 ) {
-    internal static MapDetailDto From(Beatmap b) => new(
+    internal static MapDetailDto From(Beatmap b, bool isLiked = false, int likeCount = 0) => new(
         b.Id,
         b.LevelId,
         b.SongName,
@@ -381,7 +423,9 @@ public sealed record MapDetailDto(
             .OrderBy(d => d.CharacteristicSerializedName)
             .ThenBy(d => d.DifficultyRank)
             .Select(BeatmapDifficultyDto.From)
-            .ToList()
+            .ToList(),
+        isLiked,
+        likeCount
     );
 }
 

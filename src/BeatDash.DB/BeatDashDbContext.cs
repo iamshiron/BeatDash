@@ -27,6 +27,8 @@ public class BeatDashDbContext(DbContextOptions<BeatDashDbContext> options) : Id
     public DbSet<PlayNoteAggregate> PlayNoteAggregates => Set<PlayNoteAggregate>();
     public DbSet<PlaySessionMotionSummary> PlaySessionMotionSummaries => Set<PlaySessionMotionSummary>();
 
+    public DbSet<MapLike> MapLikes => Set<MapLike>();
+
     protected override void OnModelCreating(ModelBuilder builder) {
         base.OnModelCreating(builder);
 
@@ -225,6 +227,22 @@ public class BeatDashDbContext(DbContextOptions<BeatDashDbContext> options) : Id
                 .HasForeignKey<PlaySessionMotionSummary>(x => x.PlaySessionId)
                 .OnDelete(DeleteBehavior.Cascade);
             c.ToTable("PlaySessionMotionSummaries");
+        });
+
+        builder.Entity<MapLike>(c => {
+            c.HasKey(x => x.Id);
+            // One like per (user, map); also the covering index for the per-user reads.
+            c.HasIndex(x => new { x.UserId, x.BeatmapId }).IsUnique();
+            c.HasIndex(x => x.BeatmapId);
+            c.HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            c.HasOne(x => x.Beatmap)
+                .WithMany()
+                .HasForeignKey(x => x.BeatmapId)
+                .OnDelete(DeleteBehavior.Cascade);
+            c.ToTable("MapLikes");
         });
     }
 }

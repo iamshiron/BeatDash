@@ -221,6 +221,7 @@ api.MapIdentityEndpoints();
 api.MapDeviceEndpoints();
 api.MapClientEndpoints();
 api.MapMapEndpoints();
+api.MapMapLikeEndpoints();
 api.MapAdminMetricsEndpoints();
 api.MapSessionEndpoints();
 api.MapProfileEndpoints();
