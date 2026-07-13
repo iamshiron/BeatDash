@@ -74,10 +74,14 @@ export function AddToListMenu({
 		}
 	};
 
-	const stop = (e: React.MouseEvent) => {
-		// Keep the surrounding card link from navigating.
+	// The trigger often lives inside a map-card <Link>. We preventDefault +
+	// stopPropagation to keep the card from navigating, but that also suppresses
+	// Radix's built-in open-on-click (it skips its handler once defaultPrevented),
+	// so we drive the open state ourselves.
+	const onTriggerClick = (e: React.MouseEvent) => {
 		e.preventDefault();
 		e.stopPropagation();
+		setOpen((prev) => !prev);
 	};
 
 	return (
@@ -87,7 +91,7 @@ export function AddToListMenu({
 					<button
 						type="button"
 						aria-label="Add to list"
-						onClick={stop}
+						onClick={onTriggerClick}
 						className={cn(
 							"flex items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground",
 							overlay
