@@ -30,4 +30,5 @@ export interface MapListItemDto {
   isLiked: boolean;
   /** @pattern ^-?(?:0|[1-9]\d*)$ */
   likeCount: number | string;
+  hasSong: boolean;
 }

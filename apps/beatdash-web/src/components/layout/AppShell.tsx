@@ -1,8 +1,10 @@
 import { Button } from "@shiron/ui/components/ui/button";
+import { cn } from "@shiron/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { ModeToggle } from "@/components/layout/ModeToggle";
 import { UserMenu } from "@/components/layout/UserMenu";
 import { useAuth } from "@/contexts/auth";
+import { usePlayer } from "@/contexts/player";
 
 export function AppShell({
 	children,
@@ -13,6 +15,7 @@ export function AppShell({
 }) {
 	const maxWidth = wide ? "max-w-6xl" : "max-w-5xl";
 	const { isAuthenticated } = useAuth();
+	const { track } = usePlayer();
 	return (
 		<div className="relative min-h-screen bg-background">
 			<header className={`sticky top-4 z-50 mx-auto w-full ${maxWidth} px-4`}>
@@ -67,7 +70,12 @@ export function AppShell({
 				</div>
 			</header>
 			<main
-				className={`mx-auto w-full px-4 py-10 ${wide ? "max-w-6xl" : "max-w-3xl"}`}
+				className={cn(
+					"mx-auto w-full px-4 py-10",
+					wide ? "max-w-6xl" : "max-w-3xl",
+					// Clear the fixed bottom player so it never covers page content.
+					track && "pb-32",
+				)}
 			>
 				{children}
 			</main>

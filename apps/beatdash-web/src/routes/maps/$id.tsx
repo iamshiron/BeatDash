@@ -20,12 +20,15 @@ import {
 	EmptyTitle,
 } from "@shiron/ui/components/ui/empty";
 import { Skeleton } from "@shiron/ui/components/ui/skeleton";
+import { Spinner } from "@shiron/ui/components/ui/spinner";
 import { cn } from "@shiron/ui/lib/utils";
 import {
 	ArrowLeft,
 	Fire,
 	Like,
 	MusicNotes,
+	Pause,
+	Play,
 	Pulse,
 	Stopwatch,
 	VerifiedCheck,
@@ -44,6 +47,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { AddToListMenu } from "@/components/lists/AddToListMenu";
 import { AttemptCompare } from "@/components/maps/AttemptCompare";
 import { LikeButton } from "@/components/maps/LikeButton";
+import { type PlayerTrack, usePlayer } from "@/contexts/player";
 import { formatAccuracy, formatScore } from "@/lib/sessions";
 
 const attemptChartConfig = {
@@ -203,6 +207,16 @@ function MapDetailPage() {
 									mapId={map.id}
 									className="border border-border"
 								/>
+								{map.hasSong && (
+									<SongToggleButton
+										track={{
+											mapId: map.id,
+											songName: map.songName,
+											songAuthor: map.songAuthor,
+											coverImageKey: map.coverImageKey,
+										}}
+									/>
+								)}
 								<Stat icon={<Pulse />} value={`${n(map.bpm)} BPM`} />
 								<Stat
 									icon={<Stopwatch />}
@@ -527,5 +541,31 @@ function Stat({ icon, value }: { icon: React.ReactNode; value: string }) {
 			{icon}
 			{value}
 		</span>
+	);
+}
+
+/** Header control that plays this map's song in the global bottom player. */
+function SongToggleButton({ track }: { track: PlayerTrack }) {
+	const player = usePlayer();
+	const isCurrent = player.track?.mapId === track.mapId;
+	const isPlaying = isCurrent && player.isPlaying;
+	const isLoading = isCurrent && player.isLoading;
+
+	return (
+		<Button
+			variant="outline"
+			size="sm"
+			className="gap-1.5 border-border"
+			onClick={() => player.playTrack(track)}
+		>
+			{isLoading ? (
+				<Spinner className="size-4" />
+			) : isPlaying ? (
+				<Pause className="size-4" weight="Bold" />
+			) : (
+				<Play className="size-4" weight="Bold" />
+			)}
+			{isPlaying ? "Pause" : "Play"}
+		</Button>
 	);
 }

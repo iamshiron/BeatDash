@@ -5,6 +5,7 @@ import { ThemeProvider } from "next-themes";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { AuthProvider, useAuth } from "@/contexts/auth";
+import { PlayerProvider } from "@/contexts/player";
 import { RealtimeProvider } from "@/realtime";
 import type { RouterContext } from "@/routes/__root";
 import "@/styles/globals.css";
@@ -58,7 +59,9 @@ createRoot(document.getElementById("root")!).render(
 			<QueryClientProvider client={queryClient}>
 				<AuthProvider>
 					<RealtimeProvider>
-						<App />
+						<PlayerProvider>
+							<App />
+						</PlayerProvider>
 					</RealtimeProvider>
 					<ReactQueryDevtools buttonPosition="bottom-right" />
 				</AuthProvider>

@@ -18,6 +18,7 @@ import { getGetApiMapsMapIdCoverUrl } from "@/api/maps/maps";
 import type { MapListDifficultyDto, MapListItemDto } from "@/api/model";
 import { AddToListMenu } from "@/components/lists/AddToListMenu";
 import { LikeButton } from "@/components/maps/LikeButton";
+import { SongPlayButton } from "@/components/maps/SongPlayButton";
 
 const RANK_ORDER = ["Easy", "Normal", "Hard", "Expert", "ExpertPlus"] as const;
 
@@ -69,7 +70,7 @@ export function MapCard({ map }: { map: MapListItemDto }) {
 		<Link
 			to="/maps/$id"
 			params={{ id: map.id }}
-			className="relative flex overflow-hidden rounded-xl border border-border bg-card transition-colors hover:border-primary/40 focus-within:border-primary/40"
+			className="group relative flex overflow-hidden rounded-xl border border-border bg-card transition-colors hover:border-primary/40 focus-within:border-primary/40"
 		>
 			{playCount > 0 && (
 				<Tooltip>
@@ -93,7 +94,7 @@ export function MapCard({ map }: { map: MapListItemDto }) {
 				/>
 				<AddToListMenu mapId={map.id} overlay />
 			</div>
-			<div className="flex shrink-0 items-center justify-center bg-gradient-to-br from-primary/40 to-[oklch(0.62_0.19_255)]/40 p-3">
+			<div className="relative flex shrink-0 items-center justify-center bg-gradient-to-br from-primary/40 to-[oklch(0.62_0.19_255)]/40 p-3">
 				{hasCover ? (
 					<img
 						src={getGetApiMapsMapIdCoverUrl(map.id)}
@@ -104,6 +105,18 @@ export function MapCard({ map }: { map: MapListItemDto }) {
 					/>
 				) : (
 					<MusicNotes className="size-9 text-muted-foreground/40" />
+				)}
+				{map.hasSong && (
+					<SongPlayButton
+						track={{
+							mapId: map.id,
+							songName: map.songName,
+							songAuthor: map.songAuthor,
+							coverImageKey: map.coverImageKey,
+						}}
+						revealOnHover
+						className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+					/>
 				)}
 			</div>
 

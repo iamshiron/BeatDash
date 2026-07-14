@@ -317,6 +317,14 @@ export const getGetApiMapsMapIdCoverUrl = (mapId: string,) => {
   return `/api/maps/${mapId}/cover`
 }
 
+export const getGetApiMapsMapIdSongUrl = (mapId: string,) => {
+
+
+
+
+  return `/api/maps/${mapId}/song`
+}
+
 export const getApiMapsMapIdCover = async (mapId: string, options?: RequestInit): Promise<getApiMapsMapIdCoverResponse> => {
 
   const res = await fetch(getGetApiMapsMapIdCoverUrl(mapId),
