@@ -53,6 +53,20 @@ public static class BeatmapParser {
         };
     }
 
+    /// <summary>
+    /// Reads only the audio filename declared in a level's <c>Info.dat</c> (e.g.
+    /// <c>song.egg</c>), without parsing any difficulties. Returns <see langword="null"/>
+    /// when the info file is absent or names no song.
+    /// </summary>
+    public static string? TryGetSongFilename(IBeatmapFileSource source) {
+        var infoBytes = source.TryReadFile("Info.dat");
+        if (infoBytes is null) return null;
+
+        using var infoDoc = ParseJson(infoBytes);
+        var (meta, _) = ParseInfo(infoDoc.RootElement);
+        return string.IsNullOrEmpty(meta.SongFilename) ? null : meta.SongFilename;
+    }
+
     // ---------------------------------------------------------------------- //
     // Info parsing
     // ---------------------------------------------------------------------- //

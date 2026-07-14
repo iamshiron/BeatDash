@@ -107,6 +107,7 @@ builder.Services.AddHostedService<WeaknessBackfillService>();
 builder.Services.AddScoped<IPracticeRecommendationService, PracticeRecommendationService>();
 builder.Services.AddHostedService<MotionSummaryBackfillService>();
 builder.Services.AddSingleton<IStorageService, MinioStorageService>();
+builder.Services.AddScoped<IMapAudioService, MapAudioService>();
 builder.Services.AddScoped<IPinService, PinService>();
 builder.Services.AddScoped<IBeatmapPersistenceService, BeatmapPersistenceService>();
 builder.Services.AddHostedService<UdpSocketService>();

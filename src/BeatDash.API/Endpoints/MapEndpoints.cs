@@ -210,6 +210,19 @@ public static class MapEndpoints {
                 return Results.File(data, "image/png");
             }).RequireAuthorization().Produces(404).Produces(200);
 
+        // Streams the map's song audio, extracted on demand from the stored BeatSaver
+        // zip. Range processing is enabled so the browser's <audio> element can seek
+        // and stream instead of buffering the whole track up front.
+        group.MapGet("/{mapId:Guid}/song", async (
+            Guid mapId,
+            IMapAudioService audio,
+            CancellationToken ct) => {
+                var song = await audio.GetSongAsync(mapId, ct);
+                if (song is null) return Results.NotFound();
+
+                return Results.File(song.Data, song.ContentType, enableRangeProcessing: true);
+            }).RequireAuthorization().Produces(404).Produces(200);
+
         // Admin-only: force a map's BeatSaver data to be re-fetched and re-downloaded.
         group.MapPost("/{mapId:Guid}/refetch", async (
             Guid mapId,
@@ -326,7 +339,9 @@ public sealed record MapListItemDto(
     IList<MapListDifficultyDto> Difficulties,
     int PlayCount,
     bool IsLiked,
-    int LikeCount
+    int LikeCount,
+    // Whether a playable song zip is stored for this map (see GET /maps/{id}/song).
+    bool HasSong
 ) {
     internal static MapListItemDto From(Beatmap b, int playCount = 0, bool isLiked = false, int likeCount = 0) => new(
         b.Id,
@@ -348,7 +363,8 @@ public sealed record MapListItemDto(
             .ToList(),
         playCount,
         isLiked,
-        likeCount
+        likeCount,
+        !string.IsNullOrEmpty(b.BeatSaverMap?.ZipObjectKey)
     );
 }
 
@@ -401,7 +417,9 @@ public sealed record MapDetailDto(
     MapBeatSaverDetailDto? BeatSaver,
     IList<BeatmapDifficultyDto> Difficulties,
     bool IsLiked,
-    int LikeCount
+    int LikeCount,
+    // Whether a playable song zip is stored for this map (see GET /maps/{id}/song).
+    bool HasSong
 ) {
     internal static MapDetailDto From(Beatmap b, bool isLiked = false, int likeCount = 0) => new(
         b.Id,
@@ -425,7 +443,8 @@ public sealed record MapDetailDto(
             .Select(BeatmapDifficultyDto.From)
             .ToList(),
         isLiked,
-        likeCount
+        likeCount,
+        !string.IsNullOrEmpty(b.BeatSaverMap?.ZipObjectKey)
     );
 }
 
