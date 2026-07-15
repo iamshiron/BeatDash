@@ -32,6 +32,8 @@ const BAR_H = 10;
 const BAR_Y = CARD_H + CONNECTOR_H;
 const TOTAL_H = BAR_Y + BAR_H;
 const MIN_SEGMENT_PX = 6;
+/** Width (px) of the grade accent — matches the card's `w-1` left stripe. */
+const ACCENT_W = 4;
 
 interface TimelinePlay {
 	play: PlaySessionListItemDto;
@@ -153,9 +155,10 @@ export function SessionTimeline({
 						);
 					})}
 
-					{/* Funnel each card down to its segment: a flat grade-tinted body
-					    with the card's start/end edges tracing to the segment's
-					    start/end. */}
+					{/* Funnel each card down to its segment as a silhouette continuation:
+					    the left edge carries the card's grade accent stripe (same 4px
+					    width) straight down, the right edge carries the card's 1px
+					    border in toward the segment's end. */}
 					<svg
 						className="pointer-events-none absolute"
 						style={{
@@ -179,31 +182,30 @@ export function SessionTimeline({
 							const active = hoveredId === play.id;
 							const b = CONNECTOR_H;
 							return (
-								<g
-									key={`link-${play.id}`}
-									className={cn(color, active ? "opacity-100" : "opacity-90")}
-								>
+								<g key={`link-${play.id}`} className={color}>
 									<polygon
 										points={`${x},0 ${x + CARD_W},0 ${x + segWidth},${b} ${x},${b}`}
 										className="fill-current"
-										fillOpacity={active ? 0.3 : 0.18}
+										fillOpacity={active ? 0.24 : 0.14}
 									/>
-									<line
-										x1={x}
-										y1={0}
-										x2={x}
-										y2={b}
-										className="stroke-current"
-										strokeWidth={2}
+									{/* Left edge = the accent stripe carried down (x → x+4). The
+									    g's grade text color feeds `fill-current`, matching the
+									    card stripe's identical grade shade. */}
+									<rect
+										x={x}
+										y={0}
+										width={ACCENT_W}
+										height={b}
+										className="fill-current"
 									/>
+									{/* Right edge = the card's border carried in to the segment. */}
 									<line
 										x1={x + CARD_W}
 										y1={0}
 										x2={x + segWidth}
 										y2={b}
-										className="stroke-current"
-										strokeWidth={1.5}
-										strokeOpacity={0.9}
+										strokeWidth={1}
+										className={active ? "stroke-primary/50" : "stroke-border"}
 									/>
 								</g>
 							);
@@ -248,7 +250,9 @@ function TimelineCard({
 			onMouseLeave={() => onHover(null)}
 			style={{ left: x, width: CARD_W, top: 0, height: CARD_H }}
 			className={cn(
-				"absolute flex flex-col justify-between overflow-hidden rounded-t-lg border border-b-0 bg-card p-2 transition-colors",
+				// No left/bottom border: the grade accent stripe is the left edge, and
+				// the card flows straight into the funnel below.
+				"absolute flex flex-col justify-between overflow-hidden rounded-t-lg border border-b-0 border-l-0 bg-card p-2 transition-colors",
 				active
 					? "z-10 border-primary/50 bg-accent/40"
 					: "border-border hover:border-primary/40 hover:bg-accent/30",
