@@ -1,9 +1,4 @@
 import { Badge } from "@shiron/ui/components/ui/badge";
-import {
-	Tooltip,
-	TooltipContent,
-	TooltipTrigger,
-} from "@shiron/ui/components/ui/tooltip";
 import { cn } from "@shiron/ui/lib/utils";
 import { MusicNotes } from "@solar-icons/react";
 import { Link } from "@tanstack/react-router";
@@ -20,29 +15,43 @@ import {
 	RANK_STYLES,
 } from "@/lib/sessions";
 
-/** A play with its clock position resolved onto the session's time axis. */
+/** Fixed card width (px); the timeline scale is derived from this. */
+const CARD_W = 176;
+/** Minimum clear space between two adjacent card starts. */
+const GUTTER = 16;
+/**
+ * The tightest gap between two play starts we scale for. A shorter real gap
+ * (a quick retry) is allowed to overlap slightly rather than blow the whole
+ * timeline out of proportion — the scale stays uniform everywhere.
+ */
+const MIN_SPACING_MS = 30_000;
+/** Layout bands within the timeline, top-down. */
+const CARD_H = 76;
+const CONNECTOR_H = 14;
+const BAR_H = 10;
+const BAR_Y = CARD_H + CONNECTOR_H;
+const TOTAL_H = BAR_Y + BAR_H;
+/** Where the connector arrow drops, measured from the card's left edge. */
+const ARROW_INSET = 12;
+const MIN_SEGMENT_PX = 6;
+
 interface TimelinePlay {
 	play: PlaySessionListItemDto;
-	startMs: number;
-	durationMs: number;
-	/** 0–1 offset of the play's start within the session span. */
-	left: number;
-	/** 0–1 fraction of the session span the play occupies. */
-	width: number;
+	/** Left offset (px) of the play's start on the shared time axis. */
+	x: number;
+	/** Segment width (px) — the play's length at the timeline scale. */
+	segWidth: number;
 }
-
-/** Segments narrower than this (as a fraction) are padded so they stay tappable. */
-const MIN_SEGMENT = 0.012;
 
 function coverUrl(beatmapId: string): string {
 	return getGetApiMapsMapIdCoverUrl(beatmapId);
 }
 
 /**
- * A horizontal, time-scaled view of a single sitting: every played song is a
- * compact card, and the color-coded bar beneath places each play on the clock
- * (x-axis) and grades it. Cards and bar segments cross-highlight on hover, and
- * both link straight to the matching play.
+ * A single sitting laid out on one uniformly-scaled time axis. Every played
+ * song is a compact card anchored at its real start time; an arrow drops from
+ * each card to the start of its color-coded segment on the shared bar below.
+ * Cards and bar scroll together and both link straight to the play.
  */
 export function SessionTimeline({
 	plays,
@@ -51,36 +60,49 @@ export function SessionTimeline({
 }) {
 	const [hoveredId, setHoveredId] = useState<string | null>(null);
 
-	const { items, startLabel, endLabel, spanLabel } = useMemo(() => {
-		const sorted = [...plays].sort(
-			(a, b) => Date.parse(a.startedAt) - Date.parse(b.startedAt),
-		);
+	const { items, totalWidth, startLabel, endLabel, spanLabel } = useMemo(() => {
+		const sorted = [...plays]
+			.map((play) => ({
+				play,
+				startMs: Date.parse(play.startedAt),
+				// In-progress plays report no duration; give them a nominal length.
+				durationMs: parseDurationMs(play.duration) || 60_000,
+			}))
+			.sort((a, b) => a.startMs - b.startMs);
 
-		const withTime = sorted.map((play) => {
-			const startMs = Date.parse(play.startedAt);
-			// In-progress plays report no duration; give them a nominal slice so the
-			// bar segment stays visible rather than collapsing to nothing.
-			const durationMs = parseDurationMs(play.duration) || 60_000;
-			return { play, startMs, durationMs };
-		});
-
-		const first = withTime[0]?.startMs ?? 0;
-		const last = withTime.reduce(
+		const first = sorted[0]?.startMs ?? 0;
+		const last = sorted.reduce(
 			(max, p) => Math.max(max, p.startMs + p.durationMs),
 			first,
 		);
 		const span = Math.max(last - first, 1);
 
-		const resolved: TimelinePlay[] = withTime.map((p) => ({
-			...p,
-			left: (p.startMs - first) / span,
-			width: Math.max(p.durationMs / span, MIN_SEGMENT),
+		// One scale (px per ms) applied to the whole axis, so distances are a true
+		// reflection of elapsed time. It's fixed by the closest pair of starts so
+		// their cards clear each other.
+		const gaps = sorted
+			.slice(1)
+			.map((p, i) => p.startMs - sorted[i].startMs)
+			.filter((d) => d > 0);
+		const tightest = gaps.length ? Math.min(...gaps) : span;
+		const pxPerMs = (CARD_W + GUTTER) / Math.max(tightest, MIN_SPACING_MS);
+
+		const resolved: TimelinePlay[] = sorted.map((p) => ({
+			play: p.play,
+			x: (p.startMs - first) * pxPerMs,
+			segWidth: Math.max(p.durationMs * pxPerMs, MIN_SEGMENT_PX),
 		}));
+
+		const width = resolved.reduce(
+			(max, it) => Math.max(max, it.x + CARD_W, it.x + it.segWidth),
+			CARD_W,
+		);
 
 		return {
 			items: resolved,
-			startLabel: withTime.length ? format(first, "HH:mm") : "",
-			endLabel: withTime.length ? format(last, "HH:mm") : "",
+			totalWidth: width,
+			startLabel: sorted.length ? format(first, "HH:mm") : "",
+			endLabel: sorted.length ? format(last, "HH:mm") : "",
 			spanLabel: formatDuration(msToTimeSpan(span)),
 		};
 	}, [plays]);
@@ -96,56 +118,84 @@ export function SessionTimeline({
 				</span>
 			</div>
 
-			{/* Cards: the played songs, chronological, each a shortcut into the play. */}
-			<div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
-				{items.map(({ play }) => (
-					<TimelineCard
-						key={play.id}
-						play={play}
-						active={hoveredId === play.id}
-						onHover={setHoveredId}
+			<div className="-mx-1 overflow-x-auto px-1 pb-1">
+				<div
+					className="relative"
+					style={{ width: totalWidth, height: TOTAL_H }}
+				>
+					{/* Idle time shows through as the empty stretches of this track. */}
+					<div
+						className="absolute rounded-full bg-muted/40"
+						style={{ left: 0, width: totalWidth, top: BAR_Y, height: BAR_H }}
 					/>
-				))}
-			</div>
 
-			{/* Bar: the time axis. Segment width ∝ play length, color = grade. */}
-			<div className="relative h-2.5 w-full overflow-hidden rounded-full bg-muted/40">
-				{items.map(({ play, left, width }) => {
-					const rank = play.results?.rank;
-					return (
-						<Tooltip key={play.id}>
-							<TooltipTrigger asChild>
-								<Link
-									to="/plays/$id"
-									params={{ id: play.id }}
-									onMouseEnter={() => setHoveredId(play.id)}
-									onMouseLeave={() => setHoveredId(null)}
-									aria-label={`${play.songName} — ${rank ?? "in progress"}`}
+					{items.map(({ play, x, segWidth }) => {
+						const rank = play.results?.rank;
+						const active = hoveredId === play.id;
+						const barColor = rank
+							? RANK_BG_STYLES[rank]
+							: "bg-muted-foreground/40";
+						return (
+							<Link
+								key={`seg-${play.id}`}
+								to="/plays/$id"
+								params={{ id: play.id }}
+								title={`${play.songName} · ${rank ?? "In progress"}`}
+								onMouseEnter={() => setHoveredId(play.id)}
+								onMouseLeave={() => setHoveredId(null)}
+								className={cn(
+									"absolute rounded-full transition-all duration-150",
+									barColor,
+									active
+										? "opacity-100 ring-1 ring-foreground/50"
+										: "opacity-85 hover:opacity-100",
+								)}
+								style={{ left: x, width: segWidth, top: BAR_Y, height: BAR_H }}
+							/>
+						);
+					})}
+
+					{/* Leader from each card down to the start of its segment. */}
+					{items.map(({ play, x }) => {
+						const rank = play.results?.rank;
+						const color = rank
+							? RANK_BG_STYLES[rank]
+							: "bg-muted-foreground/40";
+						return (
+							<div
+								key={`link-${play.id}`}
+								className={cn(
+									"pointer-events-none absolute flex flex-col items-center transition-opacity",
+									hoveredId === play.id ? "opacity-100" : "opacity-70",
+								)}
+								style={{
+									left: x + ARROW_INSET - 6,
+									top: CARD_H,
+									width: 12,
+									height: CONNECTOR_H,
+								}}
+							>
+								<span className={cn("w-px flex-1", color)} />
+								<span
 									className={cn(
-										"absolute inset-y-0 rounded-full transition-all duration-150",
-										rank ? RANK_BG_STYLES[rank] : "bg-muted-foreground/40",
-										hoveredId === play.id
-											? "opacity-100 ring-1 ring-foreground/50"
-											: "opacity-80 hover:opacity-100",
+										"size-2.5 shrink-0 [clip-path:polygon(50%_100%,0_0,100%_0)]",
+										color,
 									)}
-									style={{
-										left: `${left * 100}%`,
-										width: `${width * 100}%`,
-									}}
 								/>
-							</TooltipTrigger>
-							<TooltipContent className="flex flex-col gap-0.5">
-								<span className="font-semibold">{play.songName}</span>
-								<span className="text-muted-foreground">
-									{play.difficultyName}
-									{play.results
-										? ` · ${play.results.rank} · ${formatAccuracy(play.results.accuracy)}`
-										: " · In progress"}
-								</span>
-							</TooltipContent>
-						</Tooltip>
-					);
-				})}
+							</div>
+						);
+					})}
+
+					{items.map(({ play, x }) => (
+						<TimelineCard
+							key={`card-${play.id}`}
+							play={play}
+							x={x}
+							active={hoveredId === play.id}
+							onHover={setHoveredId}
+						/>
+					))}
+				</div>
 			</div>
 		</div>
 	);
@@ -153,10 +203,12 @@ export function SessionTimeline({
 
 function TimelineCard({
 	play,
+	x,
 	active,
 	onHover,
 }: {
 	play: PlaySessionListItemDto;
+	x: number;
 	active: boolean;
 	onHover: (id: string | null) => void;
 }) {
@@ -170,14 +222,15 @@ function TimelineCard({
 			params={{ id: play.id }}
 			onMouseEnter={() => onHover(play.id)}
 			onMouseLeave={() => onHover(null)}
+			style={{ left: x, width: CARD_W, top: 0, height: CARD_H }}
 			className={cn(
-				"group relative flex w-40 shrink-0 flex-col gap-1.5 overflow-hidden rounded-lg border bg-card p-2 transition-colors",
+				"absolute flex flex-col justify-between overflow-hidden rounded-lg border bg-card p-2 transition-colors",
 				active
-					? "border-primary/50 bg-accent/40"
+					? "z-10 border-primary/50 bg-accent/40"
 					: "border-border hover:border-primary/40 hover:bg-accent/30",
 			)}
 		>
-			{/* Grade accent stripe down the left edge. */}
+			{/* Grade accent down the left edge. */}
 			<span
 				className={cn(
 					"absolute inset-y-0 left-0 w-1",
@@ -244,7 +297,7 @@ function TimelineCard({
 	);
 }
 
-/** Formats a raw millisecond span back into a `hh:mm:ss` string for reuse of {@link formatDuration}. */
+/** Formats a raw millisecond span into `hh:mm:ss` for reuse of {@link formatDuration}. */
 function msToTimeSpan(ms: number): string {
 	const totalSeconds = Math.floor(ms / 1000);
 	const h = Math.floor(totalSeconds / 3600);
