@@ -31,8 +31,6 @@ const CONNECTOR_H = 14;
 const BAR_H = 10;
 const BAR_Y = CARD_H + CONNECTOR_H;
 const TOTAL_H = BAR_Y + BAR_H;
-/** Where the connector arrow drops, measured from the card's left edge. */
-const ARROW_INSET = 12;
 const MIN_SEGMENT_PX = 6;
 
 interface TimelinePlay {
@@ -49,9 +47,9 @@ function coverUrl(beatmapId: string): string {
 
 /**
  * A single sitting laid out on one uniformly-scaled time axis. Every played
- * song is a compact card anchored at its real start time; an arrow drops from
- * each card to the start of its color-coded segment on the shared bar below.
- * Cards and bar scroll together and both link straight to the play.
+ * song is a compact card anchored at its real start time and funnels down to
+ * its color-coded segment on the shared bar below. Cards and bar scroll
+ * together and both link straight to the play.
  */
 export function SessionTimeline({
 	plays,
@@ -155,36 +153,64 @@ export function SessionTimeline({
 						);
 					})}
 
-					{/* Leader from each card down to the start of its segment. */}
-					{items.map(({ play, x }) => {
-						const rank = play.results?.rank;
-						const color = rank
-							? RANK_BG_STYLES[rank]
-							: "bg-muted-foreground/40";
-						return (
-							<div
-								key={`link-${play.id}`}
-								className={cn(
-									"pointer-events-none absolute flex flex-col items-center transition-opacity",
-									hoveredId === play.id ? "opacity-100" : "opacity-70",
-								)}
-								style={{
-									left: x + ARROW_INSET - 6,
-									top: CARD_H,
-									width: 12,
-									height: CONNECTOR_H,
-								}}
-							>
-								<span className={cn("w-px flex-1", color)} />
-								<span
-									className={cn(
-										"size-2.5 shrink-0 [clip-path:polygon(50%_100%,0_0,100%_0)]",
-										color,
-									)}
-								/>
-							</div>
-						);
-					})}
+					{/* Funnel each card down to its segment: card edges → segment edges. */}
+					<svg
+						className="pointer-events-none absolute"
+						style={{
+							left: 0,
+							top: CARD_H,
+							width: totalWidth,
+							height: CONNECTOR_H,
+						}}
+						width={totalWidth}
+						height={CONNECTOR_H}
+						aria-hidden
+					>
+						<title>
+							Connectors from each play card to its timeline segment
+						</title>
+						{items.map(({ play, x, segWidth }) => {
+							const rank = play.results?.rank;
+							const color = rank
+								? RANK_STYLES[rank]
+								: "text-muted-foreground/50";
+							const active = hoveredId === play.id;
+							const b = CONNECTOR_H;
+							return (
+								<g
+									key={`link-${play.id}`}
+									className={cn(color, active ? "opacity-100" : "opacity-70")}
+								>
+									{/* Body: the card's fill tapering to the segment. */}
+									<polygon
+										points={`${x},0 ${x + CARD_W},0 ${x + segWidth},${b} ${x},${b}`}
+										className="fill-current"
+										fillOpacity={active ? 0.14 : 0.07}
+									/>
+									{/* Left edge continues the card's grade accent stripe. */}
+									<line
+										x1={x}
+										y1={0}
+										x2={x}
+										y2={b}
+										className="stroke-current"
+										strokeWidth={2}
+									/>
+									{/* Right edge continues the card's border. */}
+									<line
+										x1={x + CARD_W}
+										y1={0}
+										x2={x + segWidth}
+										y2={b}
+										className={cn(
+											active ? "stroke-primary/60" : "stroke-border",
+										)}
+										strokeWidth={1}
+									/>
+								</g>
+							);
+						})}
+					</svg>
 
 					{items.map(({ play, x }) => (
 						<TimelineCard
@@ -224,7 +250,7 @@ function TimelineCard({
 			onMouseLeave={() => onHover(null)}
 			style={{ left: x, width: CARD_W, top: 0, height: CARD_H }}
 			className={cn(
-				"absolute flex flex-col justify-between overflow-hidden rounded-lg border bg-card p-2 transition-colors",
+				"absolute flex flex-col justify-between overflow-hidden rounded-t-lg border bg-card p-2 transition-colors",
 				active
 					? "z-10 border-primary/50 bg-accent/40"
 					: "border-border hover:border-primary/40 hover:bg-accent/30",
