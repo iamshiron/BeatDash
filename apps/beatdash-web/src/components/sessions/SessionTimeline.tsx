@@ -34,12 +34,18 @@ const TOTAL_H = BAR_Y + BAR_H;
 const MIN_SEGMENT_PX = 6;
 /** Width (px) of the grade accent — matches the card's `w-1` left stripe. */
 const ACCENT_W = 4;
+/**
+ * The funnel is drawn this many px past its band at both ends, tucking under
+ * the card above and over the bar below. The overlap is hidden by those layers
+ * but removes the sub-pixel hairline seams a flush edge-to-edge join leaves.
+ */
+const OVERLAP = 1.5;
 
 interface TimelinePlay {
 	play: PlaySessionListItemDto;
-	/** Left offset (px) of the play's start on the shared time axis. */
+	/** Left offset (px, pixel-snapped) of the play's start on the time axis. */
 	x: number;
-	/** Segment width (px) — the play's length at the timeline scale. */
+	/** Segment width (px, pixel-snapped) — the play's length at the scale. */
 	segWidth: number;
 }
 
@@ -87,10 +93,12 @@ export function SessionTimeline({
 		const tightest = gaps.length ? Math.min(...gaps) : span;
 		const pxPerMs = (CARD_W + GUTTER) / Math.max(tightest, MIN_SPACING_MS);
 
+		// Snap edges to whole pixels so the card / funnel / segment share exact
+		// pixel boundaries instead of landing on fractional, antialiased ones.
 		const resolved: TimelinePlay[] = sorted.map((p) => ({
 			play: p.play,
-			x: (p.startMs - first) * pxPerMs,
-			segWidth: Math.max(p.durationMs * pxPerMs, MIN_SEGMENT_PX),
+			x: Math.round((p.startMs - first) * pxPerMs),
+			segWidth: Math.max(Math.round(p.durationMs * pxPerMs), MIN_SEGMENT_PX),
 		}));
 
 		const width = resolved.reduce(
@@ -108,6 +116,10 @@ export function SessionTimeline({
 	}, [plays]);
 
 	if (items.length === 0) return null;
+
+	// Funnel band, grown by OVERLAP at both ends (see OVERLAP).
+	const funnelTop = CARD_H - OVERLAP;
+	const funnelH = CONNECTOR_H + OVERLAP * 2;
 
 	return (
 		<div className="flex flex-col gap-3">
@@ -158,17 +170,18 @@ export function SessionTimeline({
 					{/* Funnel each card down to its segment as a silhouette continuation:
 					    the left edge carries the card's grade accent stripe (same 4px
 					    width) straight down, the right edge carries the card's 1px
-					    border in toward the segment's end. */}
+					    border in toward the segment's end. Coordinates run 0..funnelH,
+					    so y=0 tucks under the card and y=funnelH tucks over the bar. */}
 					<svg
 						className="pointer-events-none absolute"
 						style={{
 							left: 0,
-							top: CARD_H,
+							top: funnelTop,
 							width: totalWidth,
-							height: CONNECTOR_H,
+							height: funnelH,
 						}}
 						width={totalWidth}
-						height={CONNECTOR_H}
+						height={funnelH}
 						aria-hidden
 					>
 						<title>
@@ -180,11 +193,10 @@ export function SessionTimeline({
 								? RANK_STYLES[rank]
 								: "text-muted-foreground/50";
 							const active = hoveredId === play.id;
-							const b = CONNECTOR_H;
 							return (
 								<g key={`link-${play.id}`} className={color}>
 									<polygon
-										points={`${x},0 ${x + CARD_W},0 ${x + segWidth},${b} ${x},${b}`}
+										points={`${x},0 ${x + CARD_W},0 ${x + segWidth},${funnelH} ${x},${funnelH}`}
 										className="fill-current"
 										fillOpacity={active ? 0.24 : 0.14}
 									/>
@@ -195,7 +207,7 @@ export function SessionTimeline({
 										x={x}
 										y={0}
 										width={ACCENT_W}
-										height={b}
+										height={funnelH}
 										className="fill-current"
 									/>
 									{/* Right edge = the card's border carried in to the segment. */}
@@ -203,7 +215,7 @@ export function SessionTimeline({
 										x1={x + CARD_W}
 										y1={0}
 										x2={x + segWidth}
-										y2={b}
+										y2={funnelH}
 										strokeWidth={1}
 										className={active ? "stroke-primary/50" : "stroke-border"}
 									/>
