@@ -27,7 +27,7 @@ const GUTTER = 16;
 const MIN_SPACING_MS = 30_000;
 /** Layout bands within the timeline, top-down. */
 const CARD_H = 76;
-const CONNECTOR_H = 14;
+const CONNECTOR_H = 16;
 const BAR_H = 10;
 const BAR_Y = CARD_H + CONNECTOR_H;
 const TOTAL_H = BAR_Y + BAR_H;
@@ -153,7 +153,9 @@ export function SessionTimeline({
 						);
 					})}
 
-					{/* Funnel each card down to its segment: card edges → segment edges. */}
+					{/* Funnel each card down to its segment: a flat grade-tinted body
+					    with the card's start/end edges tracing to the segment's
+					    start/end. */}
 					<svg
 						className="pointer-events-none absolute"
 						style={{
@@ -179,15 +181,13 @@ export function SessionTimeline({
 							return (
 								<g
 									key={`link-${play.id}`}
-									className={cn(color, active ? "opacity-100" : "opacity-70")}
+									className={cn(color, active ? "opacity-100" : "opacity-90")}
 								>
-									{/* Body: the card's fill tapering to the segment. */}
 									<polygon
 										points={`${x},0 ${x + CARD_W},0 ${x + segWidth},${b} ${x},${b}`}
 										className="fill-current"
-										fillOpacity={active ? 0.14 : 0.07}
+										fillOpacity={active ? 0.3 : 0.18}
 									/>
-									{/* Left edge continues the card's grade accent stripe. */}
 									<line
 										x1={x}
 										y1={0}
@@ -196,16 +196,14 @@ export function SessionTimeline({
 										className="stroke-current"
 										strokeWidth={2}
 									/>
-									{/* Right edge continues the card's border. */}
 									<line
 										x1={x + CARD_W}
 										y1={0}
 										x2={x + segWidth}
 										y2={b}
-										className={cn(
-											active ? "stroke-primary/60" : "stroke-border",
-										)}
-										strokeWidth={1}
+										className="stroke-current"
+										strokeWidth={1.5}
+										strokeOpacity={0.9}
 									/>
 								</g>
 							);
@@ -250,7 +248,7 @@ function TimelineCard({
 			onMouseLeave={() => onHover(null)}
 			style={{ left: x, width: CARD_W, top: 0, height: CARD_H }}
 			className={cn(
-				"absolute flex flex-col justify-between overflow-hidden rounded-t-lg border bg-card p-2 transition-colors",
+				"absolute flex flex-col justify-between overflow-hidden rounded-t-lg border border-b-0 bg-card p-2 transition-colors",
 				active
 					? "z-10 border-primary/50 bg-accent/40"
 					: "border-border hover:border-primary/40 hover:bg-accent/30",
