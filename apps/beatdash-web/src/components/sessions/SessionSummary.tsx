@@ -16,7 +16,7 @@ import { formatDistanceToNow } from "date-fns";
 import { Area, AreaChart, XAxis, YAxis } from "recharts";
 import type { SessionSummaryDto } from "@/api/model";
 import { useGetApiSessionsLatestSummary } from "@/api/sessions/sessions";
-import { SessionRow } from "@/components/profile/SessionRow";
+import { SessionTimeline } from "@/components/sessions/SessionTimeline";
 import { formatAccuracy, RANK_STYLES } from "@/lib/sessions";
 
 const sparkConfig = {
@@ -189,12 +189,7 @@ export function SessionSummary({
 					))}
 				</div>
 
-				<div className="flex flex-col gap-2">
-					<span className="text-xs text-muted-foreground">Plays</span>
-					{summary.plays.map((p) => (
-						<SessionRow key={p.id} session={p} />
-					))}
-				</div>
+				<SessionTimeline plays={summary.plays} />
 			</CardContent>
 		</Card>
 	);

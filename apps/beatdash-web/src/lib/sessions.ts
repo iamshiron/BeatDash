@@ -27,6 +27,21 @@ export const RANK_STYLES: Record<string, string> = {
 	E: "text-red-400",
 };
 
+/**
+ * Solid background colors for a grade, keyed by {@link RANK_STYLES} rank. Used to
+ * color-code the session timeline bar where flat fills (not text) are needed.
+ */
+export const RANK_BG_STYLES: Record<string, string> = {
+	SSS: "bg-amber-300",
+	SS: "bg-amber-400",
+	S: "bg-fuchsia-400",
+	A: "bg-sky-400",
+	B: "bg-emerald-400",
+	C: "bg-yellow-400",
+	D: "bg-orange-400",
+	E: "bg-red-400",
+};
+
 export const DIFFICULTY_OPTIONS = [
 	{ value: "Easy", label: "Easy" },
 	{ value: "Normal", label: "Normal" },
@@ -367,6 +382,26 @@ export function formatDuration(duration: string | null): string {
 	if (h > 0)
 		return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
 	return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+/**
+ * Parses a .NET `TimeSpan` string (`[d.]hh:mm:ss[.fffffff]`) into milliseconds.
+ * Returns 0 for a null/empty duration (e.g. an in-progress play).
+ */
+export function parseDurationMs(duration: string | null): number {
+	if (!duration) return 0;
+	let time = duration;
+	let days = 0;
+	const firstColon = duration.indexOf(":");
+	const firstDot = duration.indexOf(".");
+	// A dot before the first colon is the day separator; after it, fractional seconds.
+	if (firstDot !== -1 && firstColon !== -1 && firstDot < firstColon) {
+		days = Number(duration.slice(0, firstDot));
+		time = duration.slice(firstDot + 1);
+	}
+	const [h, m, s] = time.split(":");
+	const seconds = Number(h) * 3600 + Number(m) * 60 + Number(s);
+	return (days * 86400 + seconds) * 1000;
 }
 
 export function formatSongTimeMs(ms: number | string): string {
