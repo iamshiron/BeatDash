@@ -22,7 +22,7 @@ function RootComponent() {
 				variant="tilt"
 				cellSize={70}
 				lineWidth={1}
-				rotateX={-60}
+				rotateX={60}
 				rotateY={0}
 				rotateZ={-27}
 				scale={1.85}
