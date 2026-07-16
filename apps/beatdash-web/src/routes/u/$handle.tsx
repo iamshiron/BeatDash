@@ -104,7 +104,7 @@ function ProfileBody({ profile }: { profile: PublicProfileDto }) {
 				</div>
 				<Button variant="outline" size="sm" onClick={share}>
 					<ShareIcon className="size-4" />
-					ShareIcon
+					Share
 				</Button>
 			</div>
 
