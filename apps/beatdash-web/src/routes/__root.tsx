@@ -1,7 +1,4 @@
-import {
-	Background,
-	BackgroundWash,
-} from "@shiron/ui/components/ui/background";
+import { Background } from "@shiron/ui/components/ui/background";
 import { Toaster } from "@shiron/ui/components/ui/sonner";
 import { TooltipProvider } from "@shiron/ui/components/ui/tooltip";
 import type { QueryClient } from "@tanstack/react-query";
@@ -21,10 +18,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 function RootComponent() {
 	return (
 		<TooltipProvider>
-			<Background>
-				{/* Slight wash layered over the blobs so they read softer behind content. */}
-				<BackgroundWash />
-			</Background>
+			<Background variant="atmosphere" />
 			<Outlet />
 			<BottomPlayer />
 			<Toaster />
