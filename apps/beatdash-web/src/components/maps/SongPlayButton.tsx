@@ -1,6 +1,6 @@
 import { Spinner } from "@shiron/ui/components/ui/spinner";
 import { cn } from "@shiron/ui/lib/utils";
-import { Pause, Play } from "@solar-icons/react";
+import { PauseIcon, PlayIcon } from "@solar-icons/react/dynamic";
 import { type PlayerTrack, usePlayer } from "@/contexts/player";
 
 /**
@@ -49,9 +49,9 @@ export function SongPlayButton({
 			{isLoading ? (
 				<Spinner className="size-4" />
 			) : isPlaying ? (
-				<Pause weight="Bold" />
+				<PauseIcon weight="Bold" />
 			) : (
-				<Play weight="Bold" />
+				<PlayIcon weight="Bold" />
 			)}
 		</button>
 	);

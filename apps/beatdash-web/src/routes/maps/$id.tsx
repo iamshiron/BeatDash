@@ -23,16 +23,16 @@ import { Skeleton } from "@shiron/ui/components/ui/skeleton";
 import { Spinner } from "@shiron/ui/components/ui/spinner";
 import { cn } from "@shiron/ui/lib/utils";
 import {
-	ArrowLeft,
-	Fire,
-	Like,
-	MusicNotes,
-	Pause,
-	Play,
-	Pulse,
-	Stopwatch,
-	VerifiedCheck,
-} from "@solar-icons/react";
+	ArrowLeftIcon,
+	FireIcon,
+	LikeIcon,
+	MusicNotesIcon,
+	PauseIcon,
+	PlayIcon,
+	PulseIcon,
+	StopwatchIcon,
+	VerifiedCheckIcon,
+} from "@solar-icons/react/dynamic";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { formatDistanceToNow } from "date-fns";
 import { useMemo, useState } from "react";
@@ -136,7 +136,7 @@ function MapDetailPage() {
 		<AppShell>
 			<Button variant="ghost" size="sm" asChild className="-ml-2 mb-4">
 				<Link to="/maps">
-					<ArrowLeft className="size-4" />
+					<ArrowLeftIcon className="size-4" />
 					Maps
 				</Link>
 			</Button>
@@ -153,7 +153,7 @@ function MapDetailPage() {
 				<Empty className="mt-10">
 					<EmptyHeader>
 						<EmptyMedia variant="icon">
-							<MusicNotes />
+							<MusicNotesIcon />
 						</EmptyMedia>
 						<EmptyTitle>Map not found</EmptyTitle>
 						<EmptyDescription>
@@ -176,7 +176,7 @@ function MapDetailPage() {
 									className="size-full object-cover"
 								/>
 							) : (
-								<MusicNotes className="size-10 text-muted-foreground/40" />
+								<MusicNotesIcon className="size-10 text-muted-foreground/40" />
 							)}
 						</div>
 
@@ -217,9 +217,9 @@ function MapDetailPage() {
 										}}
 									/>
 								)}
-								<Stat icon={<Pulse />} value={`${n(map.bpm)} BPM`} />
+								<Stat icon={<PulseIcon />} value={`${n(map.bpm)} BPM`} />
 								<Stat
-									icon={<Stopwatch />}
+									icon={<StopwatchIcon />}
 									value={formatDuration(n(map.durationMs))}
 								/>
 								<Badge
@@ -230,7 +230,7 @@ function MapDetailPage() {
 								</Badge>
 								{map.beatSaver?.ranked && (
 									<Badge className="gap-1 border-emerald-500/25 bg-emerald-500/15 text-emerald-400">
-										<VerifiedCheck className="size-3.5" weight="Bold" />
+										<VerifiedCheckIcon className="size-3.5" weight="Bold" />
 										Ranked
 									</Badge>
 								)}
@@ -247,7 +247,7 @@ function MapDetailPage() {
 							<CardContent className="space-y-3 text-sm">
 								<div className="flex flex-wrap items-center gap-4 text-muted-foreground">
 									<span className="flex items-center gap-1.5 text-foreground">
-										<Like className="size-4" weight="Bold" />
+										<LikeIcon className="size-4" weight="Bold" />
 										<span className="font-mono tabular-nums">
 											{n(map.beatSaver.upvotes).toLocaleString()}
 										</span>
@@ -358,7 +358,7 @@ function DifficultyCard({
 			<CardContent className="space-y-4">
 				<div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground">
 					<Stat
-						icon={<Fire />}
+						icon={<FireIcon />}
 						value={`${n(difficulty.notesPerSecond).toFixed(1)} NPS`}
 					/>
 					<span>{n(difficulty.cuttableObjectCount)} notes</span>
@@ -561,9 +561,9 @@ function SongToggleButton({ track }: { track: PlayerTrack }) {
 			{isLoading ? (
 				<Spinner className="size-4" />
 			) : isPlaying ? (
-				<Pause className="size-4" weight="Bold" />
+				<PauseIcon className="size-4" weight="Bold" />
 			) : (
-				<Play className="size-4" weight="Bold" />
+				<PlayIcon className="size-4" weight="Bold" />
 			)}
 			{isPlaying ? "Pause" : "Play"}
 		</Button>

@@ -8,7 +8,11 @@ import {
 import { GlassPanel } from "@shiron/ui/components/ui/glass-panel";
 import { Skeleton } from "@shiron/ui/components/ui/skeleton";
 import { cn } from "@shiron/ui/lib/utils";
-import { ClockCircle, MusicNotes, Target } from "@solar-icons/react";
+import {
+	ClockCircleIcon,
+	MusicNotesIcon,
+	TargetIcon,
+} from "@solar-icons/react/dynamic";
 import { Link } from "@tanstack/react-router";
 import { useGetApiSessionsStats } from "@/api/sessions/sessions";
 import { AccuracyTrend } from "@/components/dashboard/AccuracyTrend";
@@ -62,17 +66,17 @@ export function Dashboard() {
 				<>
 					<div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
 						<StatTile
-							icon={<MusicNotes className="size-4" />}
+							icon={<MusicNotesIcon className="size-4" />}
 							label="Plays"
 							value={formatScore(Number(stats.totalPlays))}
 						/>
 						<StatTile
-							icon={<ClockCircle className="size-4" />}
+							icon={<ClockCircleIcon className="size-4" />}
 							label="Play time"
 							value={formatPlayTime(Number(stats.totalPlayTimeMs))}
 						/>
 						<StatTile
-							icon={<Target className="size-4" />}
+							icon={<TargetIcon className="size-4" />}
 							label="Avg accuracy"
 							value={formatAccuracy(Number(stats.averageAccuracy))}
 						/>
@@ -179,7 +183,7 @@ function EmptyState() {
 	return (
 		<Card>
 			<CardContent className="flex flex-col items-center gap-3 py-12 text-center">
-				<MusicNotes className="size-8 text-muted-foreground/40" />
+				<MusicNotesIcon className="size-8 text-muted-foreground/40" />
 				<div>
 					<p className="font-heading text-sm font-semibold">No plays yet</p>
 					<p className="mt-1 text-xs text-muted-foreground">

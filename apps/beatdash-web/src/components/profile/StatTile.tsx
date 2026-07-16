@@ -5,7 +5,7 @@ import {
 	StatLabel,
 	StatValue,
 } from "@shiron/ui/components/ui/stat";
-import { AltArrowDown, AltArrowUp } from "@solar-icons/react";
+import { AltArrowDownIcon, AltArrowUpIcon } from "@solar-icons/react/dynamic";
 
 /** A change indicator for a stat tile. `good` colours the delta regardless of arrow direction. */
 export interface StatDelta {
@@ -54,7 +54,7 @@ export function StatDeltaIndicator({ delta }: { delta: StatDelta }) {
 	// red (down) trend while the arrow still follows the real direction.
 	const trend =
 		delta.direction === "neutral" ? "neutral" : delta.good ? "up" : "down";
-	const Arrow = delta.direction === "down" ? AltArrowDown : AltArrowUp;
+	const Arrow = delta.direction === "down" ? AltArrowDownIcon : AltArrowUpIcon;
 	return (
 		<StatDeltaChip trend={trend}>
 			{delta.direction !== "neutral" && <Arrow />}

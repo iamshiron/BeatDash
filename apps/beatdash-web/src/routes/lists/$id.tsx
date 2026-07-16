@@ -29,12 +29,12 @@ import { Input } from "@shiron/ui/components/ui/input";
 import { Skeleton } from "@shiron/ui/components/ui/skeleton";
 import { Textarea } from "@shiron/ui/components/ui/textarea";
 import {
-	AltArrowLeft,
-	CloseCircle,
-	MusicNotes,
-	Pen,
-	TrashBinMinimalistic,
-} from "@solar-icons/react";
+	AltArrowLeftIcon,
+	CloseCircleIcon,
+	MusicNotesIcon,
+	PenIcon,
+	TrashBinMinimalisticIcon,
+} from "@solar-icons/react/dynamic";
 import { useQueryClient } from "@tanstack/react-query";
 import {
 	createFileRoute,
@@ -101,7 +101,7 @@ function ListDetailPage() {
 		<AppShell wide>
 			<Button variant="ghost" size="sm" className="mb-3 gap-1.5 pl-2" asChild>
 				<Link to="/lists">
-					<AltArrowLeft className="size-4" />
+					<AltArrowLeftIcon className="size-4" />
 					Lists
 				</Link>
 			</Button>
@@ -121,7 +121,7 @@ function ListDetailPage() {
 				<Empty className="mt-10">
 					<EmptyHeader>
 						<EmptyMedia variant="icon">
-							<CloseCircle />
+							<CloseCircleIcon />
 						</EmptyMedia>
 						<EmptyTitle>List not found</EmptyTitle>
 						<EmptyDescription>
@@ -144,7 +144,7 @@ function ListDetailPage() {
 								</p>
 							)}
 							<p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-								<MusicNotes className="size-3.5" />
+								<MusicNotesIcon className="size-3.5" />
 								<span className="tabular-nums">
 									{maps.length} {maps.length === 1 ? "map" : "maps"}
 								</span>
@@ -157,7 +157,7 @@ function ListDetailPage() {
 								className="gap-1.5"
 								onClick={() => setEditOpen(true)}
 							>
-								<Pen className="size-3.5" />
+								<PenIcon className="size-3.5" />
 								Edit
 							</Button>
 							<Button
@@ -167,7 +167,7 @@ function ListDetailPage() {
 								aria-label="Delete list"
 								onClick={() => setDeleteOpen(true)}
 							>
-								<TrashBinMinimalistic className="size-4" />
+								<TrashBinMinimalisticIcon className="size-4" />
 							</Button>
 						</div>
 					</div>
@@ -176,7 +176,7 @@ function ListDetailPage() {
 						<Empty className="mt-10">
 							<EmptyHeader>
 								<EmptyMedia variant="icon">
-									<MusicNotes />
+									<MusicNotesIcon />
 								</EmptyMedia>
 								<EmptyTitle>No maps in this list</EmptyTitle>
 								<EmptyDescription>
@@ -262,7 +262,7 @@ function ListMapCard({ listId, map }: { listId: string; map: MapListItemDto }) {
 				onClick={() => removeMutation.mutate({ listId, mapId: map.id })}
 				className="absolute right-2 top-2 z-10 flex size-6 items-center justify-center rounded-full bg-background/70 text-muted-foreground backdrop-blur-sm transition-colors hover:bg-background/90 hover:text-destructive disabled:opacity-60"
 			>
-				<CloseCircle className="size-4" />
+				<CloseCircleIcon className="size-4" />
 			</button>
 			<MapCard map={map} />
 		</div>

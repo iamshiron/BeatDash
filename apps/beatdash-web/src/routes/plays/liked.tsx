@@ -7,7 +7,11 @@ import {
 	EmptyTitle,
 } from "@shiron/ui/components/ui/empty";
 import { Skeleton } from "@shiron/ui/components/ui/skeleton";
-import { AltArrowLeft, AltArrowRight, Heart } from "@solar-icons/react";
+import {
+	AltArrowLeftIcon,
+	AltArrowRightIcon,
+	HeartIcon,
+} from "@solar-icons/react/dynamic";
 import { keepPreviousData } from "@tanstack/react-query";
 import {
 	createFileRoute,
@@ -95,7 +99,7 @@ function LikedMapsPage() {
 				<Empty className="mt-10">
 					<EmptyHeader>
 						<EmptyMedia variant="icon">
-							<Heart />
+							<HeartIcon />
 						</EmptyMedia>
 						<EmptyTitle>No liked maps yet</EmptyTitle>
 						<EmptyDescription>
@@ -126,7 +130,7 @@ function LikedMapsPage() {
 							disabled={p <= 1}
 							onClick={() => goToPage(p - 1)}
 						>
-							<AltArrowLeft className="size-4" />
+							<AltArrowLeftIcon className="size-4" />
 						</Button>
 						<Button
 							variant="outline"
@@ -135,7 +139,7 @@ function LikedMapsPage() {
 							disabled={p >= totalPages}
 							onClick={() => goToPage(p + 1)}
 						>
-							<AltArrowRight className="size-4" />
+							<AltArrowRightIcon className="size-4" />
 						</Button>
 					</div>
 				</div>

@@ -1,4 +1,7 @@
-import { TestTube, SpeedometerMiddle } from "@solar-icons/react";
+import {
+	SpeedometerMiddleIcon,
+	TestTubeIcon,
+} from "@solar-icons/react/dynamic";
 import { Separator } from "@shiron/ui/components/ui/separator";
 import {
 	Sidebar,
@@ -38,14 +41,14 @@ export const Route = createFileRoute("/admin")({
 interface AdminNavItem {
 	label: string;
 	to: string;
-	icon: typeof SpeedometerMiddle;
+	icon: typeof SpeedometerMiddleIcon;
 	exact?: boolean;
 }
 
 /** Admin sidebar navigation. Add admin-only routes here. */
 const NAV_ITEMS: AdminNavItem[] = [
-	{ label: "Overview", to: "/admin", icon: SpeedometerMiddle, exact: true },
-	{ label: "Scoring Lab", to: "/admin/scoring", icon: TestTube },
+	{ label: "Overview", to: "/admin", icon: SpeedometerMiddleIcon, exact: true },
+	{ label: "Scoring Lab", to: "/admin/scoring", icon: TestTubeIcon },
 ];
 
 function AdminLayout() {

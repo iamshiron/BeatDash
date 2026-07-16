@@ -1,14 +1,14 @@
 import { Slider } from "@shiron/ui/components/ui/slider";
 import { Spinner } from "@shiron/ui/components/ui/spinner";
 import {
-	CloseCircle,
-	MusicNotes,
-	Pause,
-	Play,
-	VolumeCross,
-	VolumeLoud,
-	VolumeSmall,
-} from "@solar-icons/react";
+	CloseCircleIcon,
+	MusicNotesIcon,
+	PauseIcon,
+	PlayIcon,
+	VolumeCrossIcon,
+	VolumeLoudIcon,
+	VolumeSmallIcon,
+} from "@solar-icons/react/dynamic";
 import { Link } from "@tanstack/react-router";
 import { getGetApiMapsMapIdCoverUrl } from "@/api/maps/maps";
 import { usePlayer } from "@/contexts/player";
@@ -45,10 +45,10 @@ export function BottomPlayer() {
 
 	const VolumeIcon =
 		muted || volume === 0
-			? VolumeCross
+			? VolumeCrossIcon
 			: volume < 0.5
-				? VolumeSmall
-				: VolumeLoud;
+				? VolumeSmallIcon
+				: VolumeLoudIcon;
 
 	return (
 		<div className="pointer-events-none fixed inset-x-0 bottom-4 z-50 mx-auto w-full max-w-3xl px-4">
@@ -66,7 +66,7 @@ export function BottomPlayer() {
 							className="size-full object-cover"
 						/>
 					) : (
-						<MusicNotes className="size-5 text-muted-foreground/50" />
+						<MusicNotesIcon className="size-5 text-muted-foreground/50" />
 					)}
 				</Link>
 
@@ -80,9 +80,9 @@ export function BottomPlayer() {
 					{isLoading ? (
 						<Spinner className="size-4.5" />
 					) : isPlaying ? (
-						<Pause weight="Bold" />
+						<PauseIcon weight="Bold" />
 					) : (
-						<Play weight="Bold" />
+						<PlayIcon weight="Bold" />
 					)}
 				</button>
 
@@ -138,7 +138,7 @@ export function BottomPlayer() {
 					aria-label="Close player"
 					className="flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition hover:bg-muted hover:text-foreground [&_svg]:size-5"
 				>
-					<CloseCircle weight="Bold" />
+					<CloseCircleIcon weight="Bold" />
 				</button>
 			</div>
 		</div>

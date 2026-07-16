@@ -5,7 +5,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@shiron/ui/components/ui/card";
-import { AltArrowUp } from "@solar-icons/react";
+import { AltArrowUpIcon } from "@solar-icons/react/dynamic";
 import type { CutDirectionCellDto } from "@/api/model";
 import { ACCURACY_GRADIENT, accuracyColor, CUT_DIRECTIONS } from "@/lib/charts";
 
@@ -63,7 +63,7 @@ function HandGrid({
 											style={{ backgroundColor: color }}
 										/>
 									) : (
-										<AltArrowUp
+										<AltArrowUpIcon
 											className="size-3.5"
 											style={{
 												color,

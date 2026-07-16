@@ -12,7 +12,7 @@ import {
 	TabsTrigger,
 } from "@shiron/ui/components/ui/tabs";
 import { cn } from "@shiron/ui/lib/utils";
-import { Cup } from "@solar-icons/react";
+import { CupIcon } from "@solar-icons/react/dynamic";
 import { Link, useSearch } from "@tanstack/react-router";
 import { formatDistanceToNow } from "date-fns";
 import type {
@@ -51,7 +51,7 @@ export function TopSessions({
 		<Card>
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2">
-					<Cup className="size-4 text-amber-300" weight="Bold" />
+					<CupIcon className="size-4 text-amber-300" weight="Bold" />
 					Top Sessions
 				</CardTitle>
 			</CardHeader>

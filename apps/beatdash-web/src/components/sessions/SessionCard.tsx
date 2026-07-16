@@ -1,6 +1,6 @@
 import { Badge } from "@shiron/ui/components/ui/badge";
 import { cn } from "@shiron/ui/lib/utils";
-import { Cpu, MusicNotes } from "@solar-icons/react";
+import { CpuIcon, MusicNotesIcon } from "@solar-icons/react/dynamic";
 import { Link, useSearch } from "@tanstack/react-router";
 import { formatDistanceToNow } from "date-fns";
 import { useState } from "react";
@@ -41,7 +41,7 @@ export function SessionCard({ session }: { session: PlaySessionListItemDto }) {
 						/>
 					) : (
 						<div className="flex size-full items-center justify-center">
-							<MusicNotes className="size-5 text-muted-foreground/40" />
+							<MusicNotesIcon className="size-5 text-muted-foreground/40" />
 						</div>
 					)}
 				</div>
@@ -56,7 +56,7 @@ export function SessionCard({ session }: { session: PlaySessionListItemDto }) {
 								variant="secondary"
 								className="shrink-0 gap-0.5 px-1.5 py-0 text-[10px] text-muted-foreground"
 							>
-								<Cpu className="size-2.5" />
+								<CpuIcon className="size-2.5" />
 								Auto
 							</Badge>
 						)}

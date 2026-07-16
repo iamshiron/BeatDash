@@ -1,7 +1,7 @@
 [submodule "packages/ui"]
 	path = packages/ui
 	url = https://github.com/iamshiron/shiron-ui.git
-	branch = feat/design-v2
+	branch = main
 [submodule "external/lib"]
 	path = external/lib
 	url = https://github.com/iamshiron/lib.git

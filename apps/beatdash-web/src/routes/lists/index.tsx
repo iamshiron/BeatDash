@@ -7,7 +7,11 @@ import {
 	EmptyTitle,
 } from "@shiron/ui/components/ui/empty";
 import { Skeleton } from "@shiron/ui/components/ui/skeleton";
-import { AddCircle, MusicNotes, Playlist } from "@solar-icons/react";
+import {
+	AddCircleIcon,
+	MusicNotesIcon,
+	PlaylistIcon,
+} from "@solar-icons/react/dynamic";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { useGetApiLists } from "@/api/lists/lists";
@@ -48,7 +52,7 @@ function ListsPage() {
 					className="gap-1.5"
 					onClick={() => setCreateOpen(true)}
 				>
-					<AddCircle className="size-4" />
+					<AddCircleIcon className="size-4" />
 					New list
 				</Button>
 			</div>
@@ -65,7 +69,7 @@ function ListsPage() {
 				<Empty className="mt-10">
 					<EmptyHeader>
 						<EmptyMedia variant="icon">
-							<Playlist />
+							<PlaylistIcon />
 						</EmptyMedia>
 						<EmptyTitle>No lists yet</EmptyTitle>
 						<EmptyDescription>
@@ -78,7 +82,7 @@ function ListsPage() {
 						className="mt-4 gap-1.5"
 						onClick={() => setCreateOpen(true)}
 					>
-						<AddCircle className="size-4" />
+						<AddCircleIcon className="size-4" />
 						New list
 					</Button>
 				</Empty>
@@ -121,7 +125,7 @@ function ListCard({ list }: { list: MapListSummaryDto }) {
 					))
 				) : (
 					<div className="flex size-full items-center justify-center">
-						<Playlist className="size-8 text-muted-foreground/40" />
+						<PlaylistIcon className="size-8 text-muted-foreground/40" />
 					</div>
 				)}
 			</div>
@@ -135,7 +139,7 @@ function ListCard({ list }: { list: MapListSummaryDto }) {
 					</p>
 				)}
 				<div className="mt-auto flex items-center gap-1.5 pt-1 text-xs text-muted-foreground">
-					<MusicNotes className="size-3.5" />
+					<MusicNotesIcon className="size-3.5" />
 					<span className="tabular-nums">
 						{mapCount} {mapCount === 1 ? "map" : "maps"}
 					</span>

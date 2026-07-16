@@ -1,4 +1,4 @@
-import { Moon, Sun } from "@solar-icons/react";
+import { MoonIcon, SunIcon } from "@solar-icons/react/dynamic";
 import { Button } from "@shiron/ui/components/ui/button";
 import {
 	DropdownMenu,
@@ -15,11 +15,11 @@ export function ModeToggle() {
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
 				<Button variant="ghost" size="icon">
-					<Sun
+					<SunIcon
 						size={18}
 						className="scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90"
 					/>
-					<Moon
+					<MoonIcon
 						size={18}
 						className="absolute scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0"
 					/>

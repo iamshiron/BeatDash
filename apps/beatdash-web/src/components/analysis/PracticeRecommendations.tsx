@@ -6,7 +6,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@shiron/ui/components/ui/card";
-import { MusicNotes, Target } from "@solar-icons/react";
+import { MusicNotesIcon, TargetIcon } from "@solar-icons/react/dynamic";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { getGetApiMapsMapIdCoverUrl } from "@/api/maps/maps";
@@ -31,7 +31,7 @@ function RecommendationRow({ rec }: { rec: PracticeRecommendationDto }) {
 					/>
 				) : (
 					<div className="flex size-full items-center justify-center">
-						<MusicNotes className="size-4 text-muted-foreground/40" />
+						<MusicNotesIcon className="size-4 text-muted-foreground/40" />
 					</div>
 				)}
 			</div>
@@ -46,7 +46,7 @@ function RecommendationRow({ rec }: { rec: PracticeRecommendationDto }) {
 			<div className="flex shrink-0 flex-wrap justify-end gap-1">
 				{rec.targetedCharacteristics.map((c) => (
 					<Badge key={c} variant="secondary" className="gap-1 capitalize">
-						<Target className="size-3" />
+						<TargetIcon className="size-3" />
 						{c}
 					</Badge>
 				))}

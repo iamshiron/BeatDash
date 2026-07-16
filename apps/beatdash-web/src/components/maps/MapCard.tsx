@@ -6,12 +6,12 @@ import {
 } from "@shiron/ui/components/ui/tooltip";
 import { cn } from "@shiron/ui/lib/utils";
 import {
-	CheckCircle,
-	Fire,
-	MusicNotes,
-	Pulse,
-	Stopwatch,
-} from "@solar-icons/react";
+	CheckCircleIcon,
+	FireIcon,
+	MusicNotesIcon,
+	PulseIcon,
+	StopwatchIcon,
+} from "@solar-icons/react/dynamic";
 import { Link } from "@tanstack/react-router";
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { getGetApiMapsMapIdCoverUrl } from "@/api/maps/maps";
@@ -76,7 +76,7 @@ export function MapCard({ map }: { map: MapListItemDto }) {
 				<Tooltip>
 					<TooltipTrigger asChild>
 						<span className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-medium text-emerald-400">
-							<CheckCircle className="size-3" weight="Bold" />
+							<CheckCircleIcon className="size-3" weight="Bold" />
 							{playCount}
 						</span>
 					</TooltipTrigger>
@@ -104,7 +104,7 @@ export function MapCard({ map }: { map: MapListItemDto }) {
 						className="size-20 rounded-md object-cover shadow-sm"
 					/>
 				) : (
-					<MusicNotes className="size-9 text-muted-foreground/40" />
+					<MusicNotesIcon className="size-9 text-muted-foreground/40" />
 				)}
 				{map.hasSong && (
 					<SongPlayButton
@@ -135,14 +135,14 @@ export function MapCard({ map }: { map: MapListItemDto }) {
 				<DifficultyTags difficulties={difficulties} />
 
 				<div className="mt-auto flex items-center gap-3 text-xs text-muted-foreground">
-					<Stat icon={<Pulse />} value={`${num(map.bpm)}`} label="BPM" />
+					<Stat icon={<PulseIcon />} value={`${num(map.bpm)}`} label="BPM" />
 					<Stat
-						icon={<Stopwatch />}
+						icon={<StopwatchIcon />}
 						value={formatDuration(num(map.durationMs))}
 						label="Length"
 					/>
 					<Stat
-						icon={<Fire />}
+						icon={<FireIcon />}
 						value={maxNps > 0 ? maxNps.toFixed(1) : "—"}
 						label="Max notes / sec"
 					/>

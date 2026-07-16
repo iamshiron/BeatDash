@@ -1,4 +1,4 @@
-import { Calendar as CalendarIcon, Filter } from "@solar-icons/react";
+import { CalendarIcon, FilterIcon } from "@solar-icons/react/dynamic";
 import { Badge } from "@shiron/ui/components/ui/badge";
 import { Button } from "@shiron/ui/components/ui/button";
 import { Calendar } from "@shiron/ui/components/ui/calendar";
@@ -58,7 +58,7 @@ export function SessionFilters({
 		<Popover>
 			<PopoverTrigger asChild>
 				<Button type="button" variant="outline" className="h-9 gap-1.5">
-					<Filter className="size-4" />
+					<FilterIcon className="size-4" />
 					Filters
 					{activeCount > 0 && (
 						<Badge

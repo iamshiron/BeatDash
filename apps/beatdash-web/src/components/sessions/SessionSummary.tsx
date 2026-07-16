@@ -11,7 +11,12 @@ import {
 	ChartTooltipContent,
 } from "@shiron/ui/components/ui/chart";
 import { cn } from "@shiron/ui/lib/utils";
-import { Dumbbell, MedalStar, Stopwatch, Target } from "@solar-icons/react";
+import {
+	DumbbellIcon,
+	MedalStarIcon,
+	StopwatchIcon,
+	TargetIcon,
+} from "@solar-icons/react/dynamic";
 import { formatDistanceToNow } from "date-fns";
 import { Area, AreaChart, XAxis, YAxis } from "recharts";
 import type { SessionSummaryDto } from "@/api/model";
@@ -94,22 +99,22 @@ export function SessionSummary({
 			<CardContent className="flex flex-col gap-4">
 				<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
 					<Metric
-						icon={<Stopwatch className="size-3.5" />}
+						icon={<StopwatchIcon className="size-3.5" />}
 						label="Active time"
 						value={formatPlayTime(Number(summary.totalPlayTimeMs))}
 					/>
 					<Metric
-						icon={<Target className="size-3.5" />}
+						icon={<TargetIcon className="size-3.5" />}
 						label="Avg accuracy"
 						value={formatAccuracy(Number(summary.avgAccuracy))}
 					/>
 					<Metric
-						icon={<MedalStar className="size-3.5" />}
+						icon={<MedalStarIcon className="size-3.5" />}
 						label="Personal bests"
 						value={`${Number(summary.personalBests)}`}
 					/>
 					<Metric
-						icon={<Dumbbell className="size-3.5" />}
+						icon={<DumbbellIcon className="size-3.5" />}
 						label="Saber distance"
 						value={travelKm >= 0.05 ? `${travelKm.toFixed(2)} km` : "—"}
 					/>

@@ -78,12 +78,6 @@ importers:
       '@fontsource-variable/fredoka':
         specifier: ^5.2.10
         version: 5.2.10
-      '@hugeicons/core-free-icons':
-        specifier: ^4.2.2
-        version: 4.2.2
-      '@hugeicons/react':
-        specifier: ^1.1.9
-        version: 1.1.9(react@19.2.7)
       '@microsoft/signalr':
         specifier: ^10.0.0
         version: 10.0.0(encoding@0.1.13)
@@ -91,8 +85,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/ui
       '@solar-icons/react':
-        specifier: ^1.1.1
-        version: 1.1.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        specifier: ^2.0.0-beta.0
+        version: 2.0.0-beta.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@tanstack/react-devtools':
         specifier: ^0.10.8
         version: 0.10.8(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(csstype@3.2.3)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(solid-js@1.9.14)
@@ -229,12 +223,9 @@ importers:
       '@biomejs/biome':
         specifier: ^2.5.4
         version: 2.5.4
-      '@hugeicons/core-free-icons':
-        specifier: ^4.2.2
-        version: 4.2.2
-      '@hugeicons/react':
-        specifier: ^1.1.9
-        version: 1.1.9(react@19.2.7)
+      '@solar-icons/react':
+        specifier: ^2.0.0-beta.0
+        version: 2.0.0-beta.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@tailwindcss/vite':
         specifier: ~4.3.2
         version: 4.3.2(vite@7.3.6(@types/node@26.0.1)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))
@@ -1462,14 +1453,6 @@ packages:
     engines: {node: '>=18.14.1'}
     peerDependencies:
       hono: ^4
-
-  '@hugeicons/core-free-icons@4.2.2':
-    resolution: {integrity: sha512-fjQW3p6cwoJmwK3oCnV8Z3PC5sHihDvr2jkAHax8cxqp62GaV/D7B/Rnao+JwicW8fmLZUQ6QrzWfoyMFOEQlQ==}
-
-  '@hugeicons/react@1.1.9':
-    resolution: {integrity: sha512-O+lWSWjbijoAvMCxn4K2bQWCGN5+mP1y5j+X99j23mXMj+s0X25fs71T6t9YJLaBodwmZdaewD27dzS/PiboQw==}
-    peerDependencies:
-      react: '>=16.0.0'
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -3070,8 +3053,8 @@ packages:
     resolution: {integrity: sha512-tlqY9xq5ukxTUZBmoOp+m61cqwQD5pHJtFY3Mn8CA8ps6yghLH/Hw8UPdqg4OLmFW3IFlcXnQNmo/dh8HzXYIQ==}
     engines: {node: '>=18'}
 
-  '@solar-icons/react@1.1.1':
-    resolution: {integrity: sha512-7cuzHyfXKk+P4HyoW+EXbauiBm01AZzqcEqTsr/m0f77aDYPU0XayejV9IXscxiyYB+twh+UsSgqwIS/ap/rgA==}
+  '@solar-icons/react@2.0.0-beta.2':
+    resolution: {integrity: sha512-VOdBSjI1mGUwULD1/3GMspK998Vzf+2TQO56IV8mQbUn/VQP4t7AphDGfzpxEMpElUitvU9CwySOtkiAXtw17g==}
     engines: {node: '>=16'}
     peerDependencies:
       react: '>= 16.8'
@@ -8440,12 +8423,6 @@ snapshots:
     dependencies:
       hono: 4.12.27
 
-  '@hugeicons/core-free-icons@4.2.2': {}
-
-  '@hugeicons/react@1.1.9(react@19.2.7)':
-    dependencies:
-      react: 19.2.7
-
   '@humanfs/core@0.19.2':
     dependencies:
       '@humanfs/types': 0.15.0
@@ -10341,7 +10318,7 @@ snapshots:
 
   '@sindresorhus/merge-streams@4.0.0': {}
 
-  '@solar-icons/react@1.1.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@solar-icons/react@2.0.0-beta.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
     dependencies:
       react: 19.2.7
       react-dom: 19.2.7(react@19.2.7)

@@ -17,12 +17,12 @@ import {
 } from "@shiron/ui/components/ui/select";
 import { Skeleton } from "@shiron/ui/components/ui/skeleton";
 import {
-	AltArrowLeft,
-	AltArrowRight,
-	ClockCircle,
-	CloseCircle,
-	Magnifer,
-} from "@solar-icons/react";
+	AltArrowLeftIcon,
+	AltArrowRightIcon,
+	ClockCircleIcon,
+	CloseCircleIcon,
+	MagnifierIcon,
+} from "@solar-icons/react/dynamic";
 import {
 	createFileRoute,
 	Link,
@@ -141,7 +141,7 @@ function SessionsListPage() {
 				</div>
 				<div className="flex flex-wrap items-center gap-2">
 					<div className="relative w-full min-w-48 max-w-xs flex-1">
-						<Magnifer className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+						<MagnifierIcon className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 						<Input
 							value={inputValue}
 							onChange={(e) => setInputValue(e.target.value)}
@@ -192,7 +192,7 @@ function SessionsListPage() {
 								onClick={() => clearFilters(filter.keys)}
 								className="grid size-4 place-content-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
 							>
-								<CloseCircle className="size-3" />
+								<CloseCircleIcon className="size-3" />
 							</button>
 						</Badge>
 					))}
@@ -230,7 +230,7 @@ function SessionsListPage() {
 				<Empty className="mt-10">
 					<EmptyHeader>
 						<EmptyMedia variant="icon">
-							<ClockCircle />
+							<ClockCircleIcon />
 						</EmptyMedia>
 						<EmptyTitle>
 							{isGenuinelyEmpty ? "No plays yet" : "No plays found"}
@@ -265,7 +265,7 @@ function SessionsListPage() {
 							disabled={page <= 1}
 							onClick={() => updateSearch({ page: page - 1 })}
 						>
-							<AltArrowLeft className="size-4" />
+							<AltArrowLeftIcon className="size-4" />
 						</Button>
 						<Button
 							variant="outline"
@@ -274,7 +274,7 @@ function SessionsListPage() {
 							disabled={page >= totalPages}
 							onClick={() => updateSearch({ page: page + 1 })}
 						>
-							<AltArrowRight className="size-4" />
+							<AltArrowRightIcon className="size-4" />
 						</Button>
 					</div>
 				</div>

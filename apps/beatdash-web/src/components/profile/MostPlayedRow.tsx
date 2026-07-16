@@ -1,4 +1,4 @@
-import { MusicNotes } from "@solar-icons/react";
+import { MusicNotesIcon } from "@solar-icons/react/dynamic";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { getGetApiMapsMapIdCoverUrl } from "@/api/maps/maps";
@@ -37,7 +37,7 @@ export function MostPlayedRow({
 					/>
 				) : (
 					<div className="flex size-full items-center justify-center">
-						<MusicNotes className="size-4 text-muted-foreground/40" />
+						<MusicNotesIcon className="size-4 text-muted-foreground/40" />
 					</div>
 				)}
 			</div>

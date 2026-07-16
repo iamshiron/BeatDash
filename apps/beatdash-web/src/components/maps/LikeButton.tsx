@@ -1,5 +1,5 @@
 import { cn } from "@shiron/ui/lib/utils";
-import { Heart } from "@solar-icons/react";
+import { HeartIcon } from "@solar-icons/react/dynamic";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -108,7 +108,7 @@ export function LikeButton({
 				className,
 			)}
 		>
-			<Heart className="size-3.5" weight={liked ? "Bold" : "Linear"} />
+			<HeartIcon className="size-3.5" weight={liked ? "Bold" : "Linear"} />
 			{showCount && <span className="tabular-nums">{count}</span>}
 		</button>
 	);

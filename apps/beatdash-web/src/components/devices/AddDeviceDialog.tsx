@@ -10,7 +10,12 @@ import {
 } from "@shiron/ui/components/ui/dialog";
 import { Input } from "@shiron/ui/components/ui/input";
 import { Spinner } from "@shiron/ui/components/ui/spinner";
-import { AltArrowLeft, Copy, Display, Glasses } from "@solar-icons/react";
+import {
+	AltArrowLeftIcon,
+	CopyIcon,
+	DisplayIcon,
+	GlassesIcon,
+} from "@solar-icons/react/dynamic";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { getApiDeviceRegister } from "@/api/device/device";
@@ -23,7 +28,7 @@ interface ModeOption {
 	value: DeviceMode;
 	title: string;
 	description: string;
-	icon: typeof Display;
+	icon: typeof DisplayIcon;
 }
 
 const MODE_OPTIONS: readonly ModeOption[] = [
@@ -32,14 +37,14 @@ const MODE_OPTIONS: readonly ModeOption[] = [
 		title: "PCVR",
 		description:
 			"The game runs on the same PC as the BeatDash server — for example a Valve Index, or when streaming to a headset.",
-		icon: Display,
+		icon: DisplayIcon,
 	},
 	{
 		value: "standalone",
 		title: "Standalone VR",
 		description:
 			"The game runs directly on the headset — for example a Meta Quest 3 or a similar standalone VR device.",
-		icon: Glasses,
+		icon: GlassesIcon,
 	},
 ];
 
@@ -148,7 +153,7 @@ export function AddDeviceDialog({
 								onClick={() => setMode(null)}
 								aria-label="Back to device type"
 							>
-								<AltArrowLeft />
+								<AltArrowLeftIcon />
 							</Button>
 						)}
 						Pair a device
@@ -243,7 +248,7 @@ export function AddDeviceDialog({
 									disabled={!address}
 									aria-label="Copy server address"
 								>
-									<Copy />
+									<CopyIcon />
 								</Button>
 							</div>
 							<p className="text-xs text-muted-foreground">

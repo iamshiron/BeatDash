@@ -4,7 +4,11 @@ import {
 	PopoverTrigger,
 } from "@shiron/ui/components/ui/popover";
 import { cn } from "@shiron/ui/lib/utils";
-import { AddCircle, CheckCircle, Playlist } from "@solar-icons/react";
+import {
+	AddCircleIcon,
+	CheckCircleIcon,
+	PlaylistIcon,
+} from "@solar-icons/react/dynamic";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -100,7 +104,7 @@ export function AddToListMenu({
 							className,
 						)}
 					>
-						<Playlist className="size-3.5" />
+						<PlaylistIcon className="size-3.5" />
 					</button>
 				</PopoverTrigger>
 				<PopoverContent align="start" className="w-60 p-1.5">
@@ -138,7 +142,7 @@ export function AddToListMenu({
 										)}
 									>
 										{contains && (
-											<CheckCircle className="size-3" weight="Bold" />
+											<CheckCircleIcon className="size-3" weight="Bold" />
 										)}
 									</span>
 									<span className="min-w-0 flex-1 truncate">{list.name}</span>
@@ -159,7 +163,7 @@ export function AddToListMenu({
 							}}
 							className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-primary transition-colors hover:bg-foreground/5"
 						>
-							<AddCircle className="size-4" />
+							<AddCircleIcon className="size-4" />
 							New list…
 						</button>
 					</div>

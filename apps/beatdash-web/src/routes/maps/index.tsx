@@ -17,7 +17,11 @@ import {
 	PaginationPrevious,
 } from "@shiron/ui/components/ui/pagination";
 import { Skeleton } from "@shiron/ui/components/ui/skeleton";
-import { Heart, Magnifer, MusicNotes } from "@solar-icons/react";
+import {
+	HeartIcon,
+	MagnifierIcon,
+	MusicNotesIcon,
+} from "@solar-icons/react/dynamic";
 import { useDebouncedCallback } from "@tanstack/react-pacer";
 import { keepPreviousData } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
@@ -176,11 +180,11 @@ function MapsPage() {
 							})
 						}
 					>
-						<Heart className="size-4" weight={liked ? "Bold" : "Linear"} />
+						<HeartIcon className="size-4" weight={liked ? "Bold" : "Linear"} />
 						Liked
 					</Button>
 					<div className="relative w-full max-w-xs">
-						<Magnifer className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+						<MagnifierIcon className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 						<Input
 							value={input}
 							onChange={(e) => {
@@ -235,7 +239,7 @@ function MapsPage() {
 				<Empty className="mt-10">
 					<EmptyHeader>
 						<EmptyMedia variant="icon">
-							<MusicNotes />
+							<MusicNotesIcon />
 						</EmptyMedia>
 						<EmptyTitle>{q ? "No maps found" : "No maps yet"}</EmptyTitle>
 						<EmptyDescription>

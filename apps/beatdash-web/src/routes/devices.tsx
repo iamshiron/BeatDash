@@ -1,9 +1,9 @@
 import {
-	Monitor,
-	Pen,
-	AddCircle,
-	TrashBinMinimalistic,
-} from "@solar-icons/react";
+	AddCircleIcon,
+	MonitorIcon,
+	PenIcon,
+	TrashBinMinimalisticIcon,
+} from "@solar-icons/react/dynamic";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -110,7 +110,7 @@ function DevicesPage() {
 					Devices
 				</h1>
 				<Button size="sm" onClick={() => setPairDialogOpen(true)}>
-					<AddCircle />
+					<AddCircleIcon />
 					Pair a Device
 				</Button>
 			</div>
@@ -126,7 +126,7 @@ function DevicesPage() {
 				<Empty className="mt-10">
 					<EmptyHeader>
 						<EmptyMedia variant="icon">
-							<Monitor />
+							<MonitorIcon />
 						</EmptyMedia>
 						<EmptyTitle>No devices paired</EmptyTitle>
 						<EmptyDescription>
@@ -135,7 +135,7 @@ function DevicesPage() {
 					</EmptyHeader>
 					<EmptyContent>
 						<Button onClick={() => setPairDialogOpen(true)}>
-							<AddCircle />
+							<AddCircleIcon />
 							Pair a Device
 						</Button>
 					</EmptyContent>
@@ -220,7 +220,7 @@ function DeviceRow({
 						onClick={onRename}
 						aria-label="Rename device"
 					>
-						<Pen />
+						<PenIcon />
 					</Button>
 					<Button
 						variant="ghost"
@@ -228,7 +228,7 @@ function DeviceRow({
 						onClick={onDelete}
 						aria-label="Remove device"
 					>
-						<TrashBinMinimalistic />
+						<TrashBinMinimalisticIcon />
 					</Button>
 				</div>
 			</CardContent>

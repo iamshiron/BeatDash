@@ -14,7 +14,7 @@ import {
 } from "@shiron/ui/components/ui/chart";
 import { Skeleton } from "@shiron/ui/components/ui/skeleton";
 import { cn } from "@shiron/ui/lib/utils";
-import { ArrowLeft, MusicNotes } from "@solar-icons/react";
+import { ArrowLeftIcon, MusicNotesIcon } from "@solar-icons/react/dynamic";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { formatDistanceToNow } from "date-fns";
 import { useMemo, useState } from "react";
@@ -158,7 +158,7 @@ function SessionDetailPage() {
 		<AppShell wide>
 			<Button variant="ghost" size="sm" asChild className="mb-4 -ml-2 w-fit">
 				<Link to="/plays" search={listSearch}>
-					<ArrowLeft className="size-4" />
+					<ArrowLeftIcon className="size-4" />
 					Plays
 				</Link>
 			</Button>
@@ -180,7 +180,7 @@ function SessionDetailPage() {
 									className="size-full object-cover"
 								/>
 							) : (
-								<MusicNotes className="size-6 text-muted-foreground/60" />
+								<MusicNotesIcon className="size-6 text-muted-foreground/60" />
 							)}
 						</div>
 						<div className="min-w-0 flex-1">

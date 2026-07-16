@@ -1,7 +1,7 @@
 import { Badge } from "@shiron/ui/components/ui/badge";
 import { Card, CardContent } from "@shiron/ui/components/ui/card";
 import { cn } from "@shiron/ui/lib/utils";
-import { Cup, MedalStar } from "@solar-icons/react";
+import { CupIcon, MedalStarIcon } from "@solar-icons/react/dynamic";
 import type { RecapDeltaDto, SessionRecapDto } from "@/api/model";
 import {
 	type StatDelta,
@@ -76,13 +76,13 @@ export function SessionRecap({ recap }: { recap: SessionRecapDto }) {
 						</span>
 						{recap.isNewPersonalBest && (
 							<Badge className="gap-1 border-amber-500/30 bg-amber-500/15 text-amber-400">
-								<MedalStar className="size-3.5" />
+								<MedalStarIcon className="size-3.5" />
 								New personal best
 							</Badge>
 						)}
 						{results.fullCombo && (
 							<Badge variant="secondary" className="gap-1 text-amber-400">
-								<Cup className="size-3.5" />
+								<CupIcon className="size-3.5" />
 								Full combo
 							</Badge>
 						)}

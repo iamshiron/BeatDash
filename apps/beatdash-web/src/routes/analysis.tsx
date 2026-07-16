@@ -6,7 +6,7 @@ import {
 	EmptyTitle,
 } from "@shiron/ui/components/ui/empty";
 import { Skeleton } from "@shiron/ui/components/ui/skeleton";
-import { ChartSquare } from "@solar-icons/react";
+import { ChartSquareIcon } from "@solar-icons/react/dynamic";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import {
 	useGetApiSessionsRecommendations,
@@ -64,7 +64,7 @@ function AnalysisPage() {
 					<Empty>
 						<EmptyHeader>
 							<EmptyMedia variant="icon">
-								<ChartSquare />
+								<ChartSquareIcon />
 							</EmptyMedia>
 							<EmptyTitle>No analysis yet</EmptyTitle>
 							<EmptyDescription>
