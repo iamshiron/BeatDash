@@ -18,7 +18,10 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 function RootComponent() {
 	return (
 		<TooltipProvider>
-			<Background />
+			<Background>
+				{/* Slight frosted wash so the ambient blobs read softer behind content. */}
+				<div className="glass absolute inset-0 border-0 opacity-50" />
+			</Background>
 			<Outlet />
 			<BottomPlayer />
 			<Toaster />
