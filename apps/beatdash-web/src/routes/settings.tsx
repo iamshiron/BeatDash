@@ -16,10 +16,10 @@ import {
 import { Input } from "@shiron/ui/components/ui/input";
 import { Separator } from "@shiron/ui/components/ui/separator";
 import { Switch } from "@shiron/ui/components/ui/switch";
-import { cn } from "@shiron/ui/lib/utils";
+import { useTheme } from "@shiron/ui/hooks/use-theme";
+import { isDarkTheme } from "@shiron/ui/lib/themes";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
-import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useChangePassword, useUpdateProfile } from "@/api/auth/auth";
@@ -394,40 +394,36 @@ function PasswordCard() {
 	);
 }
 
-const THEME_OPTIONS = [
-	{ value: "light", label: "Light" },
-	{ value: "dark", label: "Dark" },
-	{ value: "system", label: "System" },
-] as const;
-
 function AppearanceCard() {
 	const { theme, setTheme } = useTheme();
+	const isDark = isDarkTheme(theme);
 
 	return (
 		<Card>
 			<CardHeader>
 				<CardTitle>Appearance</CardTitle>
 				<CardDescription>
-					Choose how BeatDash looks. Your choice is remembered on this device.
+					Choose light or dark. Your choice is remembered on this device.
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
 				<div className="flex gap-2">
-					{THEME_OPTIONS.map((option) => {
-						const isActive = (theme ?? "system") === option.value;
-						return (
-							<Button
-								key={option.value}
-								type="button"
-								variant={isActive ? "default" : "outline"}
-								size="sm"
-								className={cn(!isActive && "text-muted-foreground")}
-								onClick={() => setTheme(option.value)}
-							>
-								{option.label}
-							</Button>
-						);
-					})}
+					<Button
+						type="button"
+						variant={isDark ? "outline" : "default"}
+						size="sm"
+						onClick={() => setTheme("jasper")}
+					>
+						Light
+					</Button>
+					<Button
+						type="button"
+						variant={isDark ? "default" : "outline"}
+						size="sm"
+						onClick={() => setTheme("amethyst")}
+					>
+						Dark
+					</Button>
 				</div>
 			</CardContent>
 		</Card>
