@@ -17,7 +17,8 @@ import { Input } from "@shiron/ui/components/ui/input";
 import { Separator } from "@shiron/ui/components/ui/separator";
 import { Switch } from "@shiron/ui/components/ui/switch";
 import { useTheme } from "@shiron/ui/hooks/use-theme";
-import { isDarkTheme } from "@shiron/ui/lib/themes";
+import { accents, getTheme, themeForAccent } from "@shiron/ui/lib/themes";
+import { cn } from "@shiron/ui/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
@@ -395,35 +396,48 @@ function PasswordCard() {
 }
 
 function AppearanceCard() {
-	const { theme, setTheme } = useTheme();
-	const isDark = isDarkTheme(theme);
+	const { theme, setTheme, mode } = useTheme();
+	const currentAccent = getTheme(theme)?.accent;
 
 	return (
 		<Card>
 			<CardHeader>
 				<CardTitle>Appearance</CardTitle>
 				<CardDescription>
-					Choose light or dark. Your choice is remembered on this device.
+					Pick an accent colour — use the header toggle to switch between light
+					and dark. Your choice is remembered on this device.
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
-				<div className="flex gap-2">
-					<Button
-						type="button"
-						variant={isDark ? "outline" : "default"}
-						size="sm"
-						onClick={() => setTheme("jasper")}
-					>
-						Light
-					</Button>
-					<Button
-						type="button"
-						variant={isDark ? "default" : "outline"}
-						size="sm"
-						onClick={() => setTheme("amethyst")}
-					>
-						Dark
-					</Button>
+				<div className="flex flex-wrap gap-2">
+					{accents.map((accent) => {
+						// Keep the current light/dark mode when switching accent; label
+						// each option with the theme name for that mode.
+						const targetName = themeForAccent(accent.id, mode);
+						const target = getTheme(targetName);
+						const isActive = accent.id === currentAccent;
+						return (
+							<button
+								key={accent.id}
+								type="button"
+								disabled={!targetName}
+								onClick={() => targetName && setTheme(targetName)}
+								className={cn(
+									"flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm transition",
+									isActive
+										? "border-primary bg-primary/10 text-foreground"
+										: "border-border text-muted-foreground hover:bg-muted/50",
+								)}
+							>
+								<span
+									aria-hidden
+									className="size-3 rounded-full ring-1 ring-inset ring-foreground/20"
+									style={{ background: target?.swatch ?? accent.swatch }}
+								/>
+								{target?.label ?? accent.label}
+							</button>
+						);
+					})}
 				</div>
 			</CardContent>
 		</Card>
