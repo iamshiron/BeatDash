@@ -10,7 +10,7 @@
 /* Solar v2 icons size from the --solar-size custom property (their inline
    width/height reads it), so set a sane 16px default for the whole app. */
 :root {
-	--solar-size: 1rem; /* 16px */
+	--solar-size: 0.85rem; /* ~13.6px */
 }
 
 @keyframes score-pulse {

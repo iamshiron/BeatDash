@@ -125,7 +125,7 @@ function ListCard({ list }: { list: MapListSummaryDto }) {
 					))
 				) : (
 					<div className="flex size-full items-center justify-center">
-						<PlaylistIcon className="size-8 [--solar-size:2rem] text-muted-foreground/40" />
+						<PlaylistIcon className="size-8 text-muted-foreground/40" />
 					</div>
 				)}
 			</div>

@@ -342,7 +342,7 @@ function InlineStat({
 function MusicPlaceholder() {
 	return (
 		<div className="flex size-20 items-center justify-center rounded-md bg-background/20">
-			<MusicNotesIcon className="size-8 [--solar-size:2rem] text-muted-foreground/40" />
+			<MusicNotesIcon className="size-8 text-muted-foreground/40" />
 		</div>
 	);
 }

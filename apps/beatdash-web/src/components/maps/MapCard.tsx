@@ -104,7 +104,7 @@ export function MapCard({ map }: { map: MapListItemDto }) {
 						className="size-20 rounded-md object-cover shadow-sm"
 					/>
 				) : (
-					<MusicNotesIcon className="size-9 [--solar-size:2.25rem] text-muted-foreground/40" />
+					<MusicNotesIcon className="size-9 text-muted-foreground/40" />
 				)}
 				{map.hasSong && (
 					<SongPlayButton

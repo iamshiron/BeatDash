@@ -183,7 +183,7 @@ function EmptyState() {
 	return (
 		<Card>
 			<CardContent className="flex flex-col items-center gap-3 py-12 text-center">
-				<MusicNotesIcon className="size-8 [--solar-size:2rem] text-muted-foreground/40" />
+				<MusicNotesIcon className="size-8 text-muted-foreground/40" />
 				<div>
 					<p className="font-heading text-sm font-semibold">No plays yet</p>
 					<p className="mt-1 text-xs text-muted-foreground">

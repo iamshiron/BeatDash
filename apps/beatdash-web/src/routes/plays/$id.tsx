@@ -180,7 +180,7 @@ function SessionDetailPage() {
 									className="size-full object-cover"
 								/>
 							) : (
-								<MusicNotesIcon className="size-6 [--solar-size:1.5rem] text-muted-foreground/60" />
+								<MusicNotesIcon className="size-6 text-muted-foreground/60" />
 							)}
 						</div>
 						<div className="min-w-0 flex-1">
