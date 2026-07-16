@@ -100,9 +100,9 @@ export function LikeButton({
 			aria-label={liked ? "Unlike map" : "Like map"}
 			disabled={busy}
 			className={cn(
-				"flex items-center gap-1 rounded-full text-xs font-medium transition-colors disabled:opacity-60",
+				"flex items-center justify-center gap-1 rounded-full text-xs font-medium transition-colors disabled:opacity-60",
 				overlay
-					? "bg-background/70 px-1.5 py-0.5 backdrop-blur-sm hover:bg-background/90"
+					? "size-6 bg-background/70 backdrop-blur-sm hover:bg-background/90"
 					: "px-2 py-1 hover:bg-foreground/10",
 				liked ? "text-rose-500" : "text-muted-foreground hover:text-foreground",
 				className,

@@ -254,18 +254,25 @@ function ListMapCard({ listId, map }: { listId: string; map: MapListItemDto }) {
 	});
 
 	return (
-		<div className="relative">
-			<button
-				type="button"
-				aria-label="Remove from list"
-				disabled={removeMutation.isPending}
-				onClick={() => removeMutation.mutate({ listId, mapId: map.id })}
-				className="absolute right-2 top-2 z-10 flex size-6 items-center justify-center rounded-full bg-background/70 text-muted-foreground backdrop-blur-sm transition-colors hover:bg-background/90 hover:text-destructive disabled:opacity-60"
-			>
-				<CloseCircleIcon className="size-4" />
-			</button>
-			<MapCard map={map} />
-		</div>
+		<MapCard
+			map={map}
+			action={
+				<button
+					type="button"
+					aria-label="Remove from list"
+					disabled={removeMutation.isPending}
+					onClick={(e) => {
+						// The card is a link — don't navigate when removing.
+						e.preventDefault();
+						e.stopPropagation();
+						removeMutation.mutate({ listId, mapId: map.id });
+					}}
+					className="flex size-6 items-center justify-center rounded-full bg-background/70 text-muted-foreground backdrop-blur-sm transition-colors hover:bg-background/90 hover:text-destructive disabled:opacity-60"
+				>
+					<CloseCircleIcon className="size-4" />
+				</button>
+			}
+		/>
 	);
 }
 

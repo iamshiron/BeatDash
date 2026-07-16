@@ -52,7 +52,14 @@ function rankIndex(rank: string): number {
 	return idx === -1 ? Number.MAX_SAFE_INTEGER : idx;
 }
 
-export function MapCard({ map }: { map: MapListItemDto }) {
+export function MapCard({
+	map,
+	action,
+}: {
+	map: MapListItemDto;
+	/** Optional control rendered in the top-right corner, beside the play badge. */
+	action?: React.ReactNode;
+}) {
 	const [coverFailed, setCoverFailed] = useState(false);
 	const hasCover = map.coverImageKey != null && !coverFailed;
 	const playCount = num(map.playCount);
@@ -72,18 +79,23 @@ export function MapCard({ map }: { map: MapListItemDto }) {
 			params={{ id: map.id }}
 			className="group relative flex overflow-hidden rounded-xl border border-border bg-card transition-colors hover:border-primary/40 focus-within:border-primary/40"
 		>
-			{playCount > 0 && (
-				<Tooltip>
-					<TooltipTrigger asChild>
-						<span className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-medium text-emerald-400">
-							<CheckCircleIcon className="size-3" weight="Bold" />
-							{playCount}
-						</span>
-					</TooltipTrigger>
-					<TooltipContent>
-						You've played this {playCount} time{playCount === 1 ? "" : "s"}
-					</TooltipContent>
-				</Tooltip>
+			{(playCount > 0 || action) && (
+				<div className="absolute right-2 top-2 z-10 flex items-center gap-1">
+					{playCount > 0 && (
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<span className="flex items-center gap-1 rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-medium text-emerald-400">
+									<CheckCircleIcon className="size-3" weight="Bold" />
+									{playCount}
+								</span>
+							</TooltipTrigger>
+							<TooltipContent>
+								You've played this {playCount} time{playCount === 1 ? "" : "s"}
+							</TooltipContent>
+						</Tooltip>
+					)}
+					{action}
+				</div>
 			)}
 			<div className="absolute left-2 top-2 z-10 flex items-center gap-1">
 				<LikeButton
