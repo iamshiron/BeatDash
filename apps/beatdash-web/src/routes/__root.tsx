@@ -1,4 +1,7 @@
-import { Background } from "@shiron/ui/components/ui/background";
+import {
+	Background,
+	BackgroundWash,
+} from "@shiron/ui/components/ui/background";
 import { Toaster } from "@shiron/ui/components/ui/sonner";
 import { TooltipProvider } from "@shiron/ui/components/ui/tooltip";
 import type { QueryClient } from "@tanstack/react-query";
@@ -19,8 +22,8 @@ function RootComponent() {
 	return (
 		<TooltipProvider>
 			<Background>
-				{/* Slight frosted wash so the ambient blobs read softer behind content. */}
-				<div className="glass absolute inset-0 border-0 opacity-50" />
+				{/* Slight wash layered over the blobs so they read softer behind content. */}
+				<BackgroundWash />
 			</Background>
 			<Outlet />
 			<BottomPlayer />
