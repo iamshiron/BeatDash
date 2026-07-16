@@ -43,7 +43,7 @@ import {
 import { Field, FieldGroup, FieldLabel } from "@shiron/ui/components/ui/field";
 import { Input } from "@shiron/ui/components/ui/input";
 import { Skeleton } from "@shiron/ui/components/ui/skeleton";
-import { cn } from "@shiron/ui/lib/utils";
+import { StatusDot } from "@shiron/ui/components/ui/status-dot";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { formatDistanceToNow } from "date-fns";
@@ -194,11 +194,9 @@ function DeviceRow({
 		<Card>
 			<CardHeader>
 				<div className="flex items-center gap-2">
-					<span
-						className={cn(
-							"size-2 shrink-0 rounded-full",
-							isOnline ? "bg-emerald-500" : "bg-muted-foreground/40",
-						)}
+					<StatusDot
+						status={isOnline ? "online" : "offline"}
+						pulse={isOnline}
 					/>
 					<CardTitle>{device.name}</CardTitle>
 				</div>

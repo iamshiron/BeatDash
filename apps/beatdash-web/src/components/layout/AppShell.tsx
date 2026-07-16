@@ -1,4 +1,5 @@
 import { Button } from "@shiron/ui/components/ui/button";
+import { GradientText } from "@shiron/ui/components/ui/gradient-text";
 import { cn } from "@shiron/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { ModeToggle } from "@/components/layout/ModeToggle";
@@ -25,9 +26,9 @@ export function AppShell({
 							<span className="flex size-6 items-center justify-center rounded-md bg-primary font-heading text-xs font-bold text-primary-foreground">
 								B
 							</span>
-							<span className="font-heading text-sm font-semibold tracking-tight">
+							<GradientText className="text-sm font-semibold tracking-tight">
 								BeatDash
-							</span>
+							</GradientText>
 						</Link>
 					</div>
 					<nav className="justify-self-center">

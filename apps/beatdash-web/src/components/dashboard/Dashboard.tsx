@@ -5,6 +5,8 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@shiron/ui/components/ui/card";
+import { GlassPanel } from "@shiron/ui/components/ui/glass-panel";
+import { GradientText } from "@shiron/ui/components/ui/gradient-text";
 import { Skeleton } from "@shiron/ui/components/ui/skeleton";
 import { cn } from "@shiron/ui/lib/utils";
 import { ClockCircle, MusicNotes, Target } from "@solar-icons/react";
@@ -38,14 +40,14 @@ export function Dashboard() {
 
 	return (
 		<div className="flex flex-col gap-4">
-			<div>
+			<GlassPanel glow size="lg" className="flex flex-col gap-1">
 				<h1 className="font-heading text-2xl font-bold tracking-tight">
-					Welcome back, <span className="text-primary">{name}</span>
+					Welcome back, <GradientText>{name}</GradientText>
 				</h1>
-				<p className="mt-1 text-sm text-muted-foreground">
+				<p className="text-sm text-muted-foreground">
 					Here's how your Beat Saber plays are shaping up.
 				</p>
-			</div>
+			</GlassPanel>
 
 			{statsQuery.isLoading && (
 				<div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

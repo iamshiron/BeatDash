@@ -1,5 +1,10 @@
 import { Card, CardContent } from "@shiron/ui/components/ui/card";
-import { cn } from "@shiron/ui/lib/utils";
+import {
+	Stat,
+	StatDelta as StatDeltaChip,
+	StatLabel,
+	StatValue,
+} from "@shiron/ui/components/ui/stat";
 import { AltArrowDown, AltArrowUp } from "@solar-icons/react";
 
 /** A change indicator for a stat tile. `good` colours the delta regardless of arrow direction. */
@@ -26,18 +31,18 @@ export function StatTile({
 }) {
 	return (
 		<Card size="sm">
-			<CardContent className="flex flex-col gap-1 py-4">
-				<span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-					{icon}
-					{label}
-				</span>
-				<span className="font-heading text-2xl font-bold tabular-nums">
-					{value}
-				</span>
-				{delta && <StatDeltaIndicator delta={delta} />}
-				{sub && (
-					<span className="text-[10px] text-muted-foreground">{sub}</span>
-				)}
+			<CardContent className="py-4">
+				<Stat>
+					<StatLabel className="flex items-center gap-1.5 normal-case">
+						{icon}
+						{label}
+					</StatLabel>
+					<StatValue>{value}</StatValue>
+					{delta && <StatDeltaIndicator delta={delta} />}
+					{sub && (
+						<span className="text-[10px] text-muted-foreground">{sub}</span>
+					)}
+				</Stat>
 			</CardContent>
 		</Card>
 	);
@@ -45,19 +50,15 @@ export function StatTile({
 
 /** Inline up/down delta chip, coloured by whether the change is good (not by arrow). */
 export function StatDeltaIndicator({ delta }: { delta: StatDelta }) {
-	const color =
-		delta.direction === "neutral"
-			? "text-muted-foreground"
-			: delta.good
-				? "text-emerald-400"
-				: "text-rose-400";
+	// The library chip colours by trend, so map "good" onto the green (up) /
+	// red (down) trend while the arrow still follows the real direction.
+	const trend =
+		delta.direction === "neutral" ? "neutral" : delta.good ? "up" : "down";
 	const Arrow = delta.direction === "down" ? AltArrowDown : AltArrowUp;
 	return (
-		<span
-			className={cn("flex items-center gap-0.5 text-[11px] font-medium", color)}
-		>
-			{delta.direction !== "neutral" && <Arrow className="size-3" />}
+		<StatDeltaChip trend={trend}>
+			{delta.direction !== "neutral" && <Arrow />}
 			<span className="font-mono tabular-nums">{delta.value}</span>
-		</span>
+		</StatDeltaChip>
 	);
 }

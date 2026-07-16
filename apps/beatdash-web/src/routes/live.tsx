@@ -9,6 +9,7 @@ import {
 	EmptyTitle,
 } from "@shiron/ui/components/ui/empty";
 import { Skeleton } from "@shiron/ui/components/ui/skeleton";
+import { StatusDot } from "@shiron/ui/components/ui/status-dot";
 import { cn } from "@shiron/ui/lib/utils";
 import {
 	Bolt,
@@ -139,10 +140,7 @@ function LivePage() {
 			<AppShell wide>
 				<div className="flex flex-col gap-8 py-10">
 					<div className="flex flex-col items-center gap-4">
-						<div className="relative flex size-5">
-							<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
-							<span className="relative inline-flex size-5 rounded-full bg-emerald-500" />
-						</div>
+						<StatusDot status="online" pulse className="size-5" />
 						<div className="space-y-1 text-center">
 							<p className="font-medium">{onlineDevice.name}</p>
 							<p className="text-sm text-muted-foreground">
@@ -225,10 +223,7 @@ function MapHeader({
 			<div className="flex min-w-0 flex-1 flex-col gap-2 p-4">
 				<div className="flex items-center justify-between gap-2">
 					<div className="flex items-center gap-2">
-						<span className="relative flex size-2.5">
-							<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
-							<span className="relative inline-flex size-2.5 rounded-full bg-red-500" />
-						</span>
+						<StatusDot status="busy" size="lg" pulse />
 						<span className="text-xs font-semibold uppercase tracking-widest text-red-500">
 							Live
 						</span>
