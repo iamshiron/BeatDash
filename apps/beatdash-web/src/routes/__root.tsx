@@ -25,8 +25,10 @@ function RootComponent() {
 				rotateX={60}
 				rotateY={0}
 				rotateZ={-27}
-				scale={1.85}
-				className="blur-[1px]"
+				scale={2}
+				overlay="vignette"
+				overlayOpacity={1}
+				vignetteSize={20}
 			/>
 			<Outlet />
 			<BottomPlayer />
