@@ -176,7 +176,7 @@ function MapDetailPage() {
 									className="size-full object-cover"
 								/>
 							) : (
-								<MusicNotesIcon className="size-10 text-muted-foreground/40" />
+								<MusicNotesIcon className="size-10 [--solar-size:2.5rem] text-muted-foreground/40" />
 							)}
 						</div>
 

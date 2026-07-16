@@ -7,6 +7,12 @@
 
 @source "../../../../packages/ui/src/components";
 
+/* Solar v2 icons size from the --solar-size custom property (their inline
+   width/height reads it), so set a sane 16px default for the whole app. */
+:root {
+	--solar-size: 1rem; /* 16px */
+}
+
 @keyframes score-pulse {
 	0% {
 		transform: scale(1) rotate(0deg);

@@ -215,16 +215,16 @@ function DeviceRow({
 				</div>
 				<div className="flex gap-1">
 					<Button
-						variant="ghost"
-						size="icon-sm"
+						variant="outline"
+						size="icon"
 						onClick={onRename}
 						aria-label="Rename device"
 					>
 						<PenIcon />
 					</Button>
 					<Button
-						variant="ghost"
-						size="icon-sm"
+						variant="outline"
+						size="icon"
 						onClick={onDelete}
 						aria-label="Remove device"
 					>

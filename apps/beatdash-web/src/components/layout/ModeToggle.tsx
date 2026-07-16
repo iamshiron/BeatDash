@@ -12,13 +12,5 @@ export function ModeToggle() {
 	const { theme } = useTheme();
 	const accent = getTheme(theme)?.accent ?? "purple";
 
-	// Solar icons size via the --solar-size custom property (inline style beats
-	// the button's size-* class), so constrain them here.
-	return (
-		<ThemeToggle
-			accent={accent}
-			variant="ghost"
-			className="[--solar-size:1.125rem]"
-		/>
-	);
+	return <ThemeToggle accent={accent} />;
 }

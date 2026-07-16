@@ -147,7 +147,7 @@ export function AddDeviceDialog({
 					<DialogTitle className="flex items-center gap-2">
 						{mode && (
 							<Button
-								variant="ghost"
+								variant="outline"
 								size="icon-sm"
 								className="-ml-1"
 								onClick={() => setMode(null)}

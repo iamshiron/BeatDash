@@ -417,7 +417,7 @@ function ModelEditor({
 						/>
 						<Button
 							type="button"
-							variant="ghost"
+							variant="outline"
 							size="icon"
 							className="size-7 shrink-0 text-muted-foreground"
 							onClick={() => removeWeight(w.key)}
