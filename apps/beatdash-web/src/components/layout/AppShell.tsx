@@ -17,7 +17,7 @@ export function AppShell({
 	const { isAuthenticated } = useAuth();
 	const { track } = usePlayer();
 	return (
-		<div className="relative min-h-screen bg-background">
+		<div className="relative min-h-screen">
 			<header className={`sticky top-4 z-50 mx-auto w-full ${maxWidth} px-4`}>
 				<div className="glass grid h-12 grid-cols-[1fr_auto_1fr] items-center rounded-full border border-border pl-5 pr-2 shadow-sm">
 					<div className="justify-self-start">

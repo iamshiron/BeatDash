@@ -1,3 +1,4 @@
+import { Background } from "@shiron/ui/components/ui/background";
 import { Toaster } from "@shiron/ui/components/ui/sonner";
 import { TooltipProvider } from "@shiron/ui/components/ui/tooltip";
 import type { QueryClient } from "@tanstack/react-query";
@@ -17,6 +18,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 function RootComponent() {
 	return (
 		<TooltipProvider>
+			<Background />
 			<Outlet />
 			<BottomPlayer />
 			<Toaster />
