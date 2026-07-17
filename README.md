@@ -2,26 +2,58 @@
 
 Beat Saber profile and analytics dashboard. A Beat Saber mod streams gameplay data to a web dashboard (React) backed by an ASP.NET Core API and PostgreSQL.
 
+<p align="center">
+  <img src="assets/hero-dashboard.png" alt="BeatDash dashboard" width="900">
+</p>
+
 > **⚠️ Heavy Development Notice**
 >
 > BeatDash is in early development. Features are incomplete, the UI is rough, things will break, and the auth flow is not production-hardened. Expect breaking changes at any time. Do not rely on this for anything yet.
 
 ---
 
-## For Players
+## Features
 
-BeatDash pairs your VR headset with a web dashboard so you can track the maps you play. When you start a song in-game, the mod sends map metadata (song, mapper, BPM, difficulty, cover art) to your dashboard in real time.
+BeatDash pairs your VR headset with a web dashboard. When you start a song in-game, the mod streams the map and your gameplay to the dashboard, where it's stored and turned into per-play and career-wide stats.
 
-### Current Features
+The dashboard (shown above) opens on an overview of your account: total plays, play time, average accuracy, an activity heatmap, an accuracy trend, a skill radar, and your recent and best plays.
 
--   **Device pairing** — link one or more Beat Saber installs to your account via a PIN code
--   **Live map tracking** — maps you play appear on your dashboard instantly as you start them
--   **Multi-device support** — pair multiple headsets under one account
--   **Beatmap catalog** — browse submitted maps with difficulties and cover art
+<table>
+  <tr>
+    <td width="40%"><img src="assets/feature-play-detail.png" alt="Per-play breakdown" width="420"></td>
+    <td width="60%">
+      <h3>Per-play breakdown</h3>
+      <p>Every play is scored note by note: the score split into pre-swing, accuracy, and post-swing components, good/bad cuts and misses, a notes-per-second graph, a combo and miss timeline, per-hand performance, saber motion, and a note-position grid.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="60%">
+      <h3>Career analysis</h3>
+      <p>Every play aggregated into lifetime views: accuracy per swing direction for each hand, accuracy by note grid position for each hand, and skill progression per play style (stream, tech, speed, jumps, gimmick) over time.</p>
+    </td>
+    <td width="40%"><img src="assets/feature-analysis.png" alt="Career analysis" width="420"></td>
+  </tr>
+  <tr>
+    <td width="40%"><img src="assets/feature-maps.png" alt="Beatmap catalog" width="420"></td>
+    <td width="60%">
+      <h3>Beatmap catalog</h3>
+      <p>Browse the maps you've played. Filter by played, unplayed, or liked, search by name, and see difficulties, note counts, length, star rating, and cover art for each.</p>
+    </td>
+  </tr>
+</table>
 
-### How It Works
+### Also included
 
-#### Auth & Pairing Flow
+-   **Live tracking** — maps and score appear on the dashboard in real time as you play
+-   **Device pairing** — link one or more Beat Saber installs to your account with a PIN
+-   **Lists** — group maps into named collections
+-   **Public profile** — a shareable page with the sections you choose to make visible
+
+---
+
+## Pairing & Setup
+
+The mod pairs with your account once, then stays connected:
 
 ```
 1. Register an account on the web dashboard (email + password)
@@ -32,8 +64,6 @@ BeatDash pairs your VR headset with a web dashboard so you can track the maps yo
 ```
 
 The mod authenticates over a WebSocket connection to the API. Access tokens expire every 15 minutes and refresh automatically — you only need to pair once per device.
-
-### Setup
 
 The backend runs in Docker. With Docker installed:
 
@@ -52,18 +82,20 @@ The backend runs in Docker. With Docker installed:
 
 ```
 apps/
-  beatdash-web/        # Web client (React + Vite + TanStack Router/Query)
+  beatdash-web/          # Web client (React + Vite + TanStack Router/Query)
 packages/
-  ui/                  # @shiron/ui - shared component library (Tailwind, shadcn) [submodule]
-backend/
-  src/
-    BeatDash.API/      # ASP.NET Core API (Minimal APIs, EF Core, SignalR, WebSocket)
-    BeatDash.CLI/      # CLI tool
-    BeatDash.Data/     # Data layer (EF Core entities + DbContext)
-    BeatDash.BSIPA/    # Beat Saber mod (BSIPA plugin, Zenject, Harmony)
+  ui/                    # @shiron/ui - shared component library (Tailwind, shadcn) [submodule]
+src/
+  BeatDash.API/          # ASP.NET Core API (Minimal APIs, EF Core, SignalR, WebSocket/UDP)
+  BeatDash.Data/         # Data layer - DTOs, socket + realtime message contracts
+  BeatDash.DB/           # EF Core DbContext, schema, and migrations
+  BeatDash.Analysis/     # Difficulty and performance metric extraction
+  BeatDash.Beatmaps/     # Beatmap parsing
+  BeatDash.Cli/          # CLI tool (beatmap calibration, maintenance)
+  BeatDash.Mod/          # Beat Saber mod (BSIPA plugin, Zenject, Harmony) - net472
 external/
-  lib/                 # Shared native/external library [submodule]
-docker/                # Docker Compose configs for local infrastructure
+  lib/                   # Shared .NET library [submodule]
+docker/                  # Docker Compose configs for local infrastructure
 ```
 
 ### Tech Stack
@@ -190,5 +222,5 @@ Connections are grouped per user, so all of a user's open browser tabs receive t
 ```sh
 dotnet build Shiron.BeatDash.slnx
 dotnet test Shiron.BeatDash.slnx
-dotnet run --project backend/src/BeatDash.API
+dotnet run --project src/BeatDash.API
 ```
