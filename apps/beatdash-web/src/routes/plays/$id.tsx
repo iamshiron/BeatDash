@@ -202,7 +202,7 @@ function SessionDetailPage() {
 									</Link>
 								) : (
 									<h1 className="truncate font-heading text-lg font-semibold tracking-tight">
-										{beatmap?.songName}
+										Unknown map
 									</h1>
 								)}
 								{beatmap?.difficultyName && (

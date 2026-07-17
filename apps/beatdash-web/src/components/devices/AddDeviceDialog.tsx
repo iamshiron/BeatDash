@@ -19,8 +19,8 @@ import {
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { getApiDeviceRegister } from "@/api/device/device";
-import { useGetApiServer } from "@/api/server/server";
 import type { RegisterDeviceResponseDto } from "@/api/model";
+import { useGetApiServer } from "@/api/server/server";
 
 type DeviceMode = "pcvr" | "standalone";
 

@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (build + format)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      # The Beat Saber mod (src/BeatDash.Mod) targets net472 and references the
+      # proprietary game assemblies via local hint paths, so it cannot be built
+      # in CI. Everything else funnels into the API and CLI entry points, whose
+      # project references pull in Analysis, Beatmaps, Data and DB.
+      - name: Restore
+        run: |
+          dotnet restore src/BeatDash.API/Shiron.BeatDash.API.csproj
+          dotnet restore src/BeatDash.Cli/Shiron.BeatDash.Cli.csproj
+
+      - name: Build (Release)
+        run: |
+          dotnet build src/BeatDash.API/Shiron.BeatDash.API.csproj -c Release --no-restore
+          dotnet build src/BeatDash.Cli/Shiron.BeatDash.Cli.csproj -c Release --no-restore
+
+      # dotnet format is the .NET lint/style gate. Run it per project so the
+      # unbuildable mod is never loaded, and skip the EF Core migrations, which
+      # are generated code that does not follow the editorconfig whitespace rules.
+      - name: Format check
+        run: |
+          for proj in \
+            src/BeatDash.API/Shiron.BeatDash.API.csproj \
+            src/BeatDash.Analysis/Shiron.BeatDash.Analysis.csproj \
+            src/BeatDash.Beatmaps/Shiron.BeatDash.Beatmaps.csproj \
+            src/BeatDash.Data/Shiron.BeatDash.Data.csproj \
+            src/BeatDash.DB/Shiron.BeatDash.DB.csproj \
+            src/BeatDash.Cli/Shiron.BeatDash.Cli.csproj ; do
+            echo "::group::format $proj"
+            dotnet format "$proj" --verify-no-changes --exclude src/BeatDash.DB/Migrations
+            echo "::endgroup::"
+          done
+
+  web:
+    name: Desktop web (typecheck + lint + build)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm --filter @shiron/beatdash-web typecheck
+
+      - name: Lint
+        run: pnpm --filter @shiron/beatdash-web exec biome ci src
+
+      - name: Build
+        run: pnpm --filter @shiron/beatdash-web build

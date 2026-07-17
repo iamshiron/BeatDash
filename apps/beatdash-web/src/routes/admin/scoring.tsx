@@ -1,11 +1,3 @@
-import {
-	AddCircleIcon,
-	CheckReadIcon,
-	CloseCircleIcon,
-	CopyIcon,
-	MagnifierIcon,
-	RestartIcon,
-} from "@solar-icons/react/dynamic";
 import { Badge } from "@shiron/ui/components/ui/badge";
 import { Button } from "@shiron/ui/components/ui/button";
 import {
@@ -34,6 +26,14 @@ import {
 	TabsTrigger,
 } from "@shiron/ui/components/ui/tabs";
 import { cn } from "@shiron/ui/lib/utils";
+import {
+	AddCircleIcon,
+	CheckReadIcon,
+	CloseCircleIcon,
+	CopyIcon,
+	MagnifierIcon,
+	RestartIcon,
+} from "@solar-icons/react/dynamic";
 import { useDebouncedCallback } from "@tanstack/react-pacer";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useId, useMemo, useState } from "react";

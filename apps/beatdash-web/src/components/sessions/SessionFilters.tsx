@@ -1,4 +1,3 @@
-import { CalendarIcon, FilterIcon } from "@solar-icons/react/dynamic";
 import { Badge } from "@shiron/ui/components/ui/badge";
 import { Button } from "@shiron/ui/components/ui/button";
 import { Calendar } from "@shiron/ui/components/ui/calendar";
@@ -20,6 +19,7 @@ import {
 import { Separator } from "@shiron/ui/components/ui/separator";
 import { Slider } from "@shiron/ui/components/ui/slider";
 import { cn } from "@shiron/ui/lib/utils";
+import { CalendarIcon, FilterIcon } from "@solar-icons/react/dynamic";
 import { useDebouncedCallback } from "@tanstack/react-pacer";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
