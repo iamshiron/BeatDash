@@ -1,6 +1,7 @@
 import { Button } from "@shiron/ui/components/ui/button";
 import { cn } from "@shiron/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
+import { MobileNav } from "@/components/layout/MobileNav";
 import { ModeToggle } from "@/components/layout/ModeToggle";
 import { UserMenu } from "@/components/layout/UserMenu";
 import { useAuth } from "@/contexts/auth";
@@ -19,7 +20,7 @@ export function AppShell({
 	return (
 		<div className="relative min-h-screen">
 			<header className={`sticky top-4 z-50 mx-auto w-full ${maxWidth} px-4`}>
-				<div className="glass grid h-12 grid-cols-[1fr_auto_1fr] items-center rounded-full border border-border pl-5 pr-2 shadow-sm">
+				<div className="glass flex h-12 items-center justify-between rounded-full border border-border pl-5 pr-2 shadow-sm md:grid md:grid-cols-[1fr_auto_1fr]">
 					<div className="justify-self-start">
 						<Link to="/" className="flex items-center gap-2">
 							<span className="flex size-6 items-center justify-center rounded-md bg-primary font-heading text-xs font-bold text-primary-foreground">
@@ -30,7 +31,7 @@ export function AppShell({
 							</span>
 						</Link>
 					</div>
-					<nav className="justify-self-center">
+					<nav className="hidden justify-self-center md:block">
 						{isAuthenticated && (
 							<div className="flex items-center gap-1">
 								<Button variant="ghost" size="sm" asChild>
@@ -60,7 +61,10 @@ export function AppShell({
 					<div className="flex items-center gap-1 justify-self-end">
 						<ModeToggle />
 						{isAuthenticated ? (
-							<UserMenu />
+							<>
+								<UserMenu />
+								<MobileNav className="md:hidden" />
+							</>
 						) : (
 							<Button variant="ghost" size="sm" asChild>
 								<Link to="/auth/login">Sign In</Link>
