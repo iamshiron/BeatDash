@@ -20,15 +20,12 @@ import {
 	EmptyTitle,
 } from "@shiron/ui/components/ui/empty";
 import { Skeleton } from "@shiron/ui/components/ui/skeleton";
-import { Spinner } from "@shiron/ui/components/ui/spinner";
 import { cn } from "@shiron/ui/lib/utils";
 import {
 	ArrowLeftIcon,
 	FireIcon,
 	LikeIcon,
 	MusicNotesIcon,
-	PauseIcon,
-	PlayIcon,
 	PulseIcon,
 	StopwatchIcon,
 	VerifiedCheckIcon,
@@ -47,7 +44,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { AddToListMenu } from "@/components/lists/AddToListMenu";
 import { AttemptCompare } from "@/components/maps/AttemptCompare";
 import { LikeButton } from "@/components/maps/LikeButton";
-import { type PlayerTrack, usePlayer } from "@/contexts/player";
+import { SongPlayButton } from "@/components/maps/SongPlayButton";
 import { formatAccuracy, formatScore } from "@/lib/sessions";
 
 const attemptChartConfig = {
@@ -167,7 +164,7 @@ function MapDetailPage() {
 				<div className="space-y-4">
 					{/* Header */}
 					<div className="flex gap-4 rounded-xl border border-border bg-card p-4">
-						<div className="flex size-28 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-primary/40 to-[oklch(0.62_0.19_255)]/40">
+						<div className="group relative flex size-28 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-primary/40 to-[oklch(0.62_0.19_255)]/40">
 							{map.coverImageKey && !coverFailed ? (
 								<img
 									src={getGetApiMapsMapIdCoverUrl(map.id)}
@@ -177,6 +174,18 @@ function MapDetailPage() {
 								/>
 							) : (
 								<MusicNotesIcon className="size-10 text-muted-foreground/40" />
+							)}
+							{map.hasSong && (
+								<SongPlayButton
+									track={{
+										mapId: map.id,
+										songName: map.songName,
+										songAuthor: map.songAuthor,
+										coverImageKey: map.coverImageKey,
+									}}
+									revealOnHover
+									className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+								/>
 							)}
 						</div>
 
@@ -201,22 +210,12 @@ function MapDetailPage() {
 									isLiked={map.isLiked}
 									likeCount={n(map.likeCount)}
 									showCount
-									className="border border-border"
+									className="h-8 border border-border"
 								/>
 								<AddToListMenu
 									mapId={map.id}
 									className="border border-border"
 								/>
-								{map.hasSong && (
-									<SongToggleButton
-										track={{
-											mapId: map.id,
-											songName: map.songName,
-											songAuthor: map.songAuthor,
-											coverImageKey: map.coverImageKey,
-										}}
-									/>
-								)}
 								<Stat icon={<PulseIcon />} value={`${n(map.bpm)} BPM`} />
 								<Stat
 									icon={<StopwatchIcon />}
@@ -541,31 +540,5 @@ function Stat({ icon, value }: { icon: React.ReactNode; value: string }) {
 			{icon}
 			{value}
 		</span>
-	);
-}
-
-/** Header control that plays this map's song in the global bottom player. */
-function SongToggleButton({ track }: { track: PlayerTrack }) {
-	const player = usePlayer();
-	const isCurrent = player.track?.mapId === track.mapId;
-	const isPlaying = isCurrent && player.isPlaying;
-	const isLoading = isCurrent && player.isLoading;
-
-	return (
-		<Button
-			variant="outline"
-			size="sm"
-			className="gap-1.5 border-border"
-			onClick={() => player.playTrack(track)}
-		>
-			{isLoading ? (
-				<Spinner className="size-4" />
-			) : isPlaying ? (
-				<PauseIcon className="size-4" weight="Bold" />
-			) : (
-				<PlayIcon className="size-4" weight="Bold" />
-			)}
-			{isPlaying ? "Pause" : "Play"}
-		</Button>
 	);
 }
