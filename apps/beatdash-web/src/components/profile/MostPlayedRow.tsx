@@ -19,7 +19,7 @@ export function MostPlayedRow({
 	const [coverFailed, setCoverFailed] = useState(false);
 
 	const className =
-		"flex items-center gap-3 rounded-lg border border-border bg-card p-2" +
+		"flex min-w-0 items-center gap-3 rounded-lg border border-border bg-card p-2" +
 		(interactive
 			? " transition-colors hover:border-primary/40 hover:bg-accent/30"
 			: "");

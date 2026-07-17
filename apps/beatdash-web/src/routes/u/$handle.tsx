@@ -1,13 +1,3 @@
-import {
-	ClockCircleIcon,
-	HeartIcon,
-	LockIcon,
-	MusicNotesIcon,
-	PlaylistIcon,
-	ShareIcon,
-	TargetIcon,
-	UserIcon,
-} from "@solar-icons/react/dynamic";
 import { Avatar, AvatarFallback } from "@shiron/ui/components/ui/avatar";
 import { Button } from "@shiron/ui/components/ui/button";
 import {
@@ -19,6 +9,16 @@ import {
 } from "@shiron/ui/components/ui/empty";
 import { Skeleton } from "@shiron/ui/components/ui/skeleton";
 import { cn } from "@shiron/ui/lib/utils";
+import {
+	ClockCircleIcon,
+	HeartIcon,
+	LockIcon,
+	MusicNotesIcon,
+	PlaylistIcon,
+	ShareIcon,
+	TargetIcon,
+	UserIcon,
+} from "@solar-icons/react/dynamic";
 import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import type { PublicProfileDto } from "@/api/model";
@@ -273,7 +273,7 @@ function Section({
 	children: React.ReactNode;
 }) {
 	return (
-		<section className="flex flex-col gap-2.5">
+		<section className="flex min-w-0 flex-col gap-2.5">
 			<div className="flex items-baseline justify-between gap-2">
 				<h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
 					{title}

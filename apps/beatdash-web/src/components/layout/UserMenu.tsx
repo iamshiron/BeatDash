@@ -40,11 +40,13 @@ export function UserMenu() {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<Button variant="ghost" className="h-8 gap-2 pl-1.5 pr-2">
+				<Button variant="ghost" className="h-8 gap-2 pl-1.5 pr-2 max-md:pr-1.5">
 					<Avatar size="sm">
 						<AvatarFallback>{initials}</AvatarFallback>
 					</Avatar>
-					<span className="max-w-24 truncate text-xs font-medium">{name}</span>
+					<span className="hidden max-w-24 truncate text-xs font-medium md:inline">
+						{name}
+					</span>
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="min-w-52">

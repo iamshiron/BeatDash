@@ -1,6 +1,6 @@
-import { MusicNotesIcon } from "@solar-icons/react/dynamic";
 import { Badge } from "@shiron/ui/components/ui/badge";
 import { cn } from "@shiron/ui/lib/utils";
+import { MusicNotesIcon } from "@solar-icons/react/dynamic";
 import { Link } from "@tanstack/react-router";
 import { formatDistanceToNow } from "date-fns";
 import { useState } from "react";
@@ -32,7 +32,7 @@ export function SessionRow({
 		"border-border bg-muted text-muted-foreground";
 
 	const className = cn(
-		"flex items-center gap-3 rounded-lg border border-border bg-card p-2",
+		"flex min-w-0 items-center gap-3 rounded-lg border border-border bg-card p-2",
 		interactive &&
 			"transition-colors hover:border-primary/40 hover:bg-accent/30",
 	);
