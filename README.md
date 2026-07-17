@@ -20,22 +20,22 @@ The dashboard (shown above) opens on an overview of your account: total plays, p
 
 <table>
   <tr>
-    <td width="40%"><img src="assets/feature-play-detail.png" alt="Per-play breakdown" width="420"></td>
-    <td width="60%">
+    <td width="50%"><img src="assets/feature-play-detail.png" alt="Per-play breakdown" width="420"></td>
+    <td width="50%">
       <h3>Per-play breakdown</h3>
       <p>Every play is scored note by note: the score split into pre-swing, accuracy, and post-swing components, good/bad cuts and misses, a notes-per-second graph, a combo and miss timeline, per-hand performance, saber motion, and a note-position grid.</p>
     </td>
   </tr>
   <tr>
-    <td width="60%">
+    <td width="50%">
       <h3>Career analysis</h3>
       <p>Every play aggregated into lifetime views: accuracy per swing direction for each hand, accuracy by note grid position for each hand, and skill progression per play style (stream, tech, speed, jumps, gimmick) over time.</p>
     </td>
-    <td width="40%"><img src="assets/feature-analysis.png" alt="Career analysis" width="420"></td>
+    <td width="50%"><img src="assets/feature-analysis.png" alt="Career analysis" width="420"></td>
   </tr>
   <tr>
-    <td width="40%"><img src="assets/feature-maps.png" alt="Beatmap catalog" width="420"></td>
-    <td width="60%">
+    <td width="50%"><img src="assets/feature-maps.png" alt="Beatmap catalog" width="420"></td>
+    <td width="50%">
       <h3>Beatmap catalog</h3>
       <p>Browse the maps you've played. Filter by played, unplayed, or liked, search by name, and see difficulties, note counts, length, star rating, and cover art for each.</p>
     </td>
