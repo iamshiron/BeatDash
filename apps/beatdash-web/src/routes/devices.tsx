@@ -1,10 +1,4 @@
 import {
-	AddCircleIcon,
-	MonitorIcon,
-	PenIcon,
-	TrashBinMinimalisticIcon,
-} from "@solar-icons/react/dynamic";
-import {
 	AlertDialog,
 	AlertDialogAction,
 	AlertDialogCancel,
@@ -44,6 +38,12 @@ import { Field, FieldGroup, FieldLabel } from "@shiron/ui/components/ui/field";
 import { Input } from "@shiron/ui/components/ui/input";
 import { Skeleton } from "@shiron/ui/components/ui/skeleton";
 import { StatusDot } from "@shiron/ui/components/ui/status-dot";
+import {
+	AddCircleIcon,
+	MonitorIcon,
+	PenIcon,
+	TrashBinMinimalisticIcon,
+} from "@solar-icons/react/dynamic";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { formatDistanceToNow } from "date-fns";

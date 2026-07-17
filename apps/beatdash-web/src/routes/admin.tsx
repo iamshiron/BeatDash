@@ -1,7 +1,3 @@
-import {
-	SpeedometerMiddleIcon,
-	TestTubeIcon,
-} from "@solar-icons/react/dynamic";
 import { Separator } from "@shiron/ui/components/ui/separator";
 import {
 	Sidebar,
@@ -18,6 +14,10 @@ import {
 	SidebarRail,
 	SidebarTrigger,
 } from "@shiron/ui/components/ui/sidebar";
+import {
+	SpeedometerMiddleIcon,
+	TestTubeIcon,
+} from "@solar-icons/react/dynamic";
 import {
 	createFileRoute,
 	Link,
