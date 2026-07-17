@@ -14,7 +14,11 @@ import {
 } from "@shiron/ui/components/ui/chart";
 import { Skeleton } from "@shiron/ui/components/ui/skeleton";
 import { cn } from "@shiron/ui/lib/utils";
-import { ArrowLeftIcon, MusicNotesIcon } from "@solar-icons/react/dynamic";
+import {
+	ArrowLeftIcon,
+	ArrowRightUpIcon,
+	MusicNotesIcon,
+} from "@solar-icons/react/dynamic";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { formatDistanceToNow } from "date-fns";
 import { useMemo, useState } from "react";
@@ -185,9 +189,22 @@ function SessionDetailPage() {
 						</div>
 						<div className="min-w-0 flex-1">
 							<div className="flex items-center gap-2">
-								<h1 className="truncate font-heading text-lg font-semibold tracking-tight">
-									{beatmap?.songName}
-								</h1>
+								{beatmap ? (
+									<Link
+										to="/maps/$id"
+										params={{ id: beatmap.id }}
+										className="group flex min-w-0 items-center gap-1 decoration-muted-foreground/50 underline-offset-4 hover:underline"
+									>
+										<h1 className="truncate font-heading text-lg font-semibold tracking-tight">
+											{beatmap.songName}
+										</h1>
+										<ArrowRightUpIcon className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
+									</Link>
+								) : (
+									<h1 className="truncate font-heading text-lg font-semibold tracking-tight">
+										{beatmap?.songName}
+									</h1>
+								)}
 								{beatmap?.difficultyName && (
 									<Badge
 										variant="outline"
