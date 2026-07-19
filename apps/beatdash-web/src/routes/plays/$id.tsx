@@ -48,6 +48,7 @@ import { ScoreBreakdown } from "@/components/sessions/ScoreBreakdown";
 import { SessionRecap } from "@/components/sessions/SessionRecap";
 import { SwingAnalysis } from "@/components/sessions/SwingAnalysis";
 import { TopSessions } from "@/components/sessions/TopSessions";
+import { WorkoutSummary } from "@/components/sessions/WorkoutSummary";
 import {
 	DIFFICULTY_STYLES,
 	formatAccuracy,
@@ -445,6 +446,8 @@ function SessionDetailPage() {
 			)}
 
 			{results && detail?.hasMotionSummary && <MotionSummary sessionId={id} />}
+
+			{results && <WorkoutSummary sessionId={id} />}
 
 			{results && (
 				<Card className="mb-4">

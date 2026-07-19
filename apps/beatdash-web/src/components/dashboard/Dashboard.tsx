@@ -19,6 +19,7 @@ import { AnimatedNumber } from "@/components/common/AnimatedNumber";
 import { ErrorState } from "@/components/common/ErrorState";
 import { AccuracyTrend } from "@/components/dashboard/AccuracyTrend";
 import { ActivityHeatmap } from "@/components/dashboard/ActivityHeatmap";
+import { FitnessSummary } from "@/components/dashboard/FitnessSummary";
 import { SkillProfile } from "@/components/dashboard/SkillProfile";
 import { MostPlayedRow } from "@/components/profile/MostPlayedRow";
 import { SessionRow } from "@/components/profile/SessionRow";
@@ -131,6 +132,8 @@ export function Dashboard() {
 					<AccuracyTrend />
 
 					<SkillProfile />
+
+					<FitnessSummary />
 
 					{stats.rankDistribution.length > 0 && (
 						<Card>
