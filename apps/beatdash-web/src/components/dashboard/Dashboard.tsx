@@ -15,6 +15,7 @@ import {
 } from "@solar-icons/react/dynamic";
 import { Link } from "@tanstack/react-router";
 import { useGetApiSessionsStats } from "@/api/sessions/sessions";
+import { AnimatedNumber } from "@/components/common/AnimatedNumber";
 import { AccuracyTrend } from "@/components/dashboard/AccuracyTrend";
 import { ActivityHeatmap } from "@/components/dashboard/ActivityHeatmap";
 import { SkillProfile } from "@/components/dashboard/SkillProfile";
@@ -68,21 +69,41 @@ export function Dashboard() {
 						<StatTile
 							icon={<MusicNotesIcon className="size-4" />}
 							label="Plays"
-							value={formatScore(Number(stats.totalPlays))}
+							value={
+								<AnimatedNumber
+									value={Number(stats.totalPlays)}
+									format={(n) => formatScore(Math.round(n))}
+								/>
+							}
 						/>
 						<StatTile
 							icon={<ClockCircleIcon className="size-4" />}
 							label="Play time"
-							value={formatPlayTime(Number(stats.totalPlayTimeMs))}
+							value={
+								<AnimatedNumber
+									value={Number(stats.totalPlayTimeMs)}
+									format={formatPlayTime}
+								/>
+							}
 						/>
 						<StatTile
 							icon={<TargetIcon className="size-4" />}
 							label="Avg accuracy"
-							value={formatAccuracy(Number(stats.averageAccuracy))}
+							value={
+								<AnimatedNumber
+									value={Number(stats.averageAccuracy)}
+									format={formatAccuracy}
+								/>
+							}
 						/>
 						<StatTile
 							label="Full combos"
-							value={`${formatScore(Number(stats.fullCombos))}`}
+							value={
+								<AnimatedNumber
+									value={Number(stats.fullCombos)}
+									format={(n) => formatScore(Math.round(n))}
+								/>
+							}
 							sub={`${formatScore(Number(stats.uniqueMaps))} unique maps`}
 						/>
 					</div>

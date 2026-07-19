@@ -23,6 +23,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import type { PublicProfileDto } from "@/api/model";
 import { useGetPublicProfile } from "@/api/profiles/profiles";
+import { AnimatedNumber } from "@/components/common/AnimatedNumber";
 import { ActivityHeatmap } from "@/components/dashboard/ActivityHeatmap";
 import { formatPlayTime } from "@/components/dashboard/Dashboard";
 import { AppShell } from "@/components/layout/AppShell";
@@ -113,25 +114,50 @@ function ProfileBody({ profile }: { profile: PublicProfileDto }) {
 					<Metric
 						icon={<MusicNotesIcon className="size-3" />}
 						label="Plays"
-						value={formatScore(Number(stats.totalPlays))}
+						value={
+							<AnimatedNumber
+								value={Number(stats.totalPlays)}
+								format={(n) => formatScore(Math.round(n))}
+							/>
+						}
 					/>
 					<Metric
 						icon={<ClockCircleIcon className="size-3" />}
 						label="Play time"
-						value={formatPlayTime(Number(stats.totalPlayTimeMs))}
+						value={
+							<AnimatedNumber
+								value={Number(stats.totalPlayTimeMs)}
+								format={formatPlayTime}
+							/>
+						}
 					/>
 					<Metric
 						icon={<TargetIcon className="size-3" />}
 						label="Avg accuracy"
-						value={formatAccuracy(Number(stats.averageAccuracy))}
+						value={
+							<AnimatedNumber
+								value={Number(stats.averageAccuracy)}
+								format={formatAccuracy}
+							/>
+						}
 					/>
 					<Metric
 						label="Full combos"
-						value={formatScore(Number(stats.fullCombos))}
+						value={
+							<AnimatedNumber
+								value={Number(stats.fullCombos)}
+								format={(n) => formatScore(Math.round(n))}
+							/>
+						}
 					/>
 					<Metric
 						label="Unique maps"
-						value={formatScore(Number(stats.uniqueMaps))}
+						value={
+							<AnimatedNumber
+								value={Number(stats.uniqueMaps)}
+								format={(n) => formatScore(Math.round(n))}
+							/>
+						}
 					/>
 					{stats.rankDistribution.length > 0 && (
 						<div className="flex flex-wrap items-center gap-1.5 sm:ml-auto">
@@ -248,7 +274,7 @@ function Metric({
 }: {
 	icon?: React.ReactNode;
 	label: string;
-	value: string;
+	value: React.ReactNode;
 }) {
 	return (
 		<div className="flex flex-col">

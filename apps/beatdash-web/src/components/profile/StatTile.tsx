@@ -25,7 +25,7 @@ export function StatTile({
 }: {
 	icon?: React.ReactNode;
 	label: string;
-	value: string;
+	value: React.ReactNode;
 	sub?: string;
 	delta?: StatDelta;
 }) {
