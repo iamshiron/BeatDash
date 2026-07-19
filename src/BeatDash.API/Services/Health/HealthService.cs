@@ -164,10 +164,11 @@ public sealed class HealthService(BeatDashDbContext db) : IHealthService {
                 m.HeadTravel, m.LeftSaberTravel, m.RightSaberTravel))
             .ToDictionaryAsync(m => m.PlaySessionId, ct);
 
+    // Any non-auto play with results counts toward energy — failed/quit attempts are still
+    // real effort. (Finished-only stats live in ProfileStatsService, not here.)
     private static System.Linq.Expressions.Expression<Func<PlaySession, bool>> BaseFilter(Guid userId) =>
         s => s.UserId == userId
             && !s.AutoMode
-            && s.EndReason == PlaySessionEndReason.Finished
             && s.Results != null;
 
     private static double? AvgSpeed(MotionRow? mo) =>
