@@ -159,6 +159,22 @@ public static class IdentityEndpoints {
         user.ProfileListsPublic = dto.ProfileListsPublic;
         user.ProfileLikedPublic = dto.ProfileLikedPublic;
 
+        // Optional health metadata — validate the (already-metric) values before persisting.
+        var sex = HealthMetricsUtils.NormalizeSex(dto.Sex);
+        var healthError = HealthMetricsUtils.Validate(
+            dto.HeightCm, dto.WeightKg, dto.BirthYear, sex,
+            dto.BodyFatPercent, dto.RestingHeartRate, DateTime.UtcNow.Year);
+        if (healthError is not null)
+            return Results.BadRequest(new[] { healthError });
+
+        user.HealthTrackingEnabled = dto.HealthTrackingEnabled;
+        user.HeightCm = dto.HeightCm;
+        user.WeightKg = dto.WeightKg;
+        user.BirthYear = dto.BirthYear;
+        user.Sex = sex;
+        user.BodyFatPercent = dto.BodyFatPercent;
+        user.RestingHeartRate = dto.RestingHeartRate;
+
         var result = await userManager.UpdateAsync(user);
         if (!result.Succeeded)
             return Results.BadRequest(result.Errors.Select(e => e.Description).ToList());
@@ -222,7 +238,14 @@ public static class IdentityEndpoints {
         ProfileListsPublic = user.ProfileListsPublic,
         ProfileLikedPublic = user.ProfileLikedPublic,
         AvatarUrl = user.AvatarKey is null ? null : $"/api/users/{user.Id}/avatar",
-        BannerUrl = user.BannerKey is null ? null : $"/api/users/{user.Id}/banner"
+        BannerUrl = user.BannerKey is null ? null : $"/api/users/{user.Id}/banner",
+        HealthTrackingEnabled = user.HealthTrackingEnabled,
+        HeightCm = user.HeightCm,
+        WeightKg = user.WeightKg,
+        BirthYear = user.BirthYear,
+        Sex = user.Sex,
+        BodyFatPercent = user.BodyFatPercent,
+        RestingHeartRate = user.RestingHeartRate
     };
 
     private static async Task<IResult> ChangePassword(
@@ -307,6 +330,15 @@ public record UpdateProfileDto {
     public bool ProfileHistoryPublic { get; init; }
     public bool ProfileListsPublic { get; init; }
     public bool ProfileLikedPublic { get; init; }
+
+    // Optional health metadata (metric units; imperial is converted client-side).
+    public bool HealthTrackingEnabled { get; init; }
+    public int? HeightCm { get; init; }
+    public double? WeightKg { get; init; }
+    public int? BirthYear { get; init; }
+    public string? Sex { get; init; }
+    public double? BodyFatPercent { get; init; }
+    public int? RestingHeartRate { get; init; }
 }
 
 public record ChangePasswordDto {
@@ -329,4 +361,11 @@ public record UserInfoDto {
     public bool ProfileLikedPublic { get; init; }
     public string? AvatarUrl { get; init; }
     public string? BannerUrl { get; init; }
+    public bool HealthTrackingEnabled { get; init; }
+    public int? HeightCm { get; init; }
+    public double? WeightKg { get; init; }
+    public int? BirthYear { get; init; }
+    public string? Sex { get; init; }
+    public double? BodyFatPercent { get; init; }
+    public int? RestingHeartRate { get; init; }
 }

@@ -29,5 +29,16 @@ public class User : IdentityUser<Guid> {
     [MaxLength(256)] public string? AvatarKey { get; set; }
     [MaxLength(256)] public string? BannerKey { get; set; }
 
+    // Optional, opt-in health/fitness tracking. All null/false until the user turns it on
+    // and fills in their body metadata. Stored canonically in metric units. Composition
+    // fields (body fat, resting HR) are optional and typically sourced from a wearable.
+    public bool HealthTrackingEnabled { get; set; }
+    public int? HeightCm { get; set; }
+    public double? WeightKg { get; set; }
+    public int? BirthYear { get; set; }
+    [MaxLength(16)] public string? Sex { get; set; }
+    public double? BodyFatPercent { get; set; }
+    public int? RestingHeartRate { get; set; }
+
     public IList<Device> Devices { get; set; } = [];
 }
