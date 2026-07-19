@@ -67,6 +67,8 @@ const VISIBILITY_SECTIONS = [
 
 type VisibilityKey = (typeof VISIBILITY_SECTIONS)[number]["key"];
 
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+
 export const Route = createFileRoute("/settings")({
 	beforeLoad: ({ context }) => {
 		if (!context.auth.isAuthenticated) {
@@ -77,6 +79,7 @@ export const Route = createFileRoute("/settings")({
 });
 
 function SettingsPage() {
+	useDocumentTitle("Settings");
 	return (
 		<AppShell>
 			<div className="mb-6">

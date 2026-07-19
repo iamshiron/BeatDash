@@ -85,6 +85,8 @@ function rankIndex(rank: string): number {
 	return idx === -1 ? Number.MAX_SAFE_INTEGER : idx;
 }
 
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+
 export const Route = createFileRoute("/maps/$id")({
 	beforeLoad: ({ context }) => {
 		if (!context.auth.isAuthenticated) {
@@ -98,6 +100,7 @@ function MapDetailPage() {
 	const { id } = Route.useParams();
 	const { data, isLoading } = useGetApiMapsMapId(id);
 	const map = data?.status === 200 ? data.data : undefined;
+	useDocumentTitle(map?.songName);
 	const [coverFailed, setCoverFailed] = useState(false);
 
 	// The user's completed attempts on this map, oldest first, grouped per difficulty.

@@ -56,6 +56,8 @@ import type { MapListItemDto } from "@/api/model";
 import { AppShell } from "@/components/layout/AppShell";
 import { MapCard } from "@/components/maps/MapCard";
 
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+
 export const Route = createFileRoute("/lists/$id")({
 	beforeLoad: ({ context }) => {
 		if (!context.auth.isAuthenticated) {
@@ -77,6 +79,7 @@ function ListDetailPage() {
 
 	const { data, isLoading } = useGetApiListsListId(id);
 	const list = data?.status === 200 ? data.data : undefined;
+	useDocumentTitle(list?.name);
 	const notFound = data?.status === 404;
 	const maps = list?.maps ?? [];
 

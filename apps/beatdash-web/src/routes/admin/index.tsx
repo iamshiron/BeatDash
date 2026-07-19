@@ -1,10 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+
 export const Route = createFileRoute("/admin/")({
 	component: AdminOverviewPage,
 });
 
 function AdminOverviewPage() {
+	useDocumentTitle("Admin");
 	return (
 		<div>
 			<h1 className="font-heading text-lg font-semibold tracking-tight">

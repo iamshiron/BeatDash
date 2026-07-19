@@ -67,6 +67,8 @@ const comboMissesChartConfig = {
 	misses: { label: "Misses", color: "oklch(0.64 0.21 25)" },
 } satisfies ChartConfig;
 
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+
 export const Route = createFileRoute("/plays/$id")({
 	beforeLoad: ({ context }) => {
 		if (!context.auth.isAuthenticated) {
@@ -99,6 +101,7 @@ function SessionDetailPage() {
 	const topDifficulties =
 		topQuery.data?.status === 200 ? topQuery.data.data : null;
 	const beatmap = detail?.beatmap;
+	useDocumentTitle(beatmap?.songName);
 	const results = detail?.results;
 
 	// This session is a personal best when it's the top-scoring play on its difficulty.

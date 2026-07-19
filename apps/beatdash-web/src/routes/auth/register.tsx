@@ -16,11 +16,14 @@ import { toast } from "sonner";
 import { getGetMeQueryKey, useRegister } from "@/api/auth/auth";
 import type { RegisterDto } from "@/api/model";
 
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+
 export const Route = createFileRoute("/auth/register")({
 	component: RegisterPage,
 });
 
 function RegisterPage() {
+	useDocumentTitle("Sign up");
 	const [username, setUsername] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");

@@ -20,6 +20,8 @@ import type { MapListSummaryDto } from "@/api/model";
 import { AppShell } from "@/components/layout/AppShell";
 import { CreateListDialog } from "@/components/lists/CreateListDialog";
 
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+
 export const Route = createFileRoute("/lists/")({
 	beforeLoad: ({ context }) => {
 		if (!context.auth.isAuthenticated) {
@@ -32,6 +34,7 @@ export const Route = createFileRoute("/lists/")({
 const SKELETON_KEYS = Array.from({ length: 4 }, (_, i) => `list-skeleton-${i}`);
 
 function ListsPage() {
+	useDocumentTitle("Lists");
 	const [createOpen, setCreateOpen] = useState(false);
 	const { data, isLoading } = useGetApiLists();
 	const lists = data?.status === 200 ? data.data : [];

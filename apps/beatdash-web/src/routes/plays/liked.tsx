@@ -27,6 +27,8 @@ const PAGE_SIZE = 24;
 
 type LikedSearch = { p?: number };
 
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+
 export const Route = createFileRoute("/plays/liked")({
 	beforeLoad: ({ context }) => {
 		if (!context.auth.isAuthenticated) {
@@ -45,6 +47,7 @@ const SKELETON_KEYS = Array.from(
 );
 
 function LikedMapsPage() {
+	useDocumentTitle("Liked maps");
 	const { p = 1 } = Route.useSearch();
 	const navigate = useNavigate();
 

@@ -32,6 +32,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { MostPlayedRow } from "@/components/profile/MostPlayedRow";
 import { SessionRow } from "@/components/profile/SessionRow";
 import { SkillRadarChart } from "@/components/profile/SkillRadar";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { formatAccuracy, formatScore, RANK_STYLES } from "@/lib/sessions";
 import { getInitials } from "@/lib/user";
 
@@ -47,6 +48,9 @@ function ProfilePage() {
 	const cleanHandle = handle.replace(/^@/, "");
 	const { data, isLoading } = useGetPublicProfile(cleanHandle);
 	const profile = data?.status === 200 ? data.data : null;
+	useDocumentTitle(
+		profile ? `${profile.displayName} (@${profile.handle})` : `@${cleanHandle}`,
+	);
 
 	return (
 		<AppShell wide>

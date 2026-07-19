@@ -58,6 +58,7 @@ import {
 import type { DeviceResponseDto } from "@/api/model";
 import { AddDeviceDialog } from "@/components/devices/AddDeviceDialog";
 import { AppShell } from "@/components/layout/AppShell";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useNow } from "@/hooks/useNow";
 import { useRealtimeEvent } from "@/realtime";
 
@@ -71,6 +72,7 @@ export const Route = createFileRoute("/devices")({
 });
 
 function DevicesPage() {
+	useDocumentTitle("Devices");
 	const [pairDialogOpen, setPairDialogOpen] = useState(false);
 	const [renameTarget, setRenameTarget] = useState<DeviceResponseDto | null>(
 		null,

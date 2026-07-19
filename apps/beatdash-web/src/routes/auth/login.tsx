@@ -16,11 +16,14 @@ import { toast } from "sonner";
 import { getGetMeQueryKey, useLogin } from "@/api/auth/auth";
 import type { LoginDto } from "@/api/model";
 
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+
 export const Route = createFileRoute("/auth/login")({
 	component: LoginPage,
 });
 
 function LoginPage() {
+	useDocumentTitle("Sign in");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const navigate = useNavigate();

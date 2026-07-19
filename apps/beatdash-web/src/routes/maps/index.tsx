@@ -69,6 +69,8 @@ function pageItems(
 	return items;
 }
 
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+
 export const Route = createFileRoute("/maps/")({
 	beforeLoad: ({ context }) => {
 		if (!context.auth.isAuthenticated) {
@@ -99,6 +101,7 @@ const MapGrid = memo(function MapGrid({ maps }: { maps: MapListItemDto[] }) {
 });
 
 function MapsPage() {
+	useDocumentTitle("Maps");
 	const { q = "", p = 1, played, liked } = Route.useSearch();
 	const navigate = useNavigate();
 

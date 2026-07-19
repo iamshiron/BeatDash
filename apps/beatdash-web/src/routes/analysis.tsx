@@ -19,6 +19,8 @@ import { PracticeRecommendations } from "@/components/analysis/PracticeRecommend
 import { SkillProgression } from "@/components/analysis/SkillProgression";
 import { AppShell } from "@/components/layout/AppShell";
 
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+
 export const Route = createFileRoute("/analysis")({
 	beforeLoad: ({ context }) => {
 		if (!context.auth.isAuthenticated) {
@@ -29,6 +31,7 @@ export const Route = createFileRoute("/analysis")({
 });
 
 function AnalysisPage() {
+	useDocumentTitle("Analysis");
 	const weaknessQuery = useGetApiSessionsWeakness();
 	const progressionQuery = useGetApiSessionsSkillProgression();
 	const recommendationsQuery = useGetApiSessionsRecommendations();

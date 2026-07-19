@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Dashboard } from "@/components/dashboard/Dashboard";
 import { AppShell } from "@/components/layout/AppShell";
 import { useAuth } from "@/contexts/auth";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 export const Route = createFileRoute("/")({
 	component: LandingPage,
@@ -10,6 +11,7 @@ export const Route = createFileRoute("/")({
 
 function LandingPage() {
 	const { isAuthenticated } = useAuth();
+	useDocumentTitle(isAuthenticated ? "Dashboard" : null);
 
 	if (isAuthenticated) {
 		return (

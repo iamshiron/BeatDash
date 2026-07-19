@@ -33,6 +33,7 @@ import type { PersonalBestDto } from "@/api/model";
 import { useGetApiSessionsPb } from "@/api/sessions/sessions";
 import { AppShell } from "@/components/layout/AppShell";
 import { SessionSummary } from "@/components/sessions/SessionSummary";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import {
 	type LiveMapStartedEvent,
 	type MapResults,
@@ -50,6 +51,7 @@ export const Route = createFileRoute("/live")({
 });
 
 function LivePage() {
+	useDocumentTitle("Live");
 	const [currentMap, setCurrentMap] = useState<LiveMapStartedEvent | null>(
 		null,
 	);

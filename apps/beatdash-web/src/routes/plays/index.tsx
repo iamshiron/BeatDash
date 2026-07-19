@@ -34,6 +34,7 @@ import { useGetApiSessions } from "@/api/sessions/sessions";
 import { AppShell } from "@/components/layout/AppShell";
 import { SessionCard } from "@/components/sessions/SessionCard";
 import { SessionFilters } from "@/components/sessions/SessionFilters";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import {
 	FILTER_KEYS,
 	getActiveFilters,
@@ -60,6 +61,7 @@ const SKELETON_KEYS = Array.from(
 );
 
 function SessionsListPage() {
+	useDocumentTitle("Plays");
 	const search = Route.useSearch();
 	const navigate = useNavigate();
 

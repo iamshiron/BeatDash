@@ -50,6 +50,8 @@ import type {
 	WeightedModel,
 } from "@/api/model";
 
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+
 export const Route = createFileRoute("/admin/scoring")({
 	component: ScoringLabPage,
 });
@@ -140,6 +142,7 @@ function titleCase(s: string): string {
 type SelectedMap = { id: string; songName: string; songAuthor: string };
 
 function ScoringLabPage() {
+	useDocumentTitle("Scoring Lab");
 	const { data: configData, isLoading: configLoading } =
 		useGetApiAdminMetricsConfig();
 	const configResponse =
