@@ -17,5 +17,8 @@ public sealed record SessionSummaryDto(
     double TotalSaberTravel,
     IList<RankCountDto> RankDistribution,
     IList<PlaySessionListItemDto> Plays,
-    PlaySessionListItemDto? BestPlay
+    PlaySessionListItemDto? BestPlay,
+    // Populated only when the user has health tracking on and a weight set.
+    double? CaloriesKcal,
+    double? ActiveMinutes
 );

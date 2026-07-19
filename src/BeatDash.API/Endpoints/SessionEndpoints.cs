@@ -364,6 +364,26 @@ public static class SessionEndpoints {
             .Produces(204)
             .Produces(401);
 
+        // Paginated list of the user's sittings (grouped plays), newest first.
+        group.MapGet("/sittings", async (
+            int? page,
+            int? pageSize,
+            ClaimsPrincipal user,
+            IProfileStatsService profileStats,
+            CancellationToken ct) => {
+                var userId = IdentityUtils.GetUserID(user);
+                if (!userId.HasValue) return Results.Unauthorized();
+
+                var result = await profileStats.GetSittingsAsync(
+                    userId.Value, page ?? 1, pageSize ?? 20, ct);
+                return Results.Ok(result);
+            })
+            .WithName("GetSittings")
+            .WithDescription("The user's sessions (sittings of plays), newest first, paginated.")
+            .RequireAuthorization()
+            .Produces<PagedResult<SessionSummaryDto>>()
+            .Produces(401);
+
         group.MapGet("/recommendations", async (
             int? limit,
             ClaimsPrincipal user,

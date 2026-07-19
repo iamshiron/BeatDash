@@ -1,6 +1,8 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Shiron.BeatDash.API;
 using Shiron.BeatDash.API.Endpoints;
+using Shiron.BeatDash.API.Services.Health;
 using Shiron.BeatDash.DB;
 using Shiron.BeatDash.DB.Schema;
 
@@ -37,6 +39,13 @@ public interface IProfileStatsService {
     /// of plays with no long idle gap between them. Null if they've never played.
     /// </summary>
     Task<SessionSummaryDto?> GetLatestSessionSummaryAsync(Guid userId, CancellationToken ct = default);
+
+    /// <summary>
+    /// All of the player's sittings (clusters of plays with no long idle gap), newest first
+    /// and paginated. Each carries its plays plus aggregate stats, including calories when
+    /// health tracking is on.
+    /// </summary>
+    Task<PagedResult<SessionSummaryDto>> GetSittingsAsync(Guid userId, int page, int pageSize, CancellationToken ct = default);
 }
 
 /// <inheritdoc />
@@ -453,7 +462,84 @@ public sealed class ProfileStatsService(BeatDashDbContext db) : IProfileStatsSer
 
         // Best score per difficulty across all plays, to flag PBs achieved this sitting.
         var difficultyIds = sitting.Select(s => s.BeatmapDifficultyId).Distinct().ToList();
-        var bestScores = await db.PlaySessions
+        var bestScores = await BestScoresByDifficultyAsync(userId, difficultyIds, ct);
+        var (motion, cal) = await LoadSittingContextAsync(userId, sitting.Select(s => s.Id).ToList(), ct);
+
+        bool IsPb(PlaySession s) =>
+            bestScores.TryGetValue(s.BeatmapDifficultyId, out var max) && s.Results!.Score == max;
+
+        return Summarize(sitting, motion, cal, IsPb);
+    }
+
+    /// <inheritdoc />
+    public async Task<PagedResult<SessionSummaryDto>> GetSittingsAsync(
+        Guid userId, int page, int pageSize, CancellationToken ct = default) {
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 50);
+
+        // Lightweight timeline of every completed play, grouped into sittings by idle gap.
+        var timeline = await db.PlaySessions
+            .AsNoTracking()
+            .Where(s =>
+                s.UserId == userId &&
+                !s.AutoMode &&
+                s.EndReason == PlaySessionEndReason.Finished &&
+                s.Results != null)
+            .OrderBy(s => s.StartedAt)
+            .Select(s => new { s.Id, s.StartedAt, s.EndedAt })
+            .ToListAsync(ct);
+        if (timeline.Count == 0) return PagedResult<SessionSummaryDto>.Empty(page, pageSize);
+
+        var sittings = new List<List<Guid>>();
+        var current = new List<Guid> { timeline[0].Id };
+        var prevEnd = timeline[0].EndedAt ?? timeline[0].StartedAt;
+        for (var i = 1; i < timeline.Count; i++) {
+            var t = timeline[i];
+            if (t.StartedAt - prevEnd > SittingGap) {
+                sittings.Add(current);
+                current = [];
+            }
+            current.Add(t.Id);
+            prevEnd = t.EndedAt ?? t.StartedAt;
+        }
+        sittings.Add(current);
+        sittings.Reverse(); // newest first
+
+        var totalCount = sittings.Count;
+        var totalPages = (int) Math.Ceiling(totalCount / (double) pageSize);
+        var pageSittings = sittings.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+        if (pageSittings.Count == 0)
+            return new PagedResult<SessionSummaryDto>([], totalCount, page, pageSize, totalPages);
+
+        // Hydrate only the plays on this page.
+        var pagePlayIds = pageSittings.SelectMany(x => x).ToList();
+        var plays = await db.PlaySessions
+            .AsNoTracking()
+            .Where(s => pagePlayIds.Contains(s.Id))
+            .Include(s => s.BeatmapDifficulty.Beatmap)
+            .ToListAsync(ct);
+        var playById = plays.ToDictionary(p => p.Id);
+
+        var difficultyIds = plays.Select(p => p.BeatmapDifficultyId).Distinct().ToList();
+        var bestScores = await BestScoresByDifficultyAsync(userId, difficultyIds, ct);
+        var (motion, cal) = await LoadSittingContextAsync(userId, pagePlayIds, ct);
+
+        bool IsPb(PlaySession s) =>
+            bestScores.TryGetValue(s.BeatmapDifficultyId, out var max) && s.Results!.Score == max;
+
+        var items = pageSittings
+            .Select(ids => Summarize(
+                ids.Select(id => playById[id]).OrderBy(p => p.StartedAt).ToList(),
+                motion, cal, IsPb))
+            .ToList();
+
+        return new PagedResult<SessionSummaryDto>(items, totalCount, page, pageSize, totalPages);
+    }
+
+    /// <summary>Highest completed score per difficulty for the user, for PB flags.</summary>
+    private Task<Dictionary<Guid, int>> BestScoresByDifficultyAsync(
+        Guid userId, List<Guid> difficultyIds, CancellationToken ct) =>
+        db.PlaySessions
             .AsNoTracking()
             .Where(s =>
                 s.UserId == userId &&
@@ -465,16 +551,73 @@ public sealed class ProfileStatsService(BeatDashDbContext db) : IProfileStatsSer
             .Select(g => new { DifficultyId = g.Key, MaxScore = g.Max(x => x.Results!.Score) })
             .ToDictionaryAsync(x => x.DifficultyId, x => x.MaxScore, ct);
 
-        var playIds = sitting.Select(s => s.Id).ToList();
-        var totalSaberTravel = await db.PlaySessionMotionSummaries
+    /// <summary>Loads per-play motion + the user's calorie inputs for a set of plays.</summary>
+    private async Task<(Dictionary<Guid, SittingMotion> Motion, CalorieContext? Cal)>
+        LoadSittingContextAsync(Guid userId, List<Guid> playIds, CancellationToken ct) {
+        var motion = await db.PlaySessionMotionSummaries
             .AsNoTracking()
             .Where(m => playIds.Contains(m.PlaySessionId))
-            .SumAsync(m => m.LeftSaberTravel + m.RightSaberTravel, ct);
+            .Select(m => new {
+                m.PlaySessionId,
+                m.LeftSaberTravel,
+                m.RightSaberTravel,
+                m.AvgLeftSaberSpeed,
+                m.AvgRightSaberSpeed,
+                m.HeadTravel
+            })
+            .ToDictionaryAsync(
+                m => m.PlaySessionId,
+                m => new SittingMotion(
+                    m.LeftSaberTravel,
+                    m.RightSaberTravel,
+                    (m.AvgLeftSaberSpeed + m.AvgRightSaberSpeed) / 2,
+                    m.HeadTravel),
+                ct);
 
-        bool IsPb(PlaySession s) =>
-            bestScores.TryGetValue(s.BeatmapDifficultyId, out var max) && s.Results!.Score == max;
+        var user = await db.Users
+            .AsNoTracking()
+            .Where(u => u.Id == userId)
+            .Select(u => new { u.HealthTrackingEnabled, u.WeightKg, u.BirthYear, u.Sex })
+            .FirstOrDefaultAsync(ct);
 
-        var plays = sitting.Select(s => PlaySessionListItemDto.From(s, IsPb(s))).ToList();
+        CalorieContext? cal = user is { HealthTrackingEnabled: true, WeightKg: { } w }
+            ? new CalorieContext(w, user.BirthYear is { } by ? DateTime.UtcNow.Year - by : null, user.Sex)
+            : null;
+
+        return (motion, cal);
+    }
+
+    /// <summary>Builds a sitting summary from its (chronological) plays and the loaded context.</summary>
+    private static SessionSummaryDto Summarize(
+        List<PlaySession> sitting,
+        Dictionary<Guid, SittingMotion> motion,
+        CalorieContext? cal,
+        Func<PlaySession, bool> isPb) {
+        var totalSaberTravel = sitting.Sum(s =>
+            motion.TryGetValue(s.Id, out var m) ? m.LeftTravel + m.RightTravel : 0);
+
+        double? kcal = null;
+        double? minutes = null;
+        if (cal is { } c) {
+            double k = 0, mins = 0;
+            foreach (var s in sitting) {
+                var hasMotion = motion.TryGetValue(s.Id, out var m);
+                var est = CalorieEstimator.Estimate(
+                    c.WeightKg,
+                    s.Results!.EndSongTimeMs,
+                    hasMotion ? m.AvgSpeed : null,
+                    hasMotion ? m.HeadTravel : null,
+                    s.BeatmapDifficulty.NotesPerSecond,
+                    avgHr: null,
+                    c.Age,
+                    c.Sex);
+                k += est.Kcal;
+                mins += est.ActiveMinutes;
+            }
+            kcal = k;
+            minutes = mins;
+        }
+
         var best = sitting.OrderByDescending(s => s.Results!.Accuracy).First();
 
         return new SessionSummaryDto(
@@ -485,15 +628,22 @@ public sealed class ProfileStatsService(BeatDashDbContext db) : IProfileStatsSer
             sitting.Average(s => s.Results!.Accuracy),
             sitting.Count(s => s.Results!.FullCombo),
             sitting.Select(s => s.BeatmapDifficulty.BeatmapId).Distinct().Count(),
-            sitting.Count(IsPb),
+            sitting.Count(isPb),
             totalSaberTravel,
             sitting
                 .GroupBy(s => s.Results!.Rank)
                 .Select(g => new RankCountDto(g.Key, g.Count()))
                 .ToList(),
-            plays,
-            PlaySessionListItemDto.From(best, IsPb(best)));
+            sitting.Select(s => PlaySessionListItemDto.From(s, isPb(s))).ToList(),
+            PlaySessionListItemDto.From(best, isPb(best)),
+            kcal,
+            minutes);
     }
+
+    private readonly record struct SittingMotion(
+        double LeftTravel, double RightTravel, double AvgSpeed, double HeadTravel);
+
+    private readonly record struct CalorieContext(double WeightKg, int? Age, string? Sex);
 
     private static PlaySessionResultsDto? ToResultsDto(AttemptResult? a) => a is { } r
         ? new PlaySessionResultsDto(
