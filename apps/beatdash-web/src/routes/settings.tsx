@@ -14,6 +14,12 @@ import {
 	FieldLabel,
 } from "@shiron/ui/components/ui/field";
 import { Input } from "@shiron/ui/components/ui/input";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+} from "@shiron/ui/components/ui/select";
 import { Separator } from "@shiron/ui/components/ui/separator";
 import { Switch } from "@shiron/ui/components/ui/switch";
 import { useTheme } from "@shiron/ui/hooks/use-theme";
@@ -25,8 +31,10 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useChangePassword, useUpdateProfile } from "@/api/auth/auth";
 import type { ChangePasswordDto, UpdateProfileDto } from "@/api/model";
+import { useGenerateHealthIngestToken } from "@/api/wearable/wearable";
 import { AppShell } from "@/components/layout/AppShell";
 import { getGetMeQueryKey, useAuth } from "@/contexts/auth";
+import { profileBasePayload } from "@/lib/profile";
 
 const HANDLE_PATTERN = /^[a-z0-9_]{3,32}$/;
 
@@ -102,6 +110,7 @@ function SettingsPage() {
 			</div>
 			<div className="flex flex-col gap-4">
 				<AccountCard />
+				<HealthCard />
 				<PasswordCard />
 				<AppearanceCard />
 			</div>
@@ -173,8 +182,11 @@ function AccountCard() {
 
 	function handleSubmit(event: React.FormEvent) {
 		event.preventDefault();
-		if (nameInvalid || handleInvalid || unchanged) return;
+		if (nameInvalid || handleInvalid || unchanged || !user) return;
+		// Start from the full current profile so health fields aren't wiped by this
+		// account-only save, then override name/handle/visibility.
 		const payload: UpdateProfileDto = {
+			...profileBasePayload(user),
 			displayName: trimmedName,
 			handle: normalizedHandle || undefined,
 			...visibility,
@@ -459,6 +471,390 @@ function AppearanceCard() {
 					})}
 				</div>
 			</CardContent>
+		</Card>
+	);
+}
+
+const CURRENT_YEAR = new Date().getFullYear();
+const KG_PER_LB = 0.45359237;
+const CM_PER_IN = 2.54;
+
+/** Parses a form string to a finite number, or null when blank/invalid. */
+function numStr(value: string): number | null {
+	const trimmed = value.trim();
+	if (trimmed === "") return null;
+	const n = Number(trimmed);
+	return Number.isFinite(n) ? n : null;
+}
+
+type Unit = "metric" | "imperial";
+
+const SEX_LABELS: Record<string, string> = {
+	male: "Male",
+	female: "Female",
+	unspecified: "Prefer not to say",
+};
+
+function HealthCard() {
+	const { user } = useAuth();
+	const queryClient = useQueryClient();
+
+	const [enabled, setEnabled] = useState(false);
+	const [unit, setUnit] = useState<Unit>("metric");
+	const [weight, setWeight] = useState("");
+	const [heightCm, setHeightCm] = useState("");
+	const [heightFt, setHeightFt] = useState("");
+	const [heightIn, setHeightIn] = useState("");
+	const [age, setAge] = useState("");
+	const [sex, setSex] = useState(() => user?.sex || "unspecified");
+	const [bodyFat, setBodyFat] = useState("");
+	const [restingHr, setRestingHr] = useState("");
+	const [error, setError] = useState<string | null>(null);
+	const [token, setToken] = useState<string | null>(null);
+
+	// Seed from the current (metric) user data.
+	useEffect(() => {
+		if (!user) return;
+		setEnabled(user.healthTrackingEnabled ?? false);
+		const w = user.weightKg != null ? Number(user.weightKg) : null;
+		const h = user.heightCm != null ? Number(user.heightCm) : null;
+		const by = user.birthYear != null ? Number(user.birthYear) : null;
+		setWeight(w != null ? String(Math.round(w * 10) / 10) : "");
+		setHeightCm(h != null ? String(Math.round(h)) : "");
+		if (h != null) {
+			const totalIn = h / CM_PER_IN;
+			setHeightFt(String(Math.floor(totalIn / 12)));
+			setHeightIn(String(Math.round(totalIn % 12)));
+		}
+		setAge(by != null ? String(CURRENT_YEAR - by) : "");
+		setSex(user.sex || "unspecified");
+		setBodyFat(
+			user.bodyFatPercent != null ? String(Number(user.bodyFatPercent)) : "",
+		);
+		setRestingHr(
+			user.restingHeartRate != null
+				? String(Number(user.restingHeartRate))
+				: "",
+		);
+	}, [user]);
+
+	function switchUnit(next: Unit) {
+		if (next === unit) return;
+		const w = numStr(weight);
+		if (next === "imperial") {
+			if (w != null) setWeight(String(Math.round((w / KG_PER_LB) * 10) / 10));
+			const cm = numStr(heightCm);
+			if (cm != null) {
+				const totalIn = cm / CM_PER_IN;
+				setHeightFt(String(Math.floor(totalIn / 12)));
+				setHeightIn(String(Math.round(totalIn % 12)));
+			}
+		} else {
+			if (w != null) setWeight(String(Math.round(w * KG_PER_LB * 10) / 10));
+			const ft = numStr(heightFt);
+			const inch = numStr(heightIn);
+			if (ft != null || inch != null) {
+				setHeightCm(
+					String(Math.round(((ft ?? 0) * 12 + (inch ?? 0)) * CM_PER_IN)),
+				);
+			}
+		}
+		setUnit(next);
+	}
+
+	const updateMutation = useUpdateProfile({
+		mutation: {
+			onSuccess: async (response) => {
+				if (response.status !== 200) {
+					setError(
+						serverMessage(response.data, "Couldn't save your health settings."),
+					);
+					return;
+				}
+				await queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
+				setError(null);
+				toast.success("Health settings saved.");
+			},
+			onError: () => setError("Couldn't save your health settings."),
+		},
+	});
+
+	const tokenMutation = useGenerateHealthIngestToken({
+		mutation: {
+			onSuccess: (response) => {
+				if (response.status === 200) {
+					setToken(response.data.token);
+					toast.success("Ingest token generated.");
+				} else {
+					toast.error("Couldn't generate a token.");
+				}
+			},
+			onError: () => toast.error("Couldn't generate a token."),
+		},
+	});
+
+	function handleSubmit(event: React.FormEvent) {
+		event.preventDefault();
+		if (!user) return;
+		setError(null);
+
+		let weightKg: number | null;
+		let heightCmValue: number | null;
+		const w = numStr(weight);
+		if (unit === "metric") {
+			weightKg = w;
+			heightCmValue = numStr(heightCm);
+		} else {
+			weightKg = w != null ? w * KG_PER_LB : null;
+			const ft = numStr(heightFt);
+			const inch = numStr(heightIn);
+			heightCmValue =
+				ft != null || inch != null
+					? ((ft ?? 0) * 12 + (inch ?? 0)) * CM_PER_IN
+					: null;
+		}
+
+		const ageNum = numStr(age);
+		const payload: UpdateProfileDto = {
+			...profileBasePayload(user),
+			healthTrackingEnabled: enabled,
+			weightKg: weightKg != null ? Math.round(weightKg * 100) / 100 : null,
+			heightCm: heightCmValue != null ? Math.round(heightCmValue) : null,
+			birthYear: ageNum != null ? CURRENT_YEAR - Math.round(ageNum) : null,
+			sex,
+			bodyFatPercent: numStr(bodyFat),
+			restingHeartRate: (() => {
+				const r = numStr(restingHr);
+				return r != null ? Math.round(r) : null;
+			})(),
+		};
+		updateMutation.mutate({ data: payload });
+	}
+
+	const ingestSnippet = `POST ${window.location.origin}/api/health/ingest/heartrate
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{ "samples": [{ "recordedAt": "2026-07-19T20:00:00Z", "bpm": 148 }] }`;
+
+	return (
+		<Card>
+			<CardHeader>
+				<CardTitle>Health &amp; fitness</CardTitle>
+				<CardDescription>
+					Optional. Turn this on and add your body metrics to see calories,
+					active time and movement for your plays. Nothing here is shown on your
+					public profile.
+				</CardDescription>
+			</CardHeader>
+			<CardContent>
+				<form id="health-form" onSubmit={handleSubmit}>
+					<FieldGroup>
+						<div className="flex items-center justify-between gap-4">
+							<div className="min-w-0">
+								<FieldLabel htmlFor="health-enabled">
+									Enable health tracking
+								</FieldLabel>
+								<p className="text-xs text-muted-foreground">
+									Shows a Health page, a dashboard card and per-play workout
+									stats — only for you.
+								</p>
+							</div>
+							<Switch
+								id="health-enabled"
+								checked={enabled}
+								onCheckedChange={setEnabled}
+							/>
+						</div>
+
+						<Separator />
+
+						<div className="flex items-center justify-between gap-4">
+							<FieldLabel>Units</FieldLabel>
+							<div className="flex items-center gap-1 rounded-lg border border-border bg-muted/30 p-0.5">
+								{(["metric", "imperial"] as const).map((u) => (
+									<Button
+										key={u}
+										type="button"
+										variant={unit === u ? "secondary" : "ghost"}
+										size="sm"
+										className="h-7 px-2.5 text-xs capitalize"
+										onClick={() => switchUnit(u)}
+									>
+										{u}
+									</Button>
+								))}
+							</div>
+						</div>
+
+						<div className="grid gap-4 sm:grid-cols-2">
+							<Field>
+								<FieldLabel htmlFor="weight">
+									Weight ({unit === "metric" ? "kg" : "lb"})
+								</FieldLabel>
+								<Input
+									id="weight"
+									type="number"
+									inputMode="decimal"
+									step="0.1"
+									value={weight}
+									onChange={(e) => setWeight(e.target.value)}
+								/>
+							</Field>
+
+							{unit === "metric" ? (
+								<Field>
+									<FieldLabel htmlFor="height-cm">Height (cm)</FieldLabel>
+									<Input
+										id="height-cm"
+										type="number"
+										inputMode="numeric"
+										value={heightCm}
+										onChange={(e) => setHeightCm(e.target.value)}
+									/>
+								</Field>
+							) : (
+								<Field>
+									<FieldLabel htmlFor="height-ft">Height (ft / in)</FieldLabel>
+									<div className="flex gap-2">
+										<Input
+											id="height-ft"
+											type="number"
+											inputMode="numeric"
+											placeholder="ft"
+											value={heightFt}
+											onChange={(e) => setHeightFt(e.target.value)}
+										/>
+										<Input
+											aria-label="Height inches"
+											type="number"
+											inputMode="numeric"
+											placeholder="in"
+											value={heightIn}
+											onChange={(e) => setHeightIn(e.target.value)}
+										/>
+									</div>
+								</Field>
+							)}
+
+							<Field>
+								<FieldLabel htmlFor="age">Age</FieldLabel>
+								<Input
+									id="age"
+									type="number"
+									inputMode="numeric"
+									value={age}
+									onChange={(e) => setAge(e.target.value)}
+								/>
+							</Field>
+
+							<Field>
+								<FieldLabel htmlFor="sex">Sex</FieldLabel>
+								<Select
+									value={sex}
+									// Radix can emit an empty value before the content mounts; ignore it
+									// so it doesn't clobber the seeded selection.
+									onValueChange={(v) => v && setSex(v)}
+								>
+									<SelectTrigger id="sex">
+										{/* Render the label directly (not via SelectValue) so a value
+										    seeded through an effect always shows — SelectValue won't
+										    resolve the label until the content mounts once. */}
+										<span data-slot="select-value">
+											{SEX_LABELS[sex] ?? "Select…"}
+										</span>
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="male">Male</SelectItem>
+										<SelectItem value="female">Female</SelectItem>
+										<SelectItem value="unspecified">
+											Prefer not to say
+										</SelectItem>
+									</SelectContent>
+								</Select>
+							</Field>
+						</div>
+
+						<Separator />
+
+						<div>
+							<p className="text-sm font-medium">Wearable data (optional)</p>
+							<p className="text-xs text-muted-foreground">
+								If your watch or smart scale measures these, they sharpen the
+								estimates (body fat enables a more accurate BMR).
+							</p>
+						</div>
+						<div className="grid gap-4 sm:grid-cols-2">
+							<Field>
+								<FieldLabel htmlFor="body-fat">Body fat (%)</FieldLabel>
+								<Input
+									id="body-fat"
+									type="number"
+									inputMode="decimal"
+									step="0.1"
+									value={bodyFat}
+									onChange={(e) => setBodyFat(e.target.value)}
+								/>
+							</Field>
+							<Field>
+								<FieldLabel htmlFor="resting-hr">Resting HR (bpm)</FieldLabel>
+								<Input
+									id="resting-hr"
+									type="number"
+									inputMode="numeric"
+									value={restingHr}
+									onChange={(e) => setRestingHr(e.target.value)}
+								/>
+							</Field>
+						</div>
+
+						{error && <p className="text-xs text-destructive">{error}</p>}
+					</FieldGroup>
+				</form>
+
+				<Separator className="my-6" />
+
+				<div className="flex flex-col gap-3">
+					<div>
+						<p className="text-sm font-medium">Connect a smartwatch</p>
+						<p className="text-xs text-muted-foreground">
+							A companion app can push live heart rate for the most accurate
+							calorie estimates. Generate a token and have it call the endpoint
+							below. The token is shown once.
+						</p>
+					</div>
+					<div className="flex flex-wrap items-center gap-2">
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							onClick={() => tokenMutation.mutate()}
+							disabled={tokenMutation.isPending}
+						>
+							{tokenMutation.isPending
+								? "Generating…"
+								: "Generate ingest token"}
+						</Button>
+						{token && (
+							<code className="max-w-full truncate rounded-md border border-border bg-muted/40 px-2 py-1 font-mono text-xs">
+								{token}
+							</code>
+						)}
+					</div>
+					<pre className="overflow-x-auto rounded-lg border border-border bg-muted/30 p-3 font-mono text-[11px] leading-relaxed text-muted-foreground">
+						{ingestSnippet}
+					</pre>
+				</div>
+			</CardContent>
+			<CardFooter>
+				<Button
+					type="submit"
+					form="health-form"
+					disabled={updateMutation.isPending}
+				>
+					{updateMutation.isPending ? "Saving…" : "Save health settings"}
+				</Button>
+			</CardFooter>
 		</Card>
 	);
 }

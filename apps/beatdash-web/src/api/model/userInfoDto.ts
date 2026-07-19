@@ -23,4 +23,32 @@ export interface UserInfoDto {
   avatarUrl?: string | null;
   /** @nullable */
   bannerUrl?: string | null;
+  healthTrackingEnabled?: boolean;
+  /**
+     * @nullable
+     * @pattern ^-?(?:0|[1-9]\d*)$
+     */
+  heightCm?: number | string | null;
+  /**
+     * @nullable
+     * @pattern ^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$
+     */
+  weightKg?: number | string | null;
+  /**
+     * @nullable
+     * @pattern ^-?(?:0|[1-9]\d*)$
+     */
+  birthYear?: number | string | null;
+  /** @nullable */
+  sex?: string | null;
+  /**
+     * @nullable
+     * @pattern ^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$
+     */
+  bodyFatPercent?: number | string | null;
+  /**
+     * @nullable
+     * @pattern ^-?(?:0|[1-9]\d*)$
+     */
+  restingHeartRate?: number | string | null;
 }

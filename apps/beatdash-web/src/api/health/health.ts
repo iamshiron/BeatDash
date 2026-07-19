@@ -20,7 +20,9 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
-  AnonymousTypeOfstring
+  AnonymousTypeOfstring,
+  HealthOverviewDto,
+  WorkoutDto
 } from '../model';
 
 
@@ -144,6 +146,262 @@ export function useGetApiHealth<TData = Awaited<ReturnType<typeof getApiHealth>>
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetApiHealthQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export type getHealthOverviewResponse200 = {
+  data: HealthOverviewDto
+  status: 200
+}
+
+export type getHealthOverviewResponse204 = {
+  data: void
+  status: 204
+}
+
+export type getHealthOverviewResponse401 = {
+  data: void
+  status: 401
+}
+
+export type getHealthOverviewResponseSuccess = (getHealthOverviewResponse200 | getHealthOverviewResponse204) & {
+  headers: Headers;
+};
+export type getHealthOverviewResponseError = (getHealthOverviewResponse401) & {
+  headers: Headers;
+};
+
+export type getHealthOverviewResponse = (getHealthOverviewResponseSuccess | getHealthOverviewResponseError)
+
+export const getGetHealthOverviewUrl = () => {
+
+
+
+
+  return `/api/health/overview`
+}
+
+/**
+ * The current user's fitness overview (calories, active time, trends, body context).
+ */
+export const getHealthOverview = async ( options?: RequestInit): Promise<getHealthOverviewResponse> => {
+
+  const res = await fetch(getGetHealthOverviewUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: getHealthOverviewResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as getHealthOverviewResponse
+}
+
+
+
+
+
+export const getGetHealthOverviewQueryKey = () => {
+    return [
+    `/api/health/overview`
+    ] as const;
+    }
+
+
+export const getGetHealthOverviewQueryOptions = <TData = Awaited<ReturnType<typeof getHealthOverview>>, TError = void>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getHealthOverview>>, TError, TData>>, fetch?: RequestInit}
+) => {
+
+const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetHealthOverviewQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getHealthOverview>>> = ({ signal }) => getHealthOverview({ signal, ...fetchOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getHealthOverview>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetHealthOverviewQueryResult = NonNullable<Awaited<ReturnType<typeof getHealthOverview>>>
+export type GetHealthOverviewQueryError = void
+
+
+export function useGetHealthOverview<TData = Awaited<ReturnType<typeof getHealthOverview>>, TError = void>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getHealthOverview>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getHealthOverview>>,
+          TError,
+          Awaited<ReturnType<typeof getHealthOverview>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetHealthOverview<TData = Awaited<ReturnType<typeof getHealthOverview>>, TError = void>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getHealthOverview>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getHealthOverview>>,
+          TError,
+          Awaited<ReturnType<typeof getHealthOverview>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetHealthOverview<TData = Awaited<ReturnType<typeof getHealthOverview>>, TError = void>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getHealthOverview>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetHealthOverview<TData = Awaited<ReturnType<typeof getHealthOverview>>, TError = void>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getHealthOverview>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetHealthOverviewQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export type getSessionWorkoutResponse200 = {
+  data: WorkoutDto
+  status: 200
+}
+
+export type getSessionWorkoutResponse401 = {
+  data: void
+  status: 401
+}
+
+export type getSessionWorkoutResponse404 = {
+  data: void
+  status: 404
+}
+
+export type getSessionWorkoutResponseSuccess = (getSessionWorkoutResponse200) & {
+  headers: Headers;
+};
+export type getSessionWorkoutResponseError = (getSessionWorkoutResponse401 | getSessionWorkoutResponse404) & {
+  headers: Headers;
+};
+
+export type getSessionWorkoutResponse = (getSessionWorkoutResponseSuccess | getSessionWorkoutResponseError)
+
+export const getGetSessionWorkoutUrl = (sessionId: string,) => {
+
+
+
+
+  return `/api/sessions/${sessionId}/workout`
+}
+
+/**
+ * Per-play workout figures (calories, active time, intensity, movement, heart rate).
+ */
+export const getSessionWorkout = async (sessionId: string, options?: RequestInit): Promise<getSessionWorkoutResponse> => {
+
+  const res = await fetch(getGetSessionWorkoutUrl(sessionId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: getSessionWorkoutResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as getSessionWorkoutResponse
+}
+
+
+
+
+
+export const getGetSessionWorkoutQueryKey = (sessionId: string,) => {
+    return [
+    `/api/sessions/${sessionId}/workout`
+    ] as const;
+    }
+
+
+export const getGetSessionWorkoutQueryOptions = <TData = Awaited<ReturnType<typeof getSessionWorkout>>, TError = void>(sessionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSessionWorkout>>, TError, TData>>, fetch?: RequestInit}
+) => {
+
+const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSessionWorkoutQueryKey(sessionId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSessionWorkout>>> = ({ signal }) => getSessionWorkout(sessionId, { signal, ...fetchOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: sessionId !== null && sessionId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSessionWorkout>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetSessionWorkoutQueryResult = NonNullable<Awaited<ReturnType<typeof getSessionWorkout>>>
+export type GetSessionWorkoutQueryError = void
+
+
+export function useGetSessionWorkout<TData = Awaited<ReturnType<typeof getSessionWorkout>>, TError = void>(
+ sessionId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSessionWorkout>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSessionWorkout>>,
+          TError,
+          Awaited<ReturnType<typeof getSessionWorkout>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSessionWorkout<TData = Awaited<ReturnType<typeof getSessionWorkout>>, TError = void>(
+ sessionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSessionWorkout>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSessionWorkout>>,
+          TError,
+          Awaited<ReturnType<typeof getSessionWorkout>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSessionWorkout<TData = Awaited<ReturnType<typeof getSessionWorkout>>, TError = void>(
+ sessionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSessionWorkout>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetSessionWorkout<TData = Awaited<ReturnType<typeof getSessionWorkout>>, TError = void>(
+ sessionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSessionWorkout>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSessionWorkoutQueryOptions(sessionId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

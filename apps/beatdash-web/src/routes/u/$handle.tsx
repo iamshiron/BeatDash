@@ -56,6 +56,7 @@ import { SessionRow } from "@/components/profile/SessionRow";
 import { SkillRadarChart } from "@/components/profile/SkillRadar";
 import { getGetMeQueryKey, useAuth } from "@/contexts/auth";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { profileBasePayload } from "@/lib/profile";
 import { formatAccuracy, formatScore, RANK_STYLES } from "@/lib/sessions";
 import { getInitials } from "@/lib/user";
 
@@ -498,14 +499,9 @@ function IdentityFields({
 		}
 
 		const payload: UpdateProfileDto = {
+			...profileBasePayload(user),
 			displayName,
 			handle,
-			profileStatsPublic: user.profileStatsPublic ?? false,
-			profileActivityPublic: user.profileActivityPublic ?? false,
-			profileSkillPublic: user.profileSkillPublic ?? false,
-			profileHistoryPublic: user.profileHistoryPublic ?? false,
-			profileListsPublic: user.profileListsPublic ?? false,
-			profileLikedPublic: user.profileLikedPublic ?? false,
 		};
 		update.mutate({ data: payload });
 	}
