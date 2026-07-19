@@ -13,6 +13,8 @@ export interface SessionSummaryDto {
   /** @pattern ^-?(?:0|[1-9]\d*)$ */
   playCount: number | string;
   /** @pattern ^-?(?:0|[1-9]\d*)$ */
+  completedPlayCount: number | string;
+  /** @pattern ^-?(?:0|[1-9]\d*)$ */
   totalPlayTimeMs: number | string;
   /** @pattern ^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$ */
   avgAccuracy: number | string;

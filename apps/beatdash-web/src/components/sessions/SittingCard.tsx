@@ -59,6 +59,7 @@ export function SittingCard({ sitting }: { sitting: SessionSummaryDto }) {
 	});
 
 	const playCount = Number(sitting.playCount);
+	const completed = Number(sitting.completedPlayCount);
 	const kcalRaw = sitting.caloriesKcal != null ? Number(sitting.caloriesKcal) : null;
 	const kcal = kcalRaw != null ? Math.round(kcalRaw) : null;
 	// Burn rate over the active play time (the biggest driver of total burn).
@@ -88,7 +89,8 @@ export function SittingCard({ sitting }: { sitting: SessionSummaryDto }) {
 						</span>
 					</div>
 					<div className="text-xs text-muted-foreground">
-						{playCount} {playCount === 1 ? "play" : "plays"} ·{" "}
+						{playCount} {playCount === 1 ? "play" : "plays"}
+						{completed < playCount ? ` · ${completed} completed` : ""} ·{" "}
 						{formatPlayTime(Number(sitting.totalPlayTimeMs))}
 					</div>
 				</div>
@@ -100,11 +102,13 @@ export function SittingCard({ sitting }: { sitting: SessionSummaryDto }) {
 							{personalBests} PB
 						</Badge>
 					)}
-					<HeaderStat
-						icon={<TargetIcon className="size-3" />}
-						label="Accuracy"
-						value={formatAccuracy(Number(sitting.avgAccuracy))}
-					/>
+					{completed > 0 && (
+						<HeaderStat
+							icon={<TargetIcon className="size-3" />}
+							label="Accuracy"
+							value={formatAccuracy(Number(sitting.avgAccuracy))}
+						/>
+					)}
 					{kcal != null && (
 						<HeaderStat
 							icon={<FireIcon className="size-3" />}
