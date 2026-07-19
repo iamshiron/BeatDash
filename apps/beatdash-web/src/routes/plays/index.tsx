@@ -9,6 +9,15 @@ import {
 } from "@shiron/ui/components/ui/empty";
 import { Input } from "@shiron/ui/components/ui/input";
 import {
+	Pagination,
+	PaginationContent,
+	PaginationEllipsis,
+	PaginationItem,
+	PaginationLink,
+	PaginationNext,
+	PaginationPrevious,
+} from "@shiron/ui/components/ui/pagination";
+import {
 	Select,
 	SelectContent,
 	SelectItem,
@@ -17,8 +26,6 @@ import {
 } from "@shiron/ui/components/ui/select";
 import { Skeleton } from "@shiron/ui/components/ui/skeleton";
 import {
-	AltArrowLeftIcon,
-	AltArrowRightIcon,
 	ClockCircleIcon,
 	CloseCircleIcon,
 	MagnifierIcon,
@@ -59,6 +66,26 @@ const SKELETON_KEYS = Array.from(
 	{ length: 6 },
 	(_, i) => `session-skeleton-${i}`,
 );
+
+/** First/last plus a window around the current page, with nulls marking gaps. */
+function pageItems(
+	current: number,
+	total: number,
+): { key: string; page: number | null }[] {
+	const wanted = new Set([1, total, current - 1, current, current + 1]);
+	const pages = [...wanted]
+		.filter((p) => p >= 1 && p <= total)
+		.sort((a, b) => a - b);
+
+	const items: { key: string; page: number | null }[] = [];
+	let prev = 0;
+	for (const p of pages) {
+		if (p - prev > 1) items.push({ key: `gap-${prev}-${p}`, page: null });
+		items.push({ key: `p-${p}`, page: p });
+		prev = p;
+	}
+	return items;
+}
 
 function SessionsListPage() {
 	useDocumentTitle("Plays");
@@ -255,31 +282,49 @@ function SessionsListPage() {
 			)}
 
 			{!isLoading && totalPages > 1 && (
-				<div className="mt-6 flex items-center justify-between">
-					<p className="font-mono text-xs tabular-nums text-muted-foreground">
-						{page} / {totalPages}
-					</p>
-					<div className="flex items-center gap-1.5">
-						<Button
-							variant="outline"
-							size="icon"
-							className="size-8"
-							disabled={page <= 1}
-							onClick={() => updateSearch({ page: page - 1 })}
-						>
-							<AltArrowLeftIcon className="size-4" />
-						</Button>
-						<Button
-							variant="outline"
-							size="icon"
-							className="size-8"
-							disabled={page >= totalPages}
-							onClick={() => updateSearch({ page: page + 1 })}
-						>
-							<AltArrowRightIcon className="size-4" />
-						</Button>
-					</div>
-				</div>
+				<Pagination className="mt-6">
+					<PaginationContent>
+						<PaginationItem>
+							<PaginationPrevious
+								aria-disabled={page <= 1}
+								className={
+									page <= 1
+										? "pointer-events-none opacity-50"
+										: "cursor-pointer"
+								}
+								onClick={() => updateSearch({ page: page - 1 })}
+							/>
+						</PaginationItem>
+
+						{pageItems(page, totalPages).map((item) => (
+							<PaginationItem key={item.key}>
+								{item.page === null ? (
+									<PaginationEllipsis />
+								) : (
+									<PaginationLink
+										className="cursor-pointer"
+										isActive={item.page === page}
+										onClick={() => updateSearch({ page: item.page as number })}
+									>
+										{item.page}
+									</PaginationLink>
+								)}
+							</PaginationItem>
+						))}
+
+						<PaginationItem>
+							<PaginationNext
+								aria-disabled={page >= totalPages}
+								className={
+									page >= totalPages
+										? "pointer-events-none opacity-50"
+										: "cursor-pointer"
+								}
+								onClick={() => updateSearch({ page: page + 1 })}
+							/>
+						</PaginationItem>
+					</PaginationContent>
+				</Pagination>
 			)}
 		</AppShell>
 	);
