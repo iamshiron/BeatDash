@@ -62,7 +62,7 @@ export function AddToListMenu({
 		await queryClient.cancelQueries({ queryKey: listsKey });
 		const previous = queryClient.getQueryData(listsKey);
 		queryClient.setQueryData<typeof listsQuery.data>(listsKey, (old) => {
-			if (!old || old.status !== 200) return old;
+			if (old?.status !== 200) return old;
 			return {
 				...old,
 				data: old.data.map((l) =>
