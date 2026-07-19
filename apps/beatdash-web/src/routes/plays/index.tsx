@@ -38,6 +38,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useGetApiSessions } from "@/api/sessions/sessions";
+import { ErrorState } from "@/components/common/ErrorState";
 import { AppShell } from "@/components/layout/AppShell";
 import { SessionCard } from "@/components/sessions/SessionCard";
 import { SessionFilters } from "@/components/sessions/SessionFilters";
@@ -128,9 +129,10 @@ function SessionsListPage() {
 	}
 
 	const params = toApiParams(search);
-	const { data, isLoading } = useGetApiSessions(params);
+	const { data, isLoading, isError, refetch } = useGetApiSessions(params);
 
 	const result = data?.status === 200 ? data.data : null;
+	const hasError = isError || (data != null && data.status >= 500);
 	const sessions = result?.items ?? [];
 	const totalCount = result ? Number(result.totalCount) : 0;
 	const totalPages = result ? Number(result.totalPages) : 0;
@@ -255,7 +257,11 @@ function SessionsListPage() {
 				</div>
 			)}
 
-			{!isLoading && sessions.length === 0 && (
+			{!isLoading && hasError && (
+				<ErrorState title="Couldn't load plays" onRetry={() => refetch()} />
+			)}
+
+			{!isLoading && !hasError && sessions.length === 0 && (
 				<Empty className="mt-10">
 					<EmptyHeader>
 						<EmptyMedia variant="icon">

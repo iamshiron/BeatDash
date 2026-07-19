@@ -16,6 +16,7 @@ import {
 import { Link } from "@tanstack/react-router";
 import { useGetApiSessionsStats } from "@/api/sessions/sessions";
 import { AnimatedNumber } from "@/components/common/AnimatedNumber";
+import { ErrorState } from "@/components/common/ErrorState";
 import { AccuracyTrend } from "@/components/dashboard/AccuracyTrend";
 import { ActivityHeatmap } from "@/components/dashboard/ActivityHeatmap";
 import { SkillProfile } from "@/components/dashboard/SkillProfile";
@@ -40,6 +41,9 @@ export function Dashboard() {
 	const { user } = useAuth();
 	const statsQuery = useGetApiSessionsStats();
 	const stats = statsQuery.data?.status === 200 ? statsQuery.data.data : null;
+	const hasError =
+		statsQuery.isError ||
+		(statsQuery.data != null && statsQuery.data.status >= 500);
 	const name = user?.displayName || user?.userName || "player";
 
 	return (
@@ -61,7 +65,14 @@ export function Dashboard() {
 				</div>
 			)}
 
-			{stats && Number(stats.totalPlays) === 0 && <EmptyState />}
+			{!statsQuery.isLoading && hasError && (
+				<ErrorState
+					title="Couldn't load your stats"
+					onRetry={() => statsQuery.refetch()}
+				/>
+			)}
+
+			{!hasError && stats && Number(stats.totalPlays) === 0 && <EmptyState />}
 
 			{stats && Number(stats.totalPlays) > 0 && (
 				<>

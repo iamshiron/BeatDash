@@ -28,6 +28,7 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { memo, useEffect, useState } from "react";
 import { useGetApiMaps } from "@/api/maps/maps";
 import type { MapListItemDto } from "@/api/model";
+import { ErrorState } from "@/components/common/ErrorState";
 import { AppShell } from "@/components/layout/AppShell";
 import { MapCard } from "@/components/maps/MapCard";
 import { type MapProcessingEvent, useRealtimeEvent } from "@/realtime";
@@ -121,7 +122,7 @@ function MapsPage() {
 		{ wait: SEARCH_DEBOUNCE_MS },
 	);
 
-	const { data, isLoading } = useGetApiMaps(
+	const { data, isLoading, isError, refetch } = useGetApiMaps(
 		{
 			Page: p,
 			PageSize: PAGE_SIZE,
@@ -136,6 +137,7 @@ function MapsPage() {
 	const result = data?.status === 200 ? data.data : undefined;
 	const maps = result?.items ?? [];
 	const totalPages = result ? Number(result.totalPages) : 0;
+	const hasError = isError || (data != null && data.status >= 500);
 
 	const goToPage = (page: number) =>
 		navigate({ to: "/maps", search: { q, p: page, played, liked } });
@@ -238,7 +240,11 @@ function MapsPage() {
 				</div>
 			)}
 
-			{!isLoading && maps.length === 0 && (
+			{!isLoading && hasError && (
+				<ErrorState title="Couldn't load maps" onRetry={() => refetch()} />
+			)}
+
+			{!isLoading && !hasError && maps.length === 0 && (
 				<Empty className="mt-10">
 					<EmptyHeader>
 						<EmptyMedia variant="icon">
