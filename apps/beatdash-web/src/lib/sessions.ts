@@ -287,9 +287,9 @@ export function getActiveFilters(search: SessionSearchParams): ActiveFilter[] {
 		chips.push({ id: "bpm", label: `${label} BPM`, keys: ["bmin", "bmax"] });
 	}
 
-	for (const { key, label } of OUTCOME_OPTIONS) {
-		if (search[key]) chips.push({ id: key, label, keys: [key] });
-	}
+	// Failed/quit/incomplete are shown by default, so only the opt-in "Auto" outcome
+	// reads as an applied filter here.
+	if (search.auto) chips.push({ id: "auto", label: "Auto", keys: ["auto"] });
 
 	return chips;
 }
@@ -319,9 +319,11 @@ export function parseSessionSearch(
 		sort: typeof search.sort === "string" ? search.sort : "StartedAt",
 		dir: typeof search.dir === "string" ? search.dir : "Desc",
 		auto: asBool(search.auto),
-		fail: asBool(search.fail),
-		quit: asBool(search.quit),
-		inc: asBool(search.inc),
+		// Failed/quit/incomplete plays are shown by default (they're real attempts); the
+		// filter toggles let you hide them. Auto-play stays opt-in.
+		fail: asBoolDefaultTrue(search.fail),
+		quit: asBoolDefaultTrue(search.quit),
+		inc: asBoolDefaultTrue(search.inc),
 		from: asDate(search.from),
 		to: asDate(search.to),
 		amin: asNumber(search.amin, 0, 100),
@@ -341,6 +343,39 @@ export function parseSessionSearch(
 /** Coerces a search value to a boolean, treating only "true"/true as true. */
 function asBool(value: unknown): boolean {
 	return value === "true" || value === true;
+}
+
+/** Like {@link asBool} but defaults to true when the value is absent. */
+function asBoolDefaultTrue(value: unknown): boolean {
+	return !(value === "false" || value === false);
+}
+
+/**
+ * Label + style for a play's non-finished outcome, or null for a finished play (no
+ * marker). A null/unknown reason is treated as an incomplete (e.g. disconnected) play.
+ */
+export function outcomeMeta(
+	endReason: string | null | undefined,
+): { label: string; className: string } | null {
+	switch (endReason) {
+		case "Finished":
+			return null;
+		case "Failed":
+			return {
+				label: "Failed",
+				className: "border-rose-500/30 bg-rose-500/15 text-rose-400",
+			};
+		case "Quit":
+			return {
+				label: "Quit",
+				className: "border-amber-500/30 bg-amber-500/15 text-amber-400",
+			};
+		default:
+			return {
+				label: "Incomplete",
+				className: "border-border bg-muted text-muted-foreground",
+			};
+	}
 }
 
 /** Parses a finite number within optional bounds, or `undefined` when absent/invalid. */

@@ -10,6 +10,7 @@ import {
 	DIFFICULTY_STYLES,
 	formatAccuracy,
 	formatScore,
+	outcomeMeta,
 	RANK_STYLES,
 } from "@/lib/sessions";
 
@@ -30,6 +31,7 @@ export function SessionRow({
 	const diffStyle =
 		DIFFICULTY_STYLES[session.difficultyRank] ??
 		"border-border bg-muted text-muted-foreground";
+	const outcome = outcomeMeta(session.endReason);
 
 	const className = cn(
 		"flex min-w-0 items-center gap-3 rounded-lg border border-border bg-card p-2",
@@ -65,6 +67,14 @@ export function SessionRow({
 					>
 						{session.difficultyName}
 					</Badge>
+					{outcome && (
+						<Badge
+							variant="outline"
+							className={cn("h-4 px-1 text-[9px]", outcome.className)}
+						>
+							{outcome.label}
+						</Badge>
+					)}
 					<span className="truncate text-[10px] text-muted-foreground/60">
 						{formatDistanceToNow(new Date(session.startedAt), {
 							addSuffix: true,

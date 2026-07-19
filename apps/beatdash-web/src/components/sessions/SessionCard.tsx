@@ -11,6 +11,7 @@ import {
 	formatAccuracy,
 	formatDuration,
 	formatScore,
+	outcomeMeta,
 	RANK_STYLES,
 } from "@/lib/sessions";
 
@@ -21,6 +22,7 @@ export function SessionCard({ session }: { session: PlaySessionListItemDto }) {
 	const diffStyle =
 		DIFFICULTY_STYLES[session.difficultyRank] ??
 		"border-border bg-muted text-muted-foreground";
+	const outcome = outcomeMeta(session.endReason);
 
 	return (
 		<Link
@@ -68,6 +70,14 @@ export function SessionCard({ session }: { session: PlaySessionListItemDto }) {
 						>
 							{session.difficultyName}
 						</Badge>
+						{outcome && (
+							<Badge
+								variant="outline"
+								className={cn("h-5 px-1.5 text-[10px]", outcome.className)}
+							>
+								{outcome.label}
+							</Badge>
+						)}
 						{session.isPersonalBest && (
 							<Badge className="h-5 border-amber-500/30 bg-amber-500/15 px-1.5 text-[10px] text-amber-400">
 								PB
