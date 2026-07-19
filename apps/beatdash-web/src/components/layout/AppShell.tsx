@@ -8,6 +8,16 @@ import { UserMenu } from "@/components/layout/UserMenu";
 import { useAuth } from "@/contexts/auth";
 import { usePlayer } from "@/contexts/player";
 
+const NAV_ITEMS = [
+	{ to: "/", label: "Dashboard", exact: true },
+	{ to: "/devices", label: "Devices", exact: false },
+	{ to: "/maps", label: "Maps", exact: false },
+	{ to: "/plays", label: "Plays", exact: false },
+	{ to: "/lists", label: "Lists", exact: false },
+	{ to: "/analysis", label: "Analysis", exact: false },
+	{ to: "/live", label: "Live", exact: false },
+] as const;
+
 export function AppShell({
 	children,
 	wide = false,
@@ -35,27 +45,17 @@ export function AppShell({
 					<nav className="hidden justify-self-center md:block">
 						{isAuthenticated && (
 							<div className="flex items-center gap-1">
-								<Button variant="ghost" size="sm" asChild>
-									<Link to="/">Dashboard</Link>
-								</Button>
-								<Button variant="ghost" size="sm" asChild>
-									<Link to="/devices">Devices</Link>
-								</Button>
-								<Button variant="ghost" size="sm" asChild>
-									<Link to="/maps">Maps</Link>
-								</Button>
-								<Button variant="ghost" size="sm" asChild>
-									<Link to="/plays">Plays</Link>
-								</Button>
-								<Button variant="ghost" size="sm" asChild>
-									<Link to="/lists">Lists</Link>
-								</Button>
-								<Button variant="ghost" size="sm" asChild>
-									<Link to="/analysis">Analysis</Link>
-								</Button>
-								<Button variant="ghost" size="sm" asChild>
-									<Link to="/live">Live</Link>
-								</Button>
+								{NAV_ITEMS.map((item) => (
+									<Button key={item.to} variant="ghost" size="sm" asChild>
+										<Link
+											to={item.to}
+											activeOptions={{ exact: item.exact }}
+											className="text-muted-foreground [&.active]:bg-accent [&.active]:text-accent-foreground"
+										>
+											{item.label}
+										</Link>
+									</Button>
+								))}
 							</div>
 						)}
 					</nav>
