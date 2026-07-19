@@ -11,11 +11,14 @@ import {
 	EmptyMedia,
 	EmptyTitle,
 } from "@shiron/ui/components/ui/empty";
+import { Input } from "@shiron/ui/components/ui/input";
 import { Skeleton } from "@shiron/ui/components/ui/skeleton";
 import { cn } from "@shiron/ui/lib/utils";
 import {
 	CameraIcon,
+	CheckCircleIcon,
 	ClockCircleIcon,
+	CloseCircleIcon,
 	LockIcon,
 	MusicNotesIcon,
 	PenIcon,
@@ -25,13 +28,21 @@ import {
 	UserIcon,
 } from "@solar-icons/react/dynamic";
 import { useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { useUploadAvatar, useUploadBanner } from "@/api/auth/auth";
+import {
+	useUpdateProfile,
+	useUploadAvatar,
+	useUploadBanner,
+} from "@/api/auth/auth";
 import { getGetApiMapsMapIdCoverUrl } from "@/api/maps/maps";
-import type { PublicLikedMapDto, PublicPlaylistDto } from "@/api/model";
-import type { PublicProfileDto } from "@/api/model";
+import type {
+	PublicLikedMapDto,
+	PublicPlaylistDto,
+	PublicProfileDto,
+	UpdateProfileDto,
+} from "@/api/model";
 import {
 	getGetPublicProfileQueryKey,
 	useGetPublicProfile,
@@ -100,7 +111,9 @@ function ProfileBody({ profile }: { profile: PublicProfileDto }) {
 	const { stats, activity, skill, history } = profile;
 	const hasSkill = Boolean(skill && Number(skill.playsConsidered) > 0);
 	const hasActivity = Boolean(activity && activity.length > 0);
-	const hasPlaylists = Boolean(profile.playlists && profile.playlists.length > 0);
+	const hasPlaylists = Boolean(
+		profile.playlists && profile.playlists.length > 0,
+	);
 	const hasLiked = Boolean(profile.likedMaps && profile.likedMaps.length > 0);
 	const hasAnySection = Boolean(
 		stats || hasActivity || hasSkill || history || hasPlaylists || hasLiked,
@@ -124,7 +137,8 @@ function ProfileBody({ profile }: { profile: PublicProfileDto }) {
 	const avatarUpload = useUploadAvatar({
 		mutation: {
 			onSuccess: async (res) => {
-				if (res.status !== 200) return toast.error("Couldn't update your avatar.");
+				if (res.status !== 200)
+					return toast.error("Couldn't update your avatar.");
 				await refreshProfile();
 				toast.success("Avatar updated.");
 			},
@@ -134,7 +148,8 @@ function ProfileBody({ profile }: { profile: PublicProfileDto }) {
 	const bannerUpload = useUploadBanner({
 		mutation: {
 			onSuccess: async (res) => {
-				if (res.status !== 200) return toast.error("Couldn't update your banner.");
+				if (res.status !== 200)
+					return toast.error("Couldn't update your banner.");
 				await refreshProfile();
 				toast.success("Banner updated.");
 			},
@@ -219,20 +234,7 @@ function ProfileBody({ profile }: { profile: PublicProfileDto }) {
 								</button>
 							)}
 						</div>
-						<div className="min-w-0 flex-1 pt-1">
-							<div className="flex items-center gap-1.5">
-								<h1 className="truncate font-heading text-2xl font-bold tracking-tight">
-									{profile.displayName}
-								</h1>
-								{isOwnProfile && <EditPencil label="Change display name" />}
-							</div>
-							<div className="flex items-center gap-1.5">
-								<p className="truncate text-sm text-muted-foreground">
-									@{profile.handle}
-								</p>
-								{isOwnProfile && <EditPencil label="Change handle" />}
-							</div>
-						</div>
+						<IdentityFields profile={profile} editable={isOwnProfile} />
 						<Button
 							variant="outline"
 							size="sm"
@@ -410,16 +412,204 @@ function ProfileBody({ profile }: { profile: PublicProfileDto }) {
 	);
 }
 
-/** A subtle inline pencil linking to settings to edit an identity field (own profile only). */
-function EditPencil({ label }: { label: string }) {
+/** Best-effort extraction of a server validation message from a non-200 body. */
+function serverMessage(data: unknown, fallback: string): string {
+	if (Array.isArray(data) && typeof data[0] === "string") return data[0];
+	if (typeof data === "string" && data.length > 0) return data;
+	return fallback;
+}
+
+const HANDLE_PATTERN = /^[a-z0-9_]{3,32}$/;
+
+/**
+ * The display name and handle, with inline editing on your own profile. Clicking
+ * a pencil swaps the field for an input; saving PUTs the profile and surfaces
+ * server errors (e.g. a taken handle) inline. A handle change redirects to the
+ * new profile URL.
+ */
+function IdentityFields({
+	profile,
+	editable,
+}: {
+	profile: PublicProfileDto;
+	editable: boolean;
+}) {
+	const { user } = useAuth();
+	const queryClient = useQueryClient();
+	const navigate = useNavigate();
+	const [editing, setEditing] = useState<"name" | "handle" | null>(null);
+	const [draft, setDraft] = useState("");
+	const [error, setError] = useState<string | null>(null);
+
+	const update = useUpdateProfile({
+		mutation: {
+			onSuccess: async (response) => {
+				if (response.status !== 200) {
+					setError(serverMessage(response.data, "Couldn't save your changes."));
+					return;
+				}
+				await queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
+				const newHandle = response.data.handle;
+				setEditing(null);
+				setError(null);
+				// A handle change makes the current URL stale — go to the new one.
+				if (newHandle && newHandle !== profile.handle) {
+					navigate({ to: "/u/$handle", params: { handle: `@${newHandle}` } });
+				} else {
+					await queryClient.invalidateQueries({
+						queryKey: getGetPublicProfileQueryKey(profile.handle),
+					});
+				}
+			},
+			onError: () => setError("Couldn't save your changes."),
+		},
+	});
+
+	function start(field: "name" | "handle") {
+		setError(null);
+		setDraft(field === "name" ? profile.displayName : (profile.handle ?? ""));
+		setEditing(field);
+	}
+
+	function cancel() {
+		setEditing(null);
+		setError(null);
+	}
+
+	function submit() {
+		if (!user) return;
+		const value = draft.trim();
+		let displayName = user.displayName ?? "";
+		let handle = user.handle ?? undefined;
+
+		if (editing === "name") {
+			if (value.length === 0 || value.length > 32) {
+				setError("Display name must be 1–32 characters.");
+				return;
+			}
+			displayName = value;
+		} else if (editing === "handle") {
+			const normalized = value.replace(/^@/, "").trim().toLowerCase();
+			if (normalized.length > 0 && !HANDLE_PATTERN.test(normalized)) {
+				setError("3–32 characters: lowercase letters, numbers or underscores.");
+				return;
+			}
+			handle = normalized || undefined;
+		}
+
+		const payload: UpdateProfileDto = {
+			displayName,
+			handle,
+			profileStatsPublic: user.profileStatsPublic ?? false,
+			profileActivityPublic: user.profileActivityPublic ?? false,
+			profileSkillPublic: user.profileSkillPublic ?? false,
+			profileHistoryPublic: user.profileHistoryPublic ?? false,
+			profileListsPublic: user.profileListsPublic ?? false,
+			profileLikedPublic: user.profileLikedPublic ?? false,
+		};
+		update.mutate({ data: payload });
+	}
+
+	function editor(prefix?: string) {
+		return (
+			<div>
+				<div className="flex items-center gap-1.5">
+					{prefix && (
+						<span className="text-sm text-muted-foreground">{prefix}</span>
+					)}
+					<Input
+						autoFocus
+						value={draft}
+						maxLength={32}
+						onChange={(e) => setDraft(e.target.value)}
+						onKeyDown={(e) => {
+							if (e.key === "Enter") {
+								e.preventDefault();
+								submit();
+							} else if (e.key === "Escape") {
+								cancel();
+							}
+						}}
+						aria-invalid={error ? true : undefined}
+						className="h-8"
+					/>
+					<Button
+						type="button"
+						size="icon"
+						className="size-8 shrink-0"
+						onClick={submit}
+						disabled={update.isPending}
+						aria-label="Save"
+					>
+						<CheckCircleIcon className="size-4" weight="Bold" />
+					</Button>
+					<Button
+						type="button"
+						size="icon"
+						variant="ghost"
+						className="size-8 shrink-0"
+						onClick={cancel}
+						disabled={update.isPending}
+						aria-label="Cancel"
+					>
+						<CloseCircleIcon className="size-4" />
+					</Button>
+				</div>
+				{error && <p className="mt-1 text-xs text-destructive">{error}</p>}
+			</div>
+		);
+	}
+
 	return (
-		<Link
-			to="/settings"
+		<div className="min-w-0 flex-1 pt-1">
+			{editing === "name" ? (
+				editor()
+			) : (
+				<div className="flex items-center gap-1.5">
+					<h1 className="truncate font-heading text-2xl font-bold tracking-tight">
+						{profile.displayName}
+					</h1>
+					{editable && (
+						<EditPencil
+							label="Change display name"
+							onClick={() => start("name")}
+						/>
+					)}
+				</div>
+			)}
+			{editing === "handle" ? (
+				editor("@")
+			) : (
+				<div className="flex items-center gap-1.5">
+					<p className="truncate text-sm text-muted-foreground">
+						@{profile.handle}
+					</p>
+					{editable && (
+						<EditPencil label="Change handle" onClick={() => start("handle")} />
+					)}
+				</div>
+			)}
+		</div>
+	);
+}
+
+/** A subtle inline pencil button that starts editing an identity field. */
+function EditPencil({
+	label,
+	onClick,
+}: {
+	label: string;
+	onClick: () => void;
+}) {
+	return (
+		<button
+			type="button"
 			aria-label={label}
+			onClick={onClick}
 			className="flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground/60 opacity-70 transition hover:bg-foreground/10 hover:text-foreground hover:opacity-100 focus-visible:opacity-100"
 		>
 			<PenIcon className="size-3.5" />
-		</Link>
+		</button>
 	);
 }
 
@@ -526,7 +716,12 @@ function ProfileBanner({
 	return (
 		<div className="group relative aspect-[2.83/1] w-full overflow-hidden">
 			{bannerUrl ? (
-				<img src={bannerUrl} alt="" aria-hidden className="size-full object-cover" />
+				<img
+					src={bannerUrl}
+					alt=""
+					aria-hidden
+					className="size-full object-cover"
+				/>
 			) : showCover ? (
 				<img
 					src={getGetApiMapsMapIdCoverUrl(coverMapId)}
