@@ -2,9 +2,9 @@ import { Badge } from "@shiron/ui/components/ui/badge";
 import { cn } from "@shiron/ui/lib/utils";
 import {
 	AltArrowDownIcon,
+	BoltIcon,
 	FireIcon,
 	MedalStarIcon,
-	StopwatchIcon,
 	TargetIcon,
 } from "@solar-icons/react/dynamic";
 import { useState } from "react";
@@ -59,10 +59,11 @@ export function SittingCard({ sitting }: { sitting: SessionSummaryDto }) {
 	});
 
 	const playCount = Number(sitting.playCount);
-	const kcal =
-		sitting.caloriesKcal != null
-			? Math.round(Number(sitting.caloriesKcal))
-			: null;
+	const kcalRaw = sitting.caloriesKcal != null ? Number(sitting.caloriesKcal) : null;
+	const kcal = kcalRaw != null ? Math.round(kcalRaw) : null;
+	// Burn rate over the active play time (the biggest driver of total burn).
+	const minutes = Number(sitting.totalPlayTimeMs) / 60000;
+	const kcalPerMin = kcalRaw != null && minutes > 0 ? kcalRaw / minutes : null;
 	const personalBests = Number(sitting.personalBests);
 
 	return (
@@ -111,11 +112,13 @@ export function SittingCard({ sitting }: { sitting: SessionSummaryDto }) {
 							value={`${kcal}`}
 						/>
 					)}
-					<HeaderStat
-						icon={<StopwatchIcon className="size-3" />}
-						label="Active"
-						value={formatPlayTime(Number(sitting.totalPlayTimeMs))}
-					/>
+					{kcalPerMin != null && (
+						<HeaderStat
+							icon={<BoltIcon className="size-3" />}
+							label="kcal/min"
+							value={kcalPerMin.toFixed(1)}
+						/>
+					)}
 				</div>
 			</button>
 
