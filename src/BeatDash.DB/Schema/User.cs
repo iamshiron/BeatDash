@@ -40,5 +40,12 @@ public class User : IdentityUser<Guid> {
     public double? BodyFatPercent { get; set; }
     public int? RestingHeartRate { get; set; }
 
+    /// <summary>
+    /// SHA-256 hash of the user's wearable ingest token (a companion app pushes heart-rate
+    /// samples authenticated by this token). Null until the user generates one; the plaintext
+    /// token is shown once at generation and never stored.
+    /// </summary>
+    [MaxLength(128)] public string? HealthIngestTokenHash { get; set; }
+
     public IList<Device> Devices { get; set; } = [];
 }

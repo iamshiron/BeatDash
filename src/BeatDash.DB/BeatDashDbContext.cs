@@ -31,6 +31,8 @@ public class BeatDashDbContext(DbContextOptions<BeatDashDbContext> options) : Id
     public DbSet<MapList> MapLists => Set<MapList>();
     public DbSet<MapListItem> MapListItems => Set<MapListItem>();
 
+    public DbSet<HeartRateSample> HeartRateSamples => Set<HeartRateSample>();
+
     protected override void OnModelCreating(ModelBuilder builder) {
         base.OnModelCreating(builder);
 
@@ -275,6 +277,17 @@ public class BeatDashDbContext(DbContextOptions<BeatDashDbContext> options) : Id
                 .HasForeignKey(x => x.BeatmapId)
                 .OnDelete(DeleteBehavior.Cascade);
             c.ToTable("MapListItems");
+        });
+
+        builder.Entity<HeartRateSample>(c => {
+            c.HasKey(x => x.Id);
+            // Time-window lookups per user; unique so re-pushed samples dedupe.
+            c.HasIndex(x => new { x.UserId, x.RecordedAt }).IsUnique();
+            c.HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            c.ToTable("HeartRateSamples");
         });
     }
 }

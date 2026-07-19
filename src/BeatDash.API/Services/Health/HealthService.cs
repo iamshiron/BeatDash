@@ -34,6 +34,12 @@ public sealed class HealthService(BeatDashDbContext db) : IHealthService {
         var bmr = BodyMetrics.Bmr(weightKg, user.HeightCm, age, user.Sex, user.BodyFatPercent);
         var leanMass = BodyMetrics.LeanMassKg(weightKg, user.BodyFatPercent);
 
+        var recentAvgHr = await db.HeartRateSamples
+            .AsNoTracking()
+            .Where(h => h.UserId == userId && h.RecordedAt >= DateTime.UtcNow.AddDays(-7))
+            .Select(h => (double?) h.Bpm)
+            .AverageAsync(ct);
+
         var plays = await db.PlaySessions
             .AsNoTracking()
             .Where(BaseFilter(userId))
@@ -44,7 +50,7 @@ public sealed class HealthService(BeatDashDbContext db) : IHealthService {
         if (plays.Count == 0) {
             return new HealthOverviewDto(
                 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                bmi, bmr, leanMass, user.RestingHeartRate, null, [], []);
+                bmi, bmr, leanMass, user.RestingHeartRate, recentAvgHr, [], []);
         }
 
         var motion = await LoadMotionAsync(plays.Select(p => p.Id).ToList(), ct);
@@ -92,7 +98,7 @@ public sealed class HealthService(BeatDashDbContext db) : IHealthService {
         return new HealthOverviewDto(
             careerKcal, careerMinutes, travelMetres / 1000.0, plays.Count,
             todayKcal, todayMinutes, weekKcal, weekMinutes, careerKcal / plays.Count,
-            bmi, bmr, leanMass, user.RestingHeartRate, RecentAvgHeartRate: null,
+            bmi, bmr, leanMass, user.RestingHeartRate, recentAvgHr,
             activityDays, trend);
     }
 
@@ -106,20 +112,36 @@ public sealed class HealthService(BeatDashDbContext db) : IHealthService {
             .AsNoTracking()
             .Where(s => s.Id == sessionId)
             .Where(BaseFilter(userId))
-            .Select(s => new { s.Results!.EndSongTimeMs, Nps = s.BeatmapDifficulty.NotesPerSecond })
+            .Select(s => new {
+                s.StartedAt, s.EndedAt, s.Results!.EndSongTimeMs,
+                Nps = s.BeatmapDifficulty.NotesPerSecond
+            })
             .FirstOrDefaultAsync(ct);
         if (play is null) return null;
+
+        var windowEnd = play.EndedAt ?? play.StartedAt.AddMilliseconds(play.EndSongTimeMs);
+        var (avgHr, maxHr) = await HeartRateInWindowAsync(userId, play.StartedAt, windowEnd, ct);
 
         var mo = (await LoadMotionAsync([sessionId], ct)).GetValueOrDefault(sessionId);
 
         var est = CalorieEstimator.Estimate(
             weightKg, play.EndSongTimeMs, AvgSpeed(mo), mo?.HeadTravel, play.Nps,
-            avgHr: null, Age(user.BirthYear), user.Sex);
+            avgHr, Age(user.BirthYear), user.Sex);
 
         return new WorkoutDto(
             est.Kcal, est.ActiveMinutes, est.Intensity01, est.Met, Confidence(est.Confidence),
             mo?.LeftSaberTravel ?? 0, mo?.RightSaberTravel ?? 0,
-            AvgHeartRate: est.AvgHr, MaxHeartRate: null);
+            AvgHeartRate: est.AvgHr, MaxHeartRate: maxHr);
+    }
+
+    private async Task<(double? Avg, int? Max)> HeartRateInWindowAsync(
+        Guid userId, DateTime start, DateTime end, CancellationToken ct) {
+        var bpms = await db.HeartRateSamples
+            .AsNoTracking()
+            .Where(h => h.UserId == userId && h.RecordedAt >= start && h.RecordedAt <= end)
+            .Select(h => h.Bpm)
+            .ToListAsync(ct);
+        return bpms.Count == 0 ? (null, null) : (bpms.Average(), bpms.Max());
     }
 
     // --- helpers ---
