@@ -16,6 +16,7 @@ const NAV_ITEMS = [
 	{ to: "/lists", label: "Lists", exact: false },
 	{ to: "/analysis", label: "Analysis", exact: false },
 	{ to: "/live", label: "Live", exact: false },
+	{ to: "/health", label: "Health", exact: false, healthOnly: true },
 ] as const;
 
 export function AppShell({
@@ -26,8 +27,11 @@ export function AppShell({
 	wide?: boolean;
 }) {
 	const maxWidth = wide ? "max-w-6xl" : "max-w-5xl";
-	const { isAuthenticated } = useAuth();
+	const { isAuthenticated, user } = useAuth();
 	const { track } = usePlayer();
+	const navItems = NAV_ITEMS.filter(
+		(item) => !("healthOnly" in item) || user?.healthTrackingEnabled,
+	);
 	return (
 		<div className="relative min-h-screen">
 			<header className={`sticky top-4 z-50 mx-auto w-full ${maxWidth} px-4`}>
@@ -45,7 +49,7 @@ export function AppShell({
 					<nav className="hidden justify-self-center md:block">
 						{isAuthenticated && (
 							<div className="flex items-center gap-1">
-								{NAV_ITEMS.map((item) => (
+								{navItems.map((item) => (
 									<Button key={item.to} variant="ghost" size="sm" asChild>
 										<Link
 											to={item.to}

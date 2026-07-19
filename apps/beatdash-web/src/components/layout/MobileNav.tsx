@@ -20,6 +20,7 @@ const navItems = [
 	{ to: "/lists", label: "Lists", exact: false },
 	{ to: "/analysis", label: "Analysis", exact: false },
 	{ to: "/live", label: "Live", exact: false },
+	{ to: "/health", label: "Health", exact: false, healthOnly: true },
 ] as const;
 
 const linkClasses =
@@ -27,7 +28,10 @@ const linkClasses =
 
 export function MobileNav({ className }: { className?: string }) {
 	const [open, setOpen] = useState(false);
-	const { isAdmin } = useAuth();
+	const { isAdmin, user } = useAuth();
+	const items = navItems.filter(
+		(item) => !("healthOnly" in item) || user?.healthTrackingEnabled,
+	);
 
 	return (
 		<Sheet open={open} onOpenChange={setOpen}>
@@ -46,7 +50,7 @@ export function MobileNav({ className }: { className?: string }) {
 					<SheetTitle className="font-heading">BeatDash</SheetTitle>
 				</SheetHeader>
 				<nav className="flex flex-col gap-1 px-2">
-					{navItems.map((item) => (
+					{items.map((item) => (
 						<SheetClose asChild key={item.to}>
 							<Link
 								to={item.to}
