@@ -102,6 +102,7 @@ builder.Services.AddSingleton<IMotionFrameBuffer, MotionFrameBuffer>();
 builder.Services.AddSingleton<IMotionFramePersistence, MotionFramePersistence>();
 builder.Services.AddScoped<IPlaySessionService, PlaySessionService>();
 builder.Services.AddScoped<IProfileStatsService, ProfileStatsService>();
+builder.Services.AddScoped<Shiron.BeatDash.API.Services.Health.IHealthService, Shiron.BeatDash.API.Services.Health.HealthService>();
 builder.Services.AddScoped<IWeaknessAggregationService, WeaknessAggregationService>();
 builder.Services.AddHostedService<WeaknessBackfillService>();
 builder.Services.AddScoped<IPracticeRecommendationService, PracticeRecommendationService>();
@@ -228,6 +229,7 @@ api.MapAdminMetricsEndpoints();
 api.MapSessionEndpoints();
 api.MapProfileEndpoints();
 api.MapUserAssetEndpoints();
+api.MapHealthEndpoints();
 api.MapServerInfoEndpoints();
 api.MapHub<RealtimeHub>("/client/web");
 
