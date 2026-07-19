@@ -433,14 +433,10 @@ public sealed class ProfileStatsService(BeatDashDbContext db) : IProfileStatsSer
 
     /// <inheritdoc />
     public async Task<SessionSummaryDto?> GetLatestSessionSummaryAsync(Guid userId, CancellationToken ct = default) {
-        // Newest completed non-auto plays; capped since a sitting is a short recent window.
+        // Newest non-auto plays (any outcome); capped since a sitting is a short recent window.
         var recent = await db.PlaySessions
             .AsNoTracking()
-            .Where(s =>
-                s.UserId == userId &&
-                !s.AutoMode &&
-                s.EndReason == PlaySessionEndReason.Finished &&
-                s.Results != null)
+            .Where(s => s.UserId == userId && !s.AutoMode)
             .OrderByDescending(s => s.StartedAt)
             .Include(s => s.BeatmapDifficulty.Beatmap)
             .Take(200)
@@ -477,14 +473,11 @@ public sealed class ProfileStatsService(BeatDashDbContext db) : IProfileStatsSer
         page = Math.Max(1, page);
         pageSize = Math.Clamp(pageSize, 1, 50);
 
-        // Lightweight timeline of every completed play, grouped into sittings by idle gap.
+        // Lightweight timeline of every non-auto play (including failed/quit/incomplete —
+        // they're real effort and should show in the session), grouped by idle gap.
         var timeline = await db.PlaySessions
             .AsNoTracking()
-            .Where(s =>
-                s.UserId == userId &&
-                !s.AutoMode &&
-                s.EndReason == PlaySessionEndReason.Finished &&
-                s.Results != null)
+            .Where(s => s.UserId == userId && !s.AutoMode)
             .OrderBy(s => s.StartedAt)
             .Select(s => new { s.Id, s.StartedAt, s.EndedAt })
             .ToListAsync(ct);
@@ -587,24 +580,35 @@ public sealed class ProfileStatsService(BeatDashDbContext db) : IProfileStatsSer
         return (motion, cal);
     }
 
-    /// <summary>Builds a sitting summary from its (chronological) plays and the loaded context.</summary>
+    /// <summary>
+    /// Builds a sitting summary from its (chronological) plays. Calories, active time, play
+    /// count and the plays list cover <em>all</em> plays — failed/quit attempts are still real
+    /// effort — while accuracy, ranks, PBs and the best play are computed on the completed
+    /// subset only, so incomplete attempts never inflate the competitive stats.
+    /// </summary>
     private static SessionSummaryDto Summarize(
-        List<PlaySession> sitting,
+        List<PlaySession> all,
         Dictionary<Guid, SittingMotion> motion,
         CalorieContext? cal,
         Func<PlaySession, bool> isPb) {
-        var totalSaberTravel = sitting.Sum(s =>
+        var completed = all
+            .Where(s => s.EndReason == PlaySessionEndReason.Finished && s.Results != null)
+            .ToList();
+
+        var totalSaberTravel = all.Sum(s =>
             motion.TryGetValue(s.Id, out var m) ? m.LeftTravel + m.RightTravel : 0);
 
         double? kcal = null;
         double? minutes = null;
         if (cal is { } c) {
             double k = 0, mins = 0;
-            foreach (var s in sitting) {
+            foreach (var s in all) {
+                var songMs = s.Results?.EndSongTimeMs ?? 0;
+                if (songMs <= 0) continue; // no duration (e.g. a disconnect) → no burn to add
                 var hasMotion = motion.TryGetValue(s.Id, out var m);
                 var est = CalorieEstimator.Estimate(
                     c.WeightKg,
-                    s.Results!.EndSongTimeMs,
+                    songMs,
                     hasMotion ? m.AvgSpeed : null,
                     hasMotion ? m.HeadTravel : null,
                     s.BeatmapDifficulty.NotesPerSecond,
@@ -618,24 +622,30 @@ public sealed class ProfileStatsService(BeatDashDbContext db) : IProfileStatsSer
             minutes = mins;
         }
 
-        var best = sitting.OrderByDescending(s => s.Results!.Accuracy).First();
+        bool CompletedPb(PlaySession s) =>
+            s.EndReason == PlaySessionEndReason.Finished && s.Results != null && isPb(s);
+
+        var best = completed.Count > 0
+            ? completed.OrderByDescending(s => s.Results!.Accuracy).First()
+            : null;
 
         return new SessionSummaryDto(
-            sitting.First().StartedAt,
-            sitting.Max(s => s.EndedAt ?? s.StartedAt),
-            sitting.Count,
-            sitting.Sum(s => (long) s.Results!.EndSongTimeMs),
-            sitting.Average(s => s.Results!.Accuracy),
-            sitting.Count(s => s.Results!.FullCombo),
-            sitting.Select(s => s.BeatmapDifficulty.BeatmapId).Distinct().Count(),
-            sitting.Count(isPb),
+            all.First().StartedAt,
+            all.Max(s => s.EndedAt ?? s.StartedAt),
+            all.Count,
+            completed.Count,
+            all.Sum(s => (long) (s.Results?.EndSongTimeMs ?? 0)),
+            completed.Count > 0 ? completed.Average(s => s.Results!.Accuracy) : 0,
+            completed.Count(s => s.Results!.FullCombo),
+            all.Select(s => s.BeatmapDifficulty.BeatmapId).Distinct().Count(),
+            completed.Count(isPb),
             totalSaberTravel,
-            sitting
+            completed
                 .GroupBy(s => s.Results!.Rank)
                 .Select(g => new RankCountDto(g.Key, g.Count()))
                 .ToList(),
-            sitting.Select(s => PlaySessionListItemDto.From(s, isPb(s))).ToList(),
-            PlaySessionListItemDto.From(best, isPb(best)),
+            all.Select(s => PlaySessionListItemDto.From(s, CompletedPb(s))).ToList(),
+            best is null ? null : PlaySessionListItemDto.From(best, isPb(best)),
             kcal,
             minutes);
     }

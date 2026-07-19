@@ -9,6 +9,9 @@ public sealed record SessionSummaryDto(
     DateTime StartedAt,
     DateTime EndedAt,
     int PlayCount,
+    // Plays that finished — the basis for accuracy/rank/PB stats. May be < PlayCount
+    // when the sitting also contains failed/quit/incomplete attempts.
+    int CompletedPlayCount,
     long TotalPlayTimeMs,
     float AvgAccuracy,
     int FullCombos,
