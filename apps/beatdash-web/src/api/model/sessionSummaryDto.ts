@@ -27,4 +27,14 @@ export interface SessionSummaryDto {
   rankDistribution: RankCountDto[];
   plays: PlaySessionListItemDto[];
   bestPlay: null | PlaySessionListItemDto;
+  /**
+     * @nullable
+     * @pattern ^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$
+     */
+  caloriesKcal: number | string | null;
+  /**
+     * @nullable
+     * @pattern ^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$
+     */
+  activeMinutes: number | string | null;
 }

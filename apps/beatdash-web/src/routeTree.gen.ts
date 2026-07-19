@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SessionsRouteImport } from './routes/sessions'
 import { Route as LiveRouteImport } from './routes/live'
 import { Route as HealthRouteImport } from './routes/health'
 import { Route as DevicesRouteImport } from './routes/devices'
@@ -33,6 +34,11 @@ import { Route as AdminScoringRouteImport } from './routes/admin/scoring'
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SessionsRoute = SessionsRouteImport.update({
+  id: '/sessions',
+  path: '/sessions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LiveRoute = LiveRouteImport.update({
@@ -139,6 +145,7 @@ export interface FileRoutesByFullPath {
   '/devices': typeof DevicesRoute
   '/health': typeof HealthRoute
   '/live': typeof LiveRoute
+  '/sessions': typeof SessionsRoute
   '/settings': typeof SettingsRoute
   '/admin/scoring': typeof AdminScoringRoute
   '/auth/login': typeof AuthLoginRoute
@@ -160,6 +167,7 @@ export interface FileRoutesByTo {
   '/devices': typeof DevicesRoute
   '/health': typeof HealthRoute
   '/live': typeof LiveRoute
+  '/sessions': typeof SessionsRoute
   '/settings': typeof SettingsRoute
   '/admin/scoring': typeof AdminScoringRoute
   '/auth/login': typeof AuthLoginRoute
@@ -183,6 +191,7 @@ export interface FileRoutesById {
   '/devices': typeof DevicesRoute
   '/health': typeof HealthRoute
   '/live': typeof LiveRoute
+  '/sessions': typeof SessionsRoute
   '/settings': typeof SettingsRoute
   '/admin/scoring': typeof AdminScoringRoute
   '/auth/login': typeof AuthLoginRoute
@@ -207,6 +216,7 @@ export interface FileRouteTypes {
     | '/devices'
     | '/health'
     | '/live'
+    | '/sessions'
     | '/settings'
     | '/admin/scoring'
     | '/auth/login'
@@ -228,6 +238,7 @@ export interface FileRouteTypes {
     | '/devices'
     | '/health'
     | '/live'
+    | '/sessions'
     | '/settings'
     | '/admin/scoring'
     | '/auth/login'
@@ -250,6 +261,7 @@ export interface FileRouteTypes {
     | '/devices'
     | '/health'
     | '/live'
+    | '/sessions'
     | '/settings'
     | '/admin/scoring'
     | '/auth/login'
@@ -273,6 +285,7 @@ export interface RootRouteChildren {
   DevicesRoute: typeof DevicesRoute
   HealthRoute: typeof HealthRoute
   LiveRoute: typeof LiveRoute
+  SessionsRoute: typeof SessionsRoute
   SettingsRoute: typeof SettingsRoute
   ListsIdRoute: typeof ListsIdRoute
   MapsIdRoute: typeof MapsIdRoute
@@ -291,6 +304,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sessions': {
+      id: '/sessions'
+      path: '/sessions'
+      fullPath: '/sessions'
+      preLoaderRoute: typeof SessionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/live': {
@@ -461,6 +481,7 @@ const rootRouteChildren: RootRouteChildren = {
   DevicesRoute: DevicesRoute,
   HealthRoute: HealthRoute,
   LiveRoute: LiveRoute,
+  SessionsRoute: SessionsRoute,
   SettingsRoute: SettingsRoute,
   ListsIdRoute: ListsIdRoute,
   MapsIdRoute: MapsIdRoute,

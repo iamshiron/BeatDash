@@ -17,6 +17,7 @@ const navItems = [
 	{ to: "/devices", label: "Devices", exact: false },
 	{ to: "/maps", label: "Maps", exact: false },
 	{ to: "/plays", label: "Plays", exact: false },
+	{ to: "/sessions", label: "Sessions", exact: false },
 	{ to: "/lists", label: "Lists", exact: false },
 	{ to: "/analysis", label: "Analysis", exact: false },
 	{ to: "/live", label: "Live", exact: false },
