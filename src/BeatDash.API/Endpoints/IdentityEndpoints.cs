@@ -3,7 +3,9 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Shiron.BeatDash.Data.Socket;
+using Shiron.BeatDash.API.Configuration;
 using Shiron.BeatDash.API.Services;
 using Shiron.BeatDash.Data;
 using Shiron.BeatDash.DB;
@@ -44,6 +46,24 @@ public static class IdentityEndpoints {
             .WithName("UpdateProfile")
             .WithDescription("Update the current user's profile")
             .RequireAuthorization()
+            .Produces<UserInfoDto>()
+            .Produces(400)
+            .Produces(401);
+
+        group.MapPut("/me/avatar", UploadAvatar)
+            .WithName("UploadAvatar")
+            .WithDescription("Upload the current user's avatar image")
+            .RequireAuthorization()
+            .DisableAntiforgery()
+            .Produces<UserInfoDto>()
+            .Produces(400)
+            .Produces(401);
+
+        group.MapPut("/me/banner", UploadBanner)
+            .WithName("UploadBanner")
+            .WithDescription("Upload the current user's profile banner image")
+            .RequireAuthorization()
+            .DisableAntiforgery()
             .Produces<UserInfoDto>()
             .Produces(400)
             .Produces(401);
@@ -136,7 +156,50 @@ public static class IdentityEndpoints {
         user.ProfileActivityPublic = dto.ProfileActivityPublic;
         user.ProfileSkillPublic = dto.ProfileSkillPublic;
         user.ProfileHistoryPublic = dto.ProfileHistoryPublic;
+        user.ProfileListsPublic = dto.ProfileListsPublic;
+        user.ProfileLikedPublic = dto.ProfileLikedPublic;
 
+        var result = await userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+            return Results.BadRequest(result.Errors.Select(e => e.Description).ToList());
+
+        var roles = await userManager.GetRolesAsync(user);
+        return Results.Ok(ToUserInfo(user, roles));
+    }
+
+    private static Task<IResult> UploadAvatar(
+        IFormFile file, ClaimsPrincipal principal, UserManager<User> userManager,
+        IStorageService storage, IOptions<StorageOptions> options, CancellationToken ct)
+        => UploadAsset(file, banner: false, principal, userManager, storage, options, ct);
+
+    private static Task<IResult> UploadBanner(
+        IFormFile file, ClaimsPrincipal principal, UserManager<User> userManager,
+        IStorageService storage, IOptions<StorageOptions> options, CancellationToken ct)
+        => UploadAsset(file, banner: true, principal, userManager, storage, options, ct);
+
+    private static async Task<IResult> UploadAsset(
+        IFormFile file, bool banner, ClaimsPrincipal principal, UserManager<User> userManager,
+        IStorageService storage, IOptions<StorageOptions> options, CancellationToken ct) {
+        var user = await userManager.GetUserAsync(principal);
+        if (user is null) return Results.Unauthorized();
+
+        if (file is null || file.Length == 0)
+            return Results.BadRequest(new[] { "No image was uploaded." });
+        if (file.Length > UserAssetUtils.MaxImageBytes)
+            return Results.BadRequest(new[] { "Image is too large (max 5 MB)." });
+
+        var ext = UserAssetUtils.ExtForContentType(file.ContentType);
+        if (ext is null)
+            return Results.BadRequest(new[] { "Unsupported image type. Use PNG, JPEG, WebP or GIF." });
+
+        using var ms = new MemoryStream();
+        await file.CopyToAsync(ms, ct);
+        var bytes = ms.ToArray();
+
+        var key = $"{(banner ? "banners" : "avatars")}/{user.Id}.{ext}";
+        await storage.UploadAsync(options.Value.BucketUserData, key, file.ContentType, bytes, ct);
+
+        if (banner) user.BannerKey = key; else user.AvatarKey = key;
         var result = await userManager.UpdateAsync(user);
         if (!result.Succeeded)
             return Results.BadRequest(result.Errors.Select(e => e.Description).ToList());
@@ -155,7 +218,11 @@ public static class IdentityEndpoints {
         ProfileStatsPublic = user.ProfileStatsPublic,
         ProfileActivityPublic = user.ProfileActivityPublic,
         ProfileSkillPublic = user.ProfileSkillPublic,
-        ProfileHistoryPublic = user.ProfileHistoryPublic
+        ProfileHistoryPublic = user.ProfileHistoryPublic,
+        ProfileListsPublic = user.ProfileListsPublic,
+        ProfileLikedPublic = user.ProfileLikedPublic,
+        AvatarUrl = user.AvatarKey is null ? null : $"/api/users/{user.Id}/avatar",
+        BannerUrl = user.BannerKey is null ? null : $"/api/users/{user.Id}/banner"
     };
 
     private static async Task<IResult> ChangePassword(
@@ -238,6 +305,8 @@ public record UpdateProfileDto {
     public bool ProfileActivityPublic { get; init; }
     public bool ProfileSkillPublic { get; init; }
     public bool ProfileHistoryPublic { get; init; }
+    public bool ProfileListsPublic { get; init; }
+    public bool ProfileLikedPublic { get; init; }
 }
 
 public record ChangePasswordDto {
@@ -256,4 +325,8 @@ public record UserInfoDto {
     public bool ProfileActivityPublic { get; init; }
     public bool ProfileSkillPublic { get; init; }
     public bool ProfileHistoryPublic { get; init; }
+    public bool ProfileListsPublic { get; init; }
+    public bool ProfileLikedPublic { get; init; }
+    public string? AvatarUrl { get; init; }
+    public string? BannerUrl { get; init; }
 }

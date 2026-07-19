@@ -19,6 +19,15 @@ public class User : IdentityUser<Guid> {
     public bool ProfileActivityPublic { get; set; }
     public bool ProfileSkillPublic { get; set; }
     public bool ProfileHistoryPublic { get; set; }
+    public bool ProfileListsPublic { get; set; }
+    public bool ProfileLikedPublic { get; set; }
+
+    /// <summary>
+    /// Object-storage keys for the user's uploaded avatar and profile banner, or null
+    /// when unset. The extension encodes the image type (e.g. <c>avatars/{id}.png</c>).
+    /// </summary>
+    [MaxLength(256)] public string? AvatarKey { get; set; }
+    [MaxLength(256)] public string? BannerKey { get; set; }
 
     public IList<Device> Devices { get; set; } = [];
 }

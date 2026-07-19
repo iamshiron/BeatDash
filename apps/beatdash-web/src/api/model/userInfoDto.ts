@@ -17,4 +17,10 @@ export interface UserInfoDto {
   profileActivityPublic?: boolean;
   profileSkillPublic?: boolean;
   profileHistoryPublic?: boolean;
+  profileListsPublic?: boolean;
+  profileLikedPublic?: boolean;
+  /** @nullable */
+  avatarUrl?: string | null;
+  /** @nullable */
+  bannerUrl?: string | null;
 }

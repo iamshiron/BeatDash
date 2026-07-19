@@ -5,6 +5,8 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { ActivityDayDto } from './activityDayDto.ts';
+import type { PublicLikedMapDto } from './publicLikedMapDto.ts';
+import type { PublicPlaylistDto } from './publicPlaylistDto.ts';
 import type { PublicProfileHistoryDto } from './publicProfileHistoryDto.ts';
 import type { PublicProfileStatsDto } from './publicProfileStatsDto.ts';
 import type { SkillProfileDto } from './skillProfileDto.ts';
@@ -12,9 +14,17 @@ import type { SkillProfileDto } from './skillProfileDto.ts';
 export interface PublicProfileDto {
   handle: string;
   displayName: string;
+  /** @nullable */
+  avatarUrl: string | null;
+  /** @nullable */
+  bannerUrl: string | null;
   stats: null | PublicProfileStatsDto;
   /** @nullable */
   activity: ActivityDayDto[] | null;
   skill: null | SkillProfileDto;
   history: null | PublicProfileHistoryDto;
+  /** @nullable */
+  playlists: PublicPlaylistDto[] | null;
+  /** @nullable */
+  likedMaps: PublicLikedMapDto[] | null;
 }

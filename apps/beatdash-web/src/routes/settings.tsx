@@ -63,6 +63,16 @@ const VISIBILITY_SECTIONS = [
 		label: "Recent & best plays",
 		description: "Your most recent and highest-accuracy plays.",
 	},
+	{
+		key: "profileListsPublic",
+		label: "Playlists",
+		description: "The map lists you've created.",
+	},
+	{
+		key: "profileLikedPublic",
+		label: "Liked maps",
+		description: "The maps you've liked.",
+	},
 ] as const;
 
 type VisibilityKey = (typeof VISIBILITY_SECTIONS)[number]["key"];
@@ -109,6 +119,8 @@ function AccountCard() {
 		profileActivityPublic: false,
 		profileSkillPublic: false,
 		profileHistoryPublic: false,
+		profileListsPublic: false,
+		profileLikedPublic: false,
 	});
 
 	// Seed the fields once the current user loads.
@@ -121,6 +133,8 @@ function AccountCard() {
 			profileActivityPublic: user.profileActivityPublic ?? false,
 			profileSkillPublic: user.profileSkillPublic ?? false,
 			profileHistoryPublic: user.profileHistoryPublic ?? false,
+			profileListsPublic: user.profileListsPublic ?? false,
+			profileLikedPublic: user.profileLikedPublic ?? false,
 		});
 	}, [user]);
 
@@ -153,7 +167,9 @@ function AccountCard() {
 		visibility.profileActivityPublic ===
 			(user?.profileActivityPublic ?? false) &&
 		visibility.profileSkillPublic === (user?.profileSkillPublic ?? false) &&
-		visibility.profileHistoryPublic === (user?.profileHistoryPublic ?? false);
+		visibility.profileHistoryPublic === (user?.profileHistoryPublic ?? false) &&
+		visibility.profileListsPublic === (user?.profileListsPublic ?? false) &&
+		visibility.profileLikedPublic === (user?.profileLikedPublic ?? false);
 
 	function handleSubmit(event: React.FormEvent) {
 		event.preventDefault();

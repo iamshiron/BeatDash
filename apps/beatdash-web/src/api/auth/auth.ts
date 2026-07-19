@@ -31,6 +31,8 @@ import type {
   RegisterDto,
   TokenPairExpiryDto,
   UpdateProfileDto,
+  UploadAvatarBody,
+  UploadBannerBody,
   UserInfoDto
 } from '../model';
 
@@ -545,6 +547,206 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
         TContext
       > => {
       return useMutation(getUpdateProfileMutationOptions(options), queryClient);
+    }
+    export type uploadAvatarResponse200 = {
+  data: UserInfoDto
+  status: 200
+}
+
+export type uploadAvatarResponse400 = {
+  data: void
+  status: 400
+}
+
+export type uploadAvatarResponse401 = {
+  data: void
+  status: 401
+}
+
+export type uploadAvatarResponseSuccess = (uploadAvatarResponse200) & {
+  headers: Headers;
+};
+export type uploadAvatarResponseError = (uploadAvatarResponse400 | uploadAvatarResponse401) & {
+  headers: Headers;
+};
+
+export type uploadAvatarResponse = (uploadAvatarResponseSuccess | uploadAvatarResponseError)
+
+export const getUploadAvatarUrl = () => {
+
+
+
+
+  return `/api/auth/me/avatar`
+}
+
+/**
+ * Upload the current user's avatar image
+ */
+export const uploadAvatar = async (uploadAvatarBody: UploadAvatarBody, options?: RequestInit): Promise<uploadAvatarResponse> => {
+    const formData = new FormData();
+formData.append(`file`, uploadAvatarBody.file);
+
+  const res = await fetch(getUploadAvatarUrl(),
+  {
+    ...options,
+    method: 'PUT'
+    ,
+    body: formData
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: uploadAvatarResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as uploadAvatarResponse
+}
+
+
+
+
+
+export const getUploadAvatarMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadAvatar>>, TError,{data: UploadAvatarBody}, TContext>, fetch?: RequestInit}
+): UseMutationOptions<Awaited<ReturnType<typeof uploadAvatar>>, TError,{data: UploadAvatarBody}, TContext> => {
+
+const mutationKey = ['uploadAvatar'];
+const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, fetch: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof uploadAvatar>>, {data: UploadAvatarBody}> = (props) => {
+          const {data} = props ?? {};
+
+          return  uploadAvatar(data,fetchOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UploadAvatarMutationResult = NonNullable<Awaited<ReturnType<typeof uploadAvatar>>>
+    export type UploadAvatarMutationBody = UploadAvatarBody
+    export type UploadAvatarMutationError = void
+
+    export const useUploadAvatar = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadAvatar>>, TError,{data: UploadAvatarBody}, TContext>, fetch?: RequestInit}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof uploadAvatar>>,
+        TError,
+        {data: UploadAvatarBody},
+        TContext
+      > => {
+      return useMutation(getUploadAvatarMutationOptions(options), queryClient);
+    }
+    export type uploadBannerResponse200 = {
+  data: UserInfoDto
+  status: 200
+}
+
+export type uploadBannerResponse400 = {
+  data: void
+  status: 400
+}
+
+export type uploadBannerResponse401 = {
+  data: void
+  status: 401
+}
+
+export type uploadBannerResponseSuccess = (uploadBannerResponse200) & {
+  headers: Headers;
+};
+export type uploadBannerResponseError = (uploadBannerResponse400 | uploadBannerResponse401) & {
+  headers: Headers;
+};
+
+export type uploadBannerResponse = (uploadBannerResponseSuccess | uploadBannerResponseError)
+
+export const getUploadBannerUrl = () => {
+
+
+
+
+  return `/api/auth/me/banner`
+}
+
+/**
+ * Upload the current user's profile banner image
+ */
+export const uploadBanner = async (uploadBannerBody: UploadBannerBody, options?: RequestInit): Promise<uploadBannerResponse> => {
+    const formData = new FormData();
+formData.append(`file`, uploadBannerBody.file);
+
+  const res = await fetch(getUploadBannerUrl(),
+  {
+    ...options,
+    method: 'PUT'
+    ,
+    body: formData
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: uploadBannerResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as uploadBannerResponse
+}
+
+
+
+
+
+export const getUploadBannerMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadBanner>>, TError,{data: UploadBannerBody}, TContext>, fetch?: RequestInit}
+): UseMutationOptions<Awaited<ReturnType<typeof uploadBanner>>, TError,{data: UploadBannerBody}, TContext> => {
+
+const mutationKey = ['uploadBanner'];
+const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, fetch: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof uploadBanner>>, {data: UploadBannerBody}> = (props) => {
+          const {data} = props ?? {};
+
+          return  uploadBanner(data,fetchOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UploadBannerMutationResult = NonNullable<Awaited<ReturnType<typeof uploadBanner>>>
+    export type UploadBannerMutationBody = UploadBannerBody
+    export type UploadBannerMutationError = void
+
+    export const useUploadBanner = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadBanner>>, TError,{data: UploadBannerBody}, TContext>, fetch?: RequestInit}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof uploadBanner>>,
+        TError,
+        {data: UploadBannerBody},
+        TContext
+      > => {
+      return useMutation(getUploadBannerMutationOptions(options), queryClient);
     }
     export type changePasswordResponse200 = {
   data: void

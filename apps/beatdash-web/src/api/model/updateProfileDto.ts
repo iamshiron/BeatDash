@@ -17,4 +17,6 @@ export interface UpdateProfileDto {
   profileActivityPublic?: boolean;
   profileSkillPublic?: boolean;
   profileHistoryPublic?: boolean;
+  profileListsPublic?: boolean;
+  profileLikedPublic?: boolean;
 }

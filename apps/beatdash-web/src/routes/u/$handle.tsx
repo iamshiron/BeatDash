@@ -1,4 +1,8 @@
-import { Avatar, AvatarFallback } from "@shiron/ui/components/ui/avatar";
+import {
+	Avatar,
+	AvatarFallback,
+	AvatarImage,
+} from "@shiron/ui/components/ui/avatar";
 import { Button } from "@shiron/ui/components/ui/button";
 import {
 	Empty,
@@ -12,7 +16,6 @@ import { cn } from "@shiron/ui/lib/utils";
 import {
 	CameraIcon,
 	ClockCircleIcon,
-	HeartIcon,
 	LockIcon,
 	MusicNotesIcon,
 	PenIcon,
@@ -21,12 +24,18 @@ import {
 	TargetIcon,
 	UserIcon,
 } from "@solar-icons/react/dynamic";
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
+import { useUploadAvatar, useUploadBanner } from "@/api/auth/auth";
 import { getGetApiMapsMapIdCoverUrl } from "@/api/maps/maps";
+import type { PublicLikedMapDto, PublicPlaylistDto } from "@/api/model";
 import type { PublicProfileDto } from "@/api/model";
-import { useGetPublicProfile } from "@/api/profiles/profiles";
+import {
+	getGetPublicProfileQueryKey,
+	useGetPublicProfile,
+} from "@/api/profiles/profiles";
 import { AnimatedNumber } from "@/components/common/AnimatedNumber";
 import { ActivityHeatmap } from "@/components/dashboard/ActivityHeatmap";
 import { formatPlayTime } from "@/components/dashboard/Dashboard";
@@ -34,7 +43,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { MostPlayedRow } from "@/components/profile/MostPlayedRow";
 import { SessionRow } from "@/components/profile/SessionRow";
 import { SkillRadarChart } from "@/components/profile/SkillRadar";
-import { useAuth } from "@/contexts/auth";
+import { getGetMeQueryKey, useAuth } from "@/contexts/auth";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { formatAccuracy, formatScore, RANK_STYLES } from "@/lib/sessions";
 import { getInitials } from "@/lib/user";
@@ -91,10 +100,63 @@ function ProfileBody({ profile }: { profile: PublicProfileDto }) {
 	const { stats, activity, skill, history } = profile;
 	const hasSkill = Boolean(skill && Number(skill.playsConsidered) > 0);
 	const hasActivity = Boolean(activity && activity.length > 0);
-	const hasAnySection = Boolean(stats || hasActivity || hasSkill || history);
+	const hasPlaylists = Boolean(profile.playlists && profile.playlists.length > 0);
+	const hasLiked = Boolean(profile.likedMaps && profile.likedMaps.length > 0);
+	const hasAnySection = Boolean(
+		stats || hasActivity || hasSkill || history || hasPlaylists || hasLiked,
+	);
 	// Personalise the banner with the player's most-played cover when their stats
 	// are public; otherwise fall back to a handle-seeded wash.
 	const bannerMapId = stats?.mostPlayedMaps?.[0]?.beatmapId ?? null;
+
+	const queryClient = useQueryClient();
+	const avatarInputRef = useRef<HTMLInputElement>(null);
+	const bannerInputRef = useRef<HTMLInputElement>(null);
+
+	const refreshProfile = () =>
+		Promise.all([
+			queryClient.invalidateQueries({
+				queryKey: getGetPublicProfileQueryKey(profile.handle),
+			}),
+			queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() }),
+		]);
+
+	const avatarUpload = useUploadAvatar({
+		mutation: {
+			onSuccess: async (res) => {
+				if (res.status !== 200) return toast.error("Couldn't update your avatar.");
+				await refreshProfile();
+				toast.success("Avatar updated.");
+			},
+			onError: () => toast.error("Couldn't update your avatar."),
+		},
+	});
+	const bannerUpload = useUploadBanner({
+		mutation: {
+			onSuccess: async (res) => {
+				if (res.status !== 200) return toast.error("Couldn't update your banner.");
+				await refreshProfile();
+				toast.success("Banner updated.");
+			},
+			onError: () => toast.error("Couldn't update your banner."),
+		},
+	});
+
+	function pickImage(
+		event: React.ChangeEvent<HTMLInputElement>,
+		kind: "avatar" | "banner",
+	) {
+		const file = event.target.files?.[0];
+		// Reset so re-picking the same file still fires onChange.
+		event.target.value = "";
+		if (!file) return;
+		if (file.size > 5 * 1024 * 1024) {
+			toast.error("Image is too large (max 5 MB).");
+			return;
+		}
+		if (kind === "avatar") avatarUpload.mutate({ data: { file } });
+		else bannerUpload.mutate({ data: { file } });
+	}
 
 	function share() {
 		navigator.clipboard
@@ -105,17 +167,43 @@ function ProfileBody({ profile }: { profile: PublicProfileDto }) {
 
 	return (
 		<div className="flex flex-col gap-6">
+			{isOwnProfile && (
+				<>
+					<input
+						ref={avatarInputRef}
+						type="file"
+						accept="image/png,image/jpeg,image/webp,image/gif"
+						className="hidden"
+						onChange={(e) => pickImage(e, "avatar")}
+					/>
+					<input
+						ref={bannerInputRef}
+						type="file"
+						accept="image/png,image/jpeg,image/webp,image/gif"
+						className="hidden"
+						onChange={(e) => pickImage(e, "banner")}
+					/>
+				</>
+			)}
 			{/* Identity header — banner with an overlapping avatar, Discord-style */}
 			<div className="mx-auto w-full max-w-lg overflow-hidden rounded-xl border border-border bg-card">
 				<ProfileBanner
 					seed={profile.handle}
 					coverMapId={bannerMapId}
+					bannerUrl={profile.bannerUrl}
 					editable={isOwnProfile}
+					onEdit={() => bannerInputRef.current?.click()}
 				/>
 				<div className="px-4 pb-4">
 					<div className="flex flex-wrap items-end gap-x-4 gap-y-2">
 						<div className="group/avatar relative -mt-12 size-24 shrink-0">
 							<Avatar className="size-full ring-4 ring-card">
+								{profile.avatarUrl && (
+									<AvatarImage
+										src={profile.avatarUrl}
+										alt={profile.displayName}
+									/>
+								)}
 								<AvatarFallback className="text-3xl font-semibold">
 									{getInitials(profile.displayName)}
 								</AvatarFallback>
@@ -124,6 +212,7 @@ function ProfileBody({ profile }: { profile: PublicProfileDto }) {
 								<button
 									type="button"
 									aria-label="Change profile picture"
+									onClick={() => avatarInputRef.current?.click()}
 									className="absolute inset-0 flex items-center justify-center rounded-full bg-black/55 text-white opacity-0 outline-none transition-opacity group-hover/avatar:opacity-100 focus-visible:opacity-100"
 								>
 									<CameraIcon className="size-6" weight="Bold" />
@@ -284,18 +373,24 @@ function ProfileBody({ profile }: { profile: PublicProfileDto }) {
 				</Section>
 			)}
 
-			{/* Upcoming: curated playlists and liked maps. */}
-			{hasAnySection && (
-				<div className="flex flex-col gap-2 sm:flex-row">
-					<PlaceholderChip
-						icon={<PlaylistIcon className="size-4" />}
-						label="Playlists"
-					/>
-					<PlaceholderChip
-						icon={<HeartIcon className="size-4" />}
-						label="Liked maps"
-					/>
-				</div>
+			{hasPlaylists && profile.playlists && (
+				<Section title="Playlists">
+					<div className="grid gap-2 sm:grid-cols-2">
+						{profile.playlists.map((playlist) => (
+							<PlaylistCard key={playlist.id} playlist={playlist} />
+						))}
+					</div>
+				</Section>
+			)}
+
+			{hasLiked && profile.likedMaps && (
+				<Section title="Liked maps">
+					<div className="grid gap-1.5 sm:grid-cols-2">
+						{profile.likedMaps.map((map) => (
+							<LikedMapRow key={map.beatmapId} map={map} />
+						))}
+					</div>
+				</Section>
 			)}
 
 			{!hasAnySection && (
@@ -315,16 +410,80 @@ function ProfileBody({ profile }: { profile: PublicProfileDto }) {
 	);
 }
 
-/** A subtle inline pencil button for editing an identity field (own profile only). */
+/** A subtle inline pencil linking to settings to edit an identity field (own profile only). */
 function EditPencil({ label }: { label: string }) {
 	return (
-		<button
-			type="button"
+		<Link
+			to="/settings"
 			aria-label={label}
 			className="flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground/60 opacity-70 transition hover:bg-foreground/10 hover:text-foreground hover:opacity-100 focus-visible:opacity-100"
 		>
 			<PenIcon className="size-3.5" />
-		</button>
+		</Link>
+	);
+}
+
+/** A display-only playlist card for a public profile. */
+function PlaylistCard({ playlist }: { playlist: PublicPlaylistDto }) {
+	const [failed, setFailed] = useState(false);
+	const cover = playlist.coverMapIds[0];
+	return (
+		<div className="flex min-w-0 items-center gap-3 rounded-lg border border-border bg-card p-2">
+			<div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-md bg-gradient-to-br from-primary/40 to-[oklch(0.62_0.19_255)]/40">
+				{cover && !failed ? (
+					<img
+						src={getGetApiMapsMapIdCoverUrl(cover)}
+						alt=""
+						loading="lazy"
+						onError={() => setFailed(true)}
+						className="size-full object-cover"
+					/>
+				) : (
+					<PlaylistIcon className="size-4 text-muted-foreground/50" />
+				)}
+			</div>
+			<div className="min-w-0 flex-1">
+				<span className="block truncate font-heading text-sm font-semibold">
+					{playlist.name}
+				</span>
+				<span className="block text-[10px] text-muted-foreground/60">
+					{Number(playlist.mapCount)}{" "}
+					{Number(playlist.mapCount) === 1 ? "map" : "maps"}
+				</span>
+			</div>
+		</div>
+	);
+}
+
+/** A display-only liked-map row for a public profile. */
+function LikedMapRow({ map }: { map: PublicLikedMapDto }) {
+	const [failed, setFailed] = useState(false);
+	return (
+		<div className="flex min-w-0 items-center gap-3 rounded-lg border border-border bg-card p-2">
+			<div className="size-10 shrink-0 overflow-hidden rounded-md bg-gradient-to-br from-primary/40 to-[oklch(0.62_0.19_255)]/40">
+				{!failed ? (
+					<img
+						src={getGetApiMapsMapIdCoverUrl(map.beatmapId)}
+						alt=""
+						loading="lazy"
+						onError={() => setFailed(true)}
+						className="size-full object-cover"
+					/>
+				) : (
+					<div className="flex size-full items-center justify-center">
+						<MusicNotesIcon className="size-4 text-muted-foreground/40" />
+					</div>
+				)}
+			</div>
+			<div className="min-w-0 flex-1">
+				<span className="block truncate font-heading text-sm font-semibold">
+					{map.songName}
+				</span>
+				<span className="block truncate text-[10px] text-muted-foreground/60">
+					{map.songAuthor} · {map.mapper}
+				</span>
+			</div>
+		</div>
 	);
 }
 
@@ -342,23 +501,33 @@ function bannerGradient(seed: string): string {
 	return `linear-gradient(120deg, oklch(0.42 0.08 ${hue}), oklch(0.3 0.06 ${hue2}))`;
 }
 
-/** Profile banner: a blurred most-played cover when available, else a seeded wash. */
+/**
+ * Profile banner. Prefers the user's uploaded banner; otherwise falls back to a
+ * blurred most-played cover, then a seeded wash.
+ */
 function ProfileBanner({
 	seed,
 	coverMapId,
+	bannerUrl,
 	editable = false,
+	onEdit,
 }: {
 	seed: string;
 	coverMapId: string | null;
+	/** The user's uploaded banner URL, when set. */
+	bannerUrl?: string | null;
 	/** Show a hover "change banner" affordance (own profile only). */
 	editable?: boolean;
+	onEdit?: () => void;
 }) {
 	const [coverFailed, setCoverFailed] = useState(false);
-	const showCover = coverMapId !== null && !coverFailed;
+	const showCover = !bannerUrl && coverMapId !== null && !coverFailed;
 
 	return (
 		<div className="group relative aspect-[2.83/1] w-full overflow-hidden">
-			{showCover ? (
+			{bannerUrl ? (
+				<img src={bannerUrl} alt="" aria-hidden className="size-full object-cover" />
+			) : showCover ? (
 				<img
 					src={getGetApiMapsMapIdCoverUrl(coverMapId)}
 					alt=""
@@ -372,13 +541,21 @@ function ProfileBanner({
 					style={{ backgroundImage: bannerGradient(seed) }}
 				/>
 			)}
-			{/* Darken and blend into the card so it reads as an ambient tint, not a
-			    bright photo smear. */}
-			<div className="absolute inset-0 bg-gradient-to-t from-card via-card/60 to-card/30" />
+			{/* Blend the bottom into the card so the overlapping avatar reads cleanly.
+			    An uploaded banner gets a lighter scrim so it stays visible. */}
+			<div
+				className={cn(
+					"absolute inset-0",
+					bannerUrl
+						? "bg-gradient-to-t from-card/90 to-transparent"
+						: "bg-gradient-to-t from-card via-card/60 to-card/30",
+				)}
+			/>
 			{editable && (
 				<button
 					type="button"
 					aria-label="Change banner"
+					onClick={onEdit}
 					className="absolute top-2 right-2 flex items-center gap-1.5 rounded-md bg-background/70 px-2 py-1 text-xs font-medium text-foreground opacity-0 outline-none backdrop-blur-sm transition hover:bg-background/90 group-hover:opacity-100 focus-visible:opacity-100"
 				>
 					<CameraIcon className="size-3.5" weight="Bold" />
@@ -434,23 +611,5 @@ function Section({
 			</div>
 			{children}
 		</section>
-	);
-}
-
-function PlaceholderChip({
-	icon,
-	label,
-}: {
-	icon: React.ReactNode;
-	label: string;
-}) {
-	return (
-		<div className="flex flex-1 items-center gap-2 rounded-lg border border-dashed border-border px-3 py-2">
-			<span className="text-muted-foreground/60">{icon}</span>
-			<span className="text-xs font-medium">{label}</span>
-			<span className="ml-auto text-[10px] font-medium uppercase tracking-wide text-muted-foreground/50">
-				Soon
-			</span>
-		</div>
 	);
 }

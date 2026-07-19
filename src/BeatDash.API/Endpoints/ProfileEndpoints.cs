@@ -61,13 +61,52 @@ public static class ProfileEndpoints {
             skill = await profileStats.GetSkillAsync(user.Id, ct);
         }
 
+        IReadOnlyList<PublicPlaylistDto>? playlists = null;
+        if (user.ProfileListsPublic) {
+            playlists = await db.MapLists
+                .AsNoTracking()
+                .Where(l => l.UserId == user.Id)
+                .OrderByDescending(l => l.UpdatedAt)
+                .Take(12)
+                .Select(l => new PublicPlaylistDto(
+                    l.Id,
+                    l.Name,
+                    l.Items.Count,
+                    l.Items
+                        .OrderBy(i => i.Position)
+                        .Where(i => i.Beatmap.CoverImageKey != null)
+                        .Select(i => i.BeatmapId)
+                        .Take(4)
+                        .ToList()))
+                .ToListAsync(ct);
+        }
+
+        IReadOnlyList<PublicLikedMapDto>? likedMaps = null;
+        if (user.ProfileLikedPublic) {
+            likedMaps = await db.MapLikes
+                .AsNoTracking()
+                .Where(l => l.UserId == user.Id)
+                .OrderByDescending(l => l.CreatedAt)
+                .Take(24)
+                .Select(l => new PublicLikedMapDto(
+                    l.BeatmapId,
+                    l.Beatmap.SongName,
+                    l.Beatmap.SongAuthor,
+                    l.Beatmap.Mapper))
+                .ToListAsync(ct);
+        }
+
         return Results.Ok(new PublicProfileDto(
             user.Handle!,
             user.DisplayName,
+            user.AvatarKey is null ? null : $"/api/users/{user.Id}/avatar",
+            user.BannerKey is null ? null : $"/api/users/{user.Id}/banner",
             stats,
             activity,
             skill,
-            history));
+            history,
+            playlists,
+            likedMaps));
     }
 }
 
@@ -78,10 +117,30 @@ public static class ProfileEndpoints {
 public sealed record PublicProfileDto(
     string Handle,
     string DisplayName,
+    string? AvatarUrl,
+    string? BannerUrl,
     PublicProfileStatsDto? Stats,
     IReadOnlyList<ActivityDayDto>? Activity,
     SkillProfileDto? Skill,
-    PublicProfileHistoryDto? History
+    PublicProfileHistoryDto? History,
+    IReadOnlyList<PublicPlaylistDto>? Playlists,
+    IReadOnlyList<PublicLikedMapDto>? LikedMaps
+);
+
+/// <summary>A user's playlist as shown on their public profile (display-only).</summary>
+public sealed record PublicPlaylistDto(
+    Guid Id,
+    string Name,
+    int MapCount,
+    IList<Guid> CoverMapIds
+);
+
+/// <summary>A liked map shown on a public profile.</summary>
+public sealed record PublicLikedMapDto(
+    Guid BeatmapId,
+    string SongName,
+    string SongAuthor,
+    string Mapper
 );
 
 /// <summary>Headline stats shown at a glance on a public profile.</summary>

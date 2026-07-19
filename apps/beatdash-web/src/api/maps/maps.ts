@@ -317,14 +317,6 @@ export const getGetApiMapsMapIdCoverUrl = (mapId: string,) => {
   return `/api/maps/${mapId}/cover`
 }
 
-export const getGetApiMapsMapIdSongUrl = (mapId: string,) => {
-
-
-
-
-  return `/api/maps/${mapId}/song`
-}
-
 export const getApiMapsMapIdCover = async (mapId: string, options?: RequestInit): Promise<getApiMapsMapIdCoverResponse> => {
 
   const res = await fetch(getGetApiMapsMapIdCoverUrl(mapId),
@@ -407,6 +399,126 @@ export function useGetApiMapsMapIdCover<TData = Awaited<ReturnType<typeof getApi
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetApiMapsMapIdCoverQueryOptions(mapId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export type getApiMapsMapIdSongResponse200 = {
+  data: void
+  status: 200
+}
+
+export type getApiMapsMapIdSongResponse404 = {
+  data: void
+  status: 404
+}
+
+export type getApiMapsMapIdSongResponseSuccess = (getApiMapsMapIdSongResponse200) & {
+  headers: Headers;
+};
+export type getApiMapsMapIdSongResponseError = (getApiMapsMapIdSongResponse404) & {
+  headers: Headers;
+};
+
+export type getApiMapsMapIdSongResponse = (getApiMapsMapIdSongResponseSuccess | getApiMapsMapIdSongResponseError)
+
+export const getGetApiMapsMapIdSongUrl = (mapId: string,) => {
+
+
+
+
+  return `/api/maps/${mapId}/song`
+}
+
+export const getApiMapsMapIdSong = async (mapId: string, options?: RequestInit): Promise<getApiMapsMapIdSongResponse> => {
+
+  const res = await fetch(getGetApiMapsMapIdSongUrl(mapId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: getApiMapsMapIdSongResponse['data'] = body ? JSON.parse(body) : undefined
+  return { data, status: res.status, headers: res.headers } as getApiMapsMapIdSongResponse
+}
+
+
+
+
+
+export const getGetApiMapsMapIdSongQueryKey = (mapId: string,) => {
+    return [
+    `/api/maps/${mapId}/song`
+    ] as const;
+    }
+
+
+export const getGetApiMapsMapIdSongQueryOptions = <TData = Awaited<ReturnType<typeof getApiMapsMapIdSong>>, TError = void>(mapId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMapsMapIdSong>>, TError, TData>>, fetch?: RequestInit}
+) => {
+
+const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetApiMapsMapIdSongQueryKey(mapId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiMapsMapIdSong>>> = ({ signal }) => getApiMapsMapIdSong(mapId, { signal, ...fetchOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: mapId !== null && mapId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiMapsMapIdSong>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetApiMapsMapIdSongQueryResult = NonNullable<Awaited<ReturnType<typeof getApiMapsMapIdSong>>>
+export type GetApiMapsMapIdSongQueryError = void
+
+
+export function useGetApiMapsMapIdSong<TData = Awaited<ReturnType<typeof getApiMapsMapIdSong>>, TError = void>(
+ mapId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMapsMapIdSong>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiMapsMapIdSong>>,
+          TError,
+          Awaited<ReturnType<typeof getApiMapsMapIdSong>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiMapsMapIdSong<TData = Awaited<ReturnType<typeof getApiMapsMapIdSong>>, TError = void>(
+ mapId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMapsMapIdSong>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiMapsMapIdSong>>,
+          TError,
+          Awaited<ReturnType<typeof getApiMapsMapIdSong>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiMapsMapIdSong<TData = Awaited<ReturnType<typeof getApiMapsMapIdSong>>, TError = void>(
+ mapId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMapsMapIdSong>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetApiMapsMapIdSong<TData = Awaited<ReturnType<typeof getApiMapsMapIdSong>>, TError = void>(
+ mapId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMapsMapIdSong>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetApiMapsMapIdSongQueryOptions(mapId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
