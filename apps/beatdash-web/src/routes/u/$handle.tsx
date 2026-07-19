@@ -20,7 +20,9 @@ import {
 	UserIcon,
 } from "@solar-icons/react/dynamic";
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { toast } from "sonner";
+import { getGetApiMapsMapIdCoverUrl } from "@/api/maps/maps";
 import type { PublicProfileDto } from "@/api/model";
 import { useGetPublicProfile } from "@/api/profiles/profiles";
 import { AnimatedNumber } from "@/components/common/AnimatedNumber";
@@ -80,6 +82,9 @@ function ProfileBody({ profile }: { profile: PublicProfileDto }) {
 	const hasSkill = Boolean(skill && Number(skill.playsConsidered) > 0);
 	const hasActivity = Boolean(activity && activity.length > 0);
 	const hasAnySection = Boolean(stats || hasActivity || hasSkill || history);
+	// Personalise the banner with the player's most-played cover when their stats
+	// are public; otherwise fall back to a handle-seeded wash.
+	const bannerMapId = stats?.mostPlayedMaps?.[0]?.beatmapId ?? null;
 
 	function share() {
 		navigator.clipboard
@@ -90,104 +95,116 @@ function ProfileBody({ profile }: { profile: PublicProfileDto }) {
 
 	return (
 		<div className="flex flex-col gap-6">
-			{/* Identity header */}
-			<div className="flex items-center gap-4 rounded-xl border border-border bg-card p-4">
-				<Avatar size="lg">
-					<AvatarFallback>{getInitials(profile.displayName)}</AvatarFallback>
-				</Avatar>
-				<div className="min-w-0 flex-1">
-					<h1 className="truncate font-heading text-2xl font-bold tracking-tight">
-						{profile.displayName}
-					</h1>
-					<p className="truncate text-sm text-muted-foreground">
-						@{profile.handle}
-					</p>
-				</div>
-				<Button variant="outline" size="sm" onClick={share}>
-					<ShareIcon className="size-4" />
-					Share
-				</Button>
-			</div>
+			{/* Identity header — banner with an overlapping avatar, Discord-style */}
+			<div className="mx-auto w-full max-w-lg overflow-hidden rounded-xl border border-border bg-card">
+				<ProfileBanner seed={profile.handle} coverMapId={bannerMapId} />
+				<div className="px-4 pb-4">
+					<div className="flex flex-wrap items-end gap-x-4 gap-y-2">
+						<Avatar className="-mt-12 size-24 shrink-0 ring-4 ring-card">
+							<AvatarFallback className="text-3xl font-semibold">
+								{getInitials(profile.displayName)}
+							</AvatarFallback>
+						</Avatar>
+						<div className="min-w-0 flex-1 pt-1">
+							<h1 className="truncate font-heading text-2xl font-bold tracking-tight">
+								{profile.displayName}
+							</h1>
+							<p className="truncate text-sm text-muted-foreground">
+								@{profile.handle}
+							</p>
+						</div>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={share}
+							className="mb-1 ml-auto"
+						>
+							<ShareIcon className="size-4" />
+							Share
+						</Button>
+					</div>
 
-			{stats && (
-				<div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-xl border border-border bg-card px-4 py-3">
-					<Metric
-						icon={<MusicNotesIcon className="size-3" />}
-						label="Plays"
-						value={
-							<AnimatedNumber
-								value={Number(stats.totalPlays)}
-								format={(n) => formatScore(Math.round(n))}
+					{stats && (
+						<div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-border pt-4">
+							<Metric
+								icon={<MusicNotesIcon className="size-3" />}
+								label="Plays"
+								value={
+									<AnimatedNumber
+										value={Number(stats.totalPlays)}
+										format={(n) => formatScore(Math.round(n))}
+									/>
+								}
 							/>
-						}
-					/>
-					<Metric
-						icon={<ClockCircleIcon className="size-3" />}
-						label="Play time"
-						value={
-							<AnimatedNumber
-								value={Number(stats.totalPlayTimeMs)}
-								format={formatPlayTime}
+							<Metric
+								icon={<ClockCircleIcon className="size-3" />}
+								label="Play time"
+								value={
+									<AnimatedNumber
+										value={Number(stats.totalPlayTimeMs)}
+										format={formatPlayTime}
+									/>
+								}
 							/>
-						}
-					/>
-					<Metric
-						icon={<TargetIcon className="size-3" />}
-						label="Avg accuracy"
-						value={
-							<AnimatedNumber
-								value={Number(stats.averageAccuracy)}
-								format={formatAccuracy}
+							<Metric
+								icon={<TargetIcon className="size-3" />}
+								label="Avg accuracy"
+								value={
+									<AnimatedNumber
+										value={Number(stats.averageAccuracy)}
+										format={formatAccuracy}
+									/>
+								}
 							/>
-						}
-					/>
-					<Metric
-						label="Full combos"
-						value={
-							<AnimatedNumber
-								value={Number(stats.fullCombos)}
-								format={(n) => formatScore(Math.round(n))}
+							<Metric
+								label="Full combos"
+								value={
+									<AnimatedNumber
+										value={Number(stats.fullCombos)}
+										format={(n) => formatScore(Math.round(n))}
+									/>
+								}
 							/>
-						}
-					/>
-					<Metric
-						label="Unique maps"
-						value={
-							<AnimatedNumber
-								value={Number(stats.uniqueMaps)}
-								format={(n) => formatScore(Math.round(n))}
+							<Metric
+								label="Unique maps"
+								value={
+									<AnimatedNumber
+										value={Number(stats.uniqueMaps)}
+										format={(n) => formatScore(Math.round(n))}
+									/>
+								}
 							/>
-						}
-					/>
-					{stats.rankDistribution.length > 0 && (
-						<div className="flex flex-wrap items-center gap-1.5 sm:ml-auto">
-							{[...stats.rankDistribution]
-								.sort(
-									(a, b) =>
-										RANK_ORDER.indexOf(a.rank) - RANK_ORDER.indexOf(b.rank),
-								)
-								.map((r) => (
-									<span
-										key={r.rank}
-										className="inline-flex items-center gap-1 rounded-md bg-muted/40 px-1.5 py-0.5"
-									>
-										<span
-											className={cn(
-												"font-heading text-sm font-bold",
-												RANK_STYLES[r.rank] ?? "text-muted-foreground",
-											)}
-										>
-											{r.rank}
-										</span>
-										<span className="font-mono text-[11px] tabular-nums text-muted-foreground">
-											{formatScore(Number(r.count))}
-										</span>
-									</span>
-								))}
+							{stats.rankDistribution.length > 0 && (
+								<div className="flex w-full flex-wrap items-center gap-1.5">
+									{[...stats.rankDistribution]
+										.sort(
+											(a, b) =>
+												RANK_ORDER.indexOf(a.rank) - RANK_ORDER.indexOf(b.rank),
+										)
+										.map((r) => (
+											<span
+												key={r.rank}
+												className="inline-flex items-center gap-1 rounded-md bg-muted/40 px-1.5 py-0.5"
+											>
+												<span
+													className={cn(
+														"font-heading text-sm font-bold",
+														RANK_STYLES[r.rank] ?? "text-muted-foreground",
+													)}
+												>
+													{r.rank}
+												</span>
+												<span className="font-mono text-[11px] tabular-nums text-muted-foreground">
+													{formatScore(Number(r.count))}
+												</span>
+											</span>
+										))}
+								</div>
+							)}
 						</div>
 					)}
 				</div>
-			)}
+			</div>
 
 			{(hasSkill || hasActivity) && (
 				<div className="grid gap-6 lg:grid-cols-2">
@@ -263,6 +280,54 @@ function ProfileBody({ profile }: { profile: PublicProfileDto }) {
 					</EmptyHeader>
 				</Empty>
 			)}
+		</div>
+	);
+}
+
+/**
+ * A muted two-tone wash derived from the handle, so every profile without a
+ * cover-art banner still gets a stable, distinct colour. Kept low-saturation and
+ * same-family (hues ~35° apart) to read as a refined backdrop, not a loud gradient.
+ */
+function bannerGradient(seed: string): string {
+	let hue = 0;
+	for (let i = 0; i < seed.length; i++) {
+		hue = (hue * 31 + seed.charCodeAt(i)) % 360;
+	}
+	const hue2 = (hue + 35) % 360;
+	return `linear-gradient(120deg, oklch(0.42 0.08 ${hue}), oklch(0.3 0.06 ${hue2}))`;
+}
+
+/** Profile banner: a blurred most-played cover when available, else a seeded wash. */
+function ProfileBanner({
+	seed,
+	coverMapId,
+}: {
+	seed: string;
+	coverMapId: string | null;
+}) {
+	const [coverFailed, setCoverFailed] = useState(false);
+	const showCover = coverMapId !== null && !coverFailed;
+
+	return (
+		<div className="relative aspect-[2.83/1] w-full overflow-hidden">
+			{showCover ? (
+				<img
+					src={getGetApiMapsMapIdCoverUrl(coverMapId)}
+					alt=""
+					aria-hidden
+					onError={() => setCoverFailed(true)}
+					className="size-full scale-125 object-cover blur-2xl brightness-[0.55] saturate-[0.65]"
+				/>
+			) : (
+				<div
+					className="size-full"
+					style={{ backgroundImage: bannerGradient(seed) }}
+				/>
+			)}
+			{/* Darken and blend into the card so it reads as an ambient tint, not a
+			    bright photo smear. */}
+			<div className="absolute inset-0 bg-gradient-to-t from-card via-card/60 to-card/30" />
 		</div>
 	);
 }
