@@ -4,6 +4,7 @@ import {
 	Outlet,
 	redirect,
 } from "@tanstack/react-router";
+import { PageTransition } from "@/components/common/PageTransition";
 
 export const Route = createFileRoute("/auth")({
 	beforeLoad: ({ context }) => {
@@ -24,7 +25,9 @@ function AuthLayout() {
 				<span className="text-primary">BeatDash</span>
 			</Link>
 			<div className="w-full max-w-sm">
-				<Outlet />
+				<PageTransition>
+					<Outlet />
+				</PageTransition>
 			</div>
 		</main>
 	);

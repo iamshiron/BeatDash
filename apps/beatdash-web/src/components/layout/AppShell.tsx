@@ -1,6 +1,7 @@
 import { Button } from "@shiron/ui/components/ui/button";
 import { cn } from "@shiron/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
+import { PageTransition } from "@/components/common/PageTransition";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { ModeToggle } from "@/components/layout/ModeToggle";
 import { UserMenu } from "@/components/layout/UserMenu";
@@ -81,7 +82,7 @@ export function AppShell({
 					track && "pb-32",
 				)}
 			>
-				{children}
+				<PageTransition>{children}</PageTransition>
 			</main>
 		</div>
 	);

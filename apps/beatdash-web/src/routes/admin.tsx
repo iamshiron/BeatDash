@@ -25,6 +25,7 @@ import {
 	redirect,
 	useRouterState,
 } from "@tanstack/react-router";
+import { PageTransition } from "@/components/common/PageTransition";
 
 export const Route = createFileRoute("/admin")({
 	beforeLoad: ({ context }) => {
@@ -102,7 +103,9 @@ function AdminLayout() {
 					</span>
 				</header>
 				<main className="flex-1 p-6">
-					<Outlet />
+					<PageTransition>
+						<Outlet />
+					</PageTransition>
 				</main>
 			</SidebarInset>
 		</SidebarProvider>
