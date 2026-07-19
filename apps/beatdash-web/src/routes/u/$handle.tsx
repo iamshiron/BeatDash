@@ -10,10 +10,12 @@ import {
 import { Skeleton } from "@shiron/ui/components/ui/skeleton";
 import { cn } from "@shiron/ui/lib/utils";
 import {
+	CameraIcon,
 	ClockCircleIcon,
 	HeartIcon,
 	LockIcon,
 	MusicNotesIcon,
+	PenIcon,
 	PlaylistIcon,
 	ShareIcon,
 	TargetIcon,
@@ -32,6 +34,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { MostPlayedRow } from "@/components/profile/MostPlayedRow";
 import { SessionRow } from "@/components/profile/SessionRow";
 import { SkillRadarChart } from "@/components/profile/SkillRadar";
+import { useAuth } from "@/contexts/auth";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { formatAccuracy, formatScore, RANK_STYLES } from "@/lib/sessions";
 import { getInitials } from "@/lib/user";
@@ -82,6 +85,9 @@ function ProfilePage() {
 }
 
 function ProfileBody({ profile }: { profile: PublicProfileDto }) {
+	const { user } = useAuth();
+	// Editing affordances only surface when you're looking at your own profile.
+	const isOwnProfile = Boolean(user?.handle && user.handle === profile.handle);
 	const { stats, activity, skill, history } = profile;
 	const hasSkill = Boolean(skill && Number(skill.playsConsidered) > 0);
 	const hasActivity = Boolean(activity && activity.length > 0);
@@ -101,21 +107,42 @@ function ProfileBody({ profile }: { profile: PublicProfileDto }) {
 		<div className="flex flex-col gap-6">
 			{/* Identity header — banner with an overlapping avatar, Discord-style */}
 			<div className="mx-auto w-full max-w-lg overflow-hidden rounded-xl border border-border bg-card">
-				<ProfileBanner seed={profile.handle} coverMapId={bannerMapId} />
+				<ProfileBanner
+					seed={profile.handle}
+					coverMapId={bannerMapId}
+					editable={isOwnProfile}
+				/>
 				<div className="px-4 pb-4">
 					<div className="flex flex-wrap items-end gap-x-4 gap-y-2">
-						<Avatar className="-mt-12 size-24 shrink-0 ring-4 ring-card">
-							<AvatarFallback className="text-3xl font-semibold">
-								{getInitials(profile.displayName)}
-							</AvatarFallback>
-						</Avatar>
+						<div className="group/avatar relative -mt-12 size-24 shrink-0">
+							<Avatar className="size-full ring-4 ring-card">
+								<AvatarFallback className="text-3xl font-semibold">
+									{getInitials(profile.displayName)}
+								</AvatarFallback>
+							</Avatar>
+							{isOwnProfile && (
+								<button
+									type="button"
+									aria-label="Change profile picture"
+									className="absolute inset-0 flex items-center justify-center rounded-full bg-black/55 text-white opacity-0 outline-none transition-opacity group-hover/avatar:opacity-100 focus-visible:opacity-100"
+								>
+									<CameraIcon className="size-6" weight="Bold" />
+								</button>
+							)}
+						</div>
 						<div className="min-w-0 flex-1 pt-1">
-							<h1 className="truncate font-heading text-2xl font-bold tracking-tight">
-								{profile.displayName}
-							</h1>
-							<p className="truncate text-sm text-muted-foreground">
-								@{profile.handle}
-							</p>
+							<div className="flex items-center gap-1.5">
+								<h1 className="truncate font-heading text-2xl font-bold tracking-tight">
+									{profile.displayName}
+								</h1>
+								{isOwnProfile && <EditPencil label="Change display name" />}
+							</div>
+							<div className="flex items-center gap-1.5">
+								<p className="truncate text-sm text-muted-foreground">
+									@{profile.handle}
+								</p>
+								{isOwnProfile && <EditPencil label="Change handle" />}
+							</div>
 						</div>
 						<Button
 							variant="outline"
@@ -288,6 +315,19 @@ function ProfileBody({ profile }: { profile: PublicProfileDto }) {
 	);
 }
 
+/** A subtle inline pencil button for editing an identity field (own profile only). */
+function EditPencil({ label }: { label: string }) {
+	return (
+		<button
+			type="button"
+			aria-label={label}
+			className="flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground/60 opacity-70 transition hover:bg-foreground/10 hover:text-foreground hover:opacity-100 focus-visible:opacity-100"
+		>
+			<PenIcon className="size-3.5" />
+		</button>
+	);
+}
+
 /**
  * A muted two-tone wash derived from the handle, so every profile without a
  * cover-art banner still gets a stable, distinct colour. Kept low-saturation and
@@ -306,15 +346,18 @@ function bannerGradient(seed: string): string {
 function ProfileBanner({
 	seed,
 	coverMapId,
+	editable = false,
 }: {
 	seed: string;
 	coverMapId: string | null;
+	/** Show a hover "change banner" affordance (own profile only). */
+	editable?: boolean;
 }) {
 	const [coverFailed, setCoverFailed] = useState(false);
 	const showCover = coverMapId !== null && !coverFailed;
 
 	return (
-		<div className="relative aspect-[2.83/1] w-full overflow-hidden">
+		<div className="group relative aspect-[2.83/1] w-full overflow-hidden">
 			{showCover ? (
 				<img
 					src={getGetApiMapsMapIdCoverUrl(coverMapId)}
@@ -332,6 +375,16 @@ function ProfileBanner({
 			{/* Darken and blend into the card so it reads as an ambient tint, not a
 			    bright photo smear. */}
 			<div className="absolute inset-0 bg-gradient-to-t from-card via-card/60 to-card/30" />
+			{editable && (
+				<button
+					type="button"
+					aria-label="Change banner"
+					className="absolute top-2 right-2 flex items-center gap-1.5 rounded-md bg-background/70 px-2 py-1 text-xs font-medium text-foreground opacity-0 outline-none backdrop-blur-sm transition hover:bg-background/90 group-hover:opacity-100 focus-visible:opacity-100"
+				>
+					<CameraIcon className="size-3.5" weight="Bold" />
+					Edit banner
+				</button>
+			)}
 		</div>
 	);
 }
