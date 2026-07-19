@@ -3,6 +3,11 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import {
+	NotFound,
+	RouteError,
+	RoutePending,
+} from "@/components/common/RouteStates";
 import { AuthProvider, useAuth } from "@/contexts/auth";
 import { PlayerProvider } from "@/contexts/player";
 import { RealtimeProvider } from "@/realtime";
@@ -21,6 +26,9 @@ const queryClient = new QueryClient({
 
 const router = createRouter({
 	routeTree,
+	defaultErrorComponent: RouteError,
+	defaultPendingComponent: RoutePending,
+	defaultNotFoundComponent: NotFound,
 	context: {
 		auth: {
 			user: undefined,
