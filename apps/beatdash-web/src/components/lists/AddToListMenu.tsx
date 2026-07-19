@@ -45,6 +45,8 @@ export function AddToListMenu({
 	const listsQuery = useGetApiLists({ mapId }, { query: { enabled: open } });
 	const lists = listsQuery.data?.status === 200 ? listsQuery.data.data : [];
 
+	const listsKey = getGetApiListsQueryKey({ mapId });
+
 	const invalidate = (listId: string) =>
 		Promise.all([
 			queryClient.invalidateQueries({ queryKey: getGetApiListsQueryKey() }),
@@ -53,28 +55,62 @@ export function AddToListMenu({
 			}),
 		]);
 
+	// Flip the map's membership in the popover's own list cache so the check and
+	// count update the instant you click, before the request resolves. Returns
+	// the previous cache so a failed request can roll back.
+	const applyOptimistic = async (listId: string, contains: boolean) => {
+		await queryClient.cancelQueries({ queryKey: listsKey });
+		const previous = queryClient.getQueryData(listsKey);
+		queryClient.setQueryData<typeof listsQuery.data>(listsKey, (old) => {
+			if (!old || old.status !== 200) return old;
+			return {
+				...old,
+				data: old.data.map((l) =>
+					l.id === listId
+						? {
+								...l,
+								containsMap: contains,
+								mapCount: Number(l.mapCount) + (contains ? 1 : -1),
+							}
+						: l,
+				),
+			};
+		});
+		return previous;
+	};
+
 	const addMutation = usePutApiListsListIdMapsMapId({
 		mutation: {
-			onSuccess: (_res, vars) => invalidate(vars.listId),
-			onError: () => toast.error("Couldn't add the map."),
+			onMutate: async ({ listId }) => ({
+				previous: await applyOptimistic(listId, true),
+			}),
+			onError: (_err, _vars, ctx) => {
+				if (ctx?.previous) queryClient.setQueryData(listsKey, ctx.previous);
+				toast.error("Couldn't add the map.");
+			},
+			onSettled: (_res, _err, vars) => invalidate(vars.listId),
 		},
 	});
 	const removeMutation = useDeleteApiListsListIdMapsMapId({
 		mutation: {
-			onSuccess: (_res, vars) => invalidate(vars.listId),
-			onError: () => toast.error("Couldn't remove the map."),
+			onMutate: async ({ listId }) => ({
+				previous: await applyOptimistic(listId, false),
+			}),
+			onError: (_err, _vars, ctx) => {
+				if (ctx?.previous) queryClient.setQueryData(listsKey, ctx.previous);
+				toast.error("Couldn't remove the map.");
+			},
+			onSettled: (_res, _err, vars) => invalidate(vars.listId),
 		},
 	});
 
 	const busy = addMutation.isPending || removeMutation.isPending;
 
-	const toggle = (listId: string, contains: boolean, name: string) => {
+	const toggle = (listId: string, contains: boolean) => {
 		if (contains) {
 			removeMutation.mutate({ listId, mapId });
-			toast.message(`Removed from "${name}".`);
 		} else {
 			addMutation.mutate({ listId, mapId });
-			toast.success(`Added to "${name}".`);
 		}
 	};
 
@@ -130,7 +166,7 @@ export function AddToListMenu({
 									key={list.id}
 									type="button"
 									disabled={busy}
-									onClick={() => toggle(list.id, contains, list.name)}
+									onClick={() => toggle(list.id, contains)}
 									className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-foreground/5 disabled:opacity-60"
 								>
 									<span
