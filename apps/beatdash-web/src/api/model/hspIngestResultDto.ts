@@ -5,7 +5,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export interface HeartRateIngestResultDto {
+export interface HspIngestResultDto {
   /** @pattern ^-?(?:0|[1-9]\d*)$ */
   accepted: number | string;
 }

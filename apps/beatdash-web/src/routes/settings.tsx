@@ -31,7 +31,6 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useChangePassword, useUpdateProfile } from "@/api/auth/auth";
 import type { ChangePasswordDto, UpdateProfileDto } from "@/api/model";
-import { useGenerateHealthIngestToken } from "@/api/wearable/wearable";
 import { AppShell } from "@/components/layout/AppShell";
 import { getGetMeQueryKey, useAuth } from "@/contexts/auth";
 import { profileBasePayload } from "@/lib/profile";
@@ -510,7 +509,6 @@ function HealthCard() {
 	const [bodyFat, setBodyFat] = useState("");
 	const [restingHr, setRestingHr] = useState("");
 	const [error, setError] = useState<string | null>(null);
-	const [token, setToken] = useState<string | null>(null);
 
 	// Seed from the current (metric) user data.
 	useEffect(() => {
@@ -579,20 +577,6 @@ function HealthCard() {
 		},
 	});
 
-	const tokenMutation = useGenerateHealthIngestToken({
-		mutation: {
-			onSuccess: (response) => {
-				if (response.status === 200) {
-					setToken(response.data.token);
-					toast.success("Ingest token generated.");
-				} else {
-					toast.error("Couldn't generate a token.");
-				}
-			},
-			onError: () => toast.error("Couldn't generate a token."),
-		},
-	});
-
 	function handleSubmit(event: React.FormEvent) {
 		event.preventDefault();
 		if (!user) return;
@@ -630,12 +614,6 @@ function HealthCard() {
 		};
 		updateMutation.mutate({ data: payload });
 	}
-
-	const ingestSnippet = `POST ${window.location.origin}/api/health/ingest/heartrate
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{ "samples": [{ "recordedAt": "2026-07-19T20:00:00Z", "bpm": 148 }] }`;
 
 	return (
 		<Card>
@@ -814,36 +792,16 @@ Content-Type: application/json
 
 				<Separator className="my-6" />
 
-				<div className="flex flex-col gap-3">
-					<div>
-						<p className="text-sm font-medium">Connect a smartwatch</p>
-						<p className="text-xs text-muted-foreground">
-							A companion app can push live heart rate for the most accurate
-							calorie estimates. Generate a token and have it call the endpoint
-							below. The token is shown once.
-						</p>
-					</div>
-					<div className="flex flex-wrap items-center gap-2">
-						<Button
-							type="button"
-							variant="outline"
-							size="sm"
-							onClick={() => tokenMutation.mutate()}
-							disabled={tokenMutation.isPending}
-						>
-							{tokenMutation.isPending
-								? "Generating…"
-								: "Generate ingest token"}
-						</Button>
-						{token && (
-							<code className="max-w-full truncate rounded-md border border-border bg-muted/40 px-2 py-1 font-mono text-xs">
-								{token}
-							</code>
-						)}
-					</div>
-					<pre className="overflow-x-auto rounded-lg border border-border bg-muted/30 p-3 font-mono text-[11px] leading-relaxed text-muted-foreground">
-						{ingestSnippet}
-					</pre>
+				<div className="flex flex-col gap-1">
+					<p className="text-sm font-medium">Connect a smartwatch</p>
+					<p className="text-xs text-muted-foreground">
+						A companion app can push live heart rate for the most accurate
+						calorie estimates. Head to{" "}
+						<Link to="/devices" className="text-primary hover:underline">
+							Devices
+						</Link>{" "}
+						and choose “Link Health Proxy” to scan a pairing code.
+					</p>
 				</div>
 			</CardContent>
 			<CardFooter>

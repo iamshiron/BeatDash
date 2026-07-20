@@ -230,7 +230,7 @@ api.MapSessionEndpoints();
 api.MapProfileEndpoints();
 api.MapUserAssetEndpoints();
 api.MapHealthEndpoints();
-api.MapWearableEndpoints();
+api.MapHspEndpoints();
 api.MapServerInfoEndpoints();
 api.MapHub<RealtimeHub>("/client/web");
 

@@ -40,6 +40,7 @@ import { Skeleton } from "@shiron/ui/components/ui/skeleton";
 import { StatusDot } from "@shiron/ui/components/ui/status-dot";
 import {
 	AddCircleIcon,
+	HeartPulseIcon,
 	MonitorIcon,
 	PenIcon,
 	TrashBinMinimalisticIcon,
@@ -57,7 +58,9 @@ import {
 } from "@/api/device/device";
 import type { DeviceResponseDto } from "@/api/model";
 import { AddDeviceDialog } from "@/components/devices/AddDeviceDialog";
+import { AddHspClientDialog } from "@/components/devices/AddHspClientDialog";
 import { AppShell } from "@/components/layout/AppShell";
+import { useAuth } from "@/contexts/auth";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useNow } from "@/hooks/useNow";
 import { useRealtimeEvent } from "@/realtime";
@@ -73,7 +76,10 @@ export const Route = createFileRoute("/devices")({
 
 function DevicesPage() {
 	useDocumentTitle("Devices");
+	const { user } = useAuth();
+	const healthEnabled = Boolean(user?.healthTrackingEnabled);
 	const [pairDialogOpen, setPairDialogOpen] = useState(false);
+	const [hspDialogOpen, setHspDialogOpen] = useState(false);
 	const [renameTarget, setRenameTarget] = useState<DeviceResponseDto | null>(
 		null,
 	);
@@ -111,10 +117,22 @@ function DevicesPage() {
 				<h1 className="font-heading text-lg font-semibold tracking-tight">
 					Devices
 				</h1>
-				<Button size="sm" onClick={() => setPairDialogOpen(true)}>
-					<AddCircleIcon />
-					Pair a Device
-				</Button>
+				<div className="flex gap-2">
+					{healthEnabled && (
+						<Button
+							size="sm"
+							variant="outline"
+							onClick={() => setHspDialogOpen(true)}
+						>
+							<HeartPulseIcon />
+							Link Health Proxy
+						</Button>
+					)}
+					<Button size="sm" onClick={() => setPairDialogOpen(true)}>
+						<AddCircleIcon />
+						Pair a Device
+					</Button>
+				</div>
 			</div>
 
 			{isLoading && (
@@ -158,6 +176,13 @@ function DevicesPage() {
 			)}
 
 			<AddDeviceDialog open={pairDialogOpen} onOpenChange={setPairDialogOpen} />
+
+			{healthEnabled && (
+				<AddHspClientDialog
+					open={hspDialogOpen}
+					onOpenChange={setHspDialogOpen}
+				/>
+			)}
 
 			<RenameDialog
 				device={renameTarget}

@@ -34,10 +34,11 @@ public sealed class HealthService(BeatDashDbContext db) : IHealthService {
         var bmr = BodyMetrics.Bmr(weightKg, user.HeightCm, age, user.Sex, user.BodyFatPercent);
         var leanMass = BodyMetrics.LeanMassKg(weightKg, user.BodyFatPercent);
 
-        var recentAvgHr = await db.HeartRateSamples
+        var recentAvgHr = await db.SensorSamples
             .AsNoTracking()
-            .Where(h => h.UserId == userId && h.RecordedAt >= DateTime.UtcNow.AddDays(-7))
-            .Select(h => (double?) h.Bpm)
+            .Where(h => h.UserId == userId && h.Metric == HspMetrics.HeartRate
+                && h.RecordedAt >= DateTime.UtcNow.AddDays(-7))
+            .Select(h => (double?) h.Value)
             .AverageAsync(ct);
 
         var plays = await db.PlaySessions
@@ -123,19 +124,20 @@ public sealed class HealthService(BeatDashDbContext db) : IHealthService {
 
         // Heart-rate samples that fall inside the play window, ordered — used for the avg/max
         // and the per-play HR curve (bpm across the song).
-        var hrSamples = await db.HeartRateSamples
+        var hrSamples = await db.SensorSamples
             .AsNoTracking()
-            .Where(h => h.UserId == userId && h.RecordedAt >= play.StartedAt && h.RecordedAt <= windowEnd)
+            .Where(h => h.UserId == userId && h.Metric == HspMetrics.HeartRate
+                && h.RecordedAt >= play.StartedAt && h.RecordedAt <= windowEnd)
             .OrderBy(h => h.RecordedAt)
-            .Select(h => new { h.RecordedAt, h.Bpm })
+            .Select(h => new { h.RecordedAt, h.Value })
             .ToListAsync(ct);
 
-        double? avgHr = hrSamples.Count > 0 ? hrSamples.Average(h => h.Bpm) : null;
-        int? maxHr = hrSamples.Count > 0 ? hrSamples.Max(h => h.Bpm) : null;
+        double? avgHr = hrSamples.Count > 0 ? hrSamples.Average(h => h.Value) : null;
+        int? maxHr = hrSamples.Count > 0 ? (int) Math.Round(hrSamples.Max(h => h.Value)) : null;
         var hrCurve = hrSamples
             .Select(h => new HeartRatePointDto(
                 (int) Math.Max(0, (h.RecordedAt - play.StartedAt).TotalSeconds),
-                h.Bpm))
+                (int) Math.Round(h.Value)))
             .ToList();
 
         var mo = (await LoadMotionAsync([sessionId], ct)).GetValueOrDefault(sessionId);
