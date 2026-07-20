@@ -59,6 +59,7 @@ import {
 import {
 	getListHspClientsQueryKey,
 	useListHspClients,
+	useRenameHspClient,
 	useUnlinkHspClient,
 } from "@/api/hsp/hsp";
 import type { DeviceResponseDto, HspClientDto } from "@/api/model";
@@ -100,6 +101,9 @@ function DevicesPage() {
 	});
 	const hspClients = hspData?.status === 200 ? hspData.data : [];
 	const [hspDeleteTarget, setHspDeleteTarget] = useState<HspClientDto | null>(
+		null,
+	);
+	const [hspRenameTarget, setHspRenameTarget] = useState<HspClientDto | null>(
 		null,
 	);
 
@@ -194,6 +198,7 @@ function DevicesPage() {
 							<HspClientRow
 								key={client.id}
 								client={client}
+								onRename={() => setHspRenameTarget(client)}
 								onDelete={() => setHspDeleteTarget(client)}
 							/>
 						))}
@@ -219,6 +224,11 @@ function DevicesPage() {
 				onClose={() => setDeleteTarget(null)}
 			/>
 
+			<HspRenameDialog
+				client={hspRenameTarget}
+				onClose={() => setHspRenameTarget(null)}
+			/>
+
 			<HspDeleteDialog
 				client={hspDeleteTarget}
 				onClose={() => setHspDeleteTarget(null)}
@@ -229,9 +239,11 @@ function DevicesPage() {
 
 function HspClientRow({
 	client,
+	onRename,
 	onDelete,
 }: {
 	client: HspClientDto;
+	onRename: () => void;
 	onDelete: () => void;
 }) {
 	useNow();
@@ -275,6 +287,14 @@ function HspClientRow({
 					<Button
 						variant="outline"
 						size="icon"
+						onClick={onRename}
+						aria-label="Rename client"
+					>
+						<PenIcon />
+					</Button>
+					<Button
+						variant="outline"
+						size="icon"
 						onClick={onDelete}
 						aria-label="Unlink client"
 					>
@@ -283,6 +303,83 @@ function HspClientRow({
 				</div>
 			</CardContent>
 		</Card>
+	);
+}
+
+function HspRenameDialog({
+	client,
+	onClose,
+}: {
+	client: HspClientDto | null;
+	onClose: () => void;
+}) {
+	const [name, setName] = useState("");
+	const queryClient = useQueryClient();
+
+	const renameMutation = useRenameHspClient({
+		mutation: {
+			onSuccess: async (response) => {
+				if (response.status !== 204) {
+					toast.error("Failed to rename the client.");
+					return;
+				}
+				await queryClient.invalidateQueries({
+					queryKey: getListHspClientsQueryKey(),
+				});
+				toast.success("Client renamed.");
+				onClose();
+			},
+		},
+	});
+
+	function handleOpen(isOpen: boolean) {
+		if (isOpen && client) setName(client.name);
+		if (!isOpen) onClose();
+	}
+
+	function handleSubmit(event: React.FormEvent) {
+		event.preventDefault();
+		if (!client || !name.trim()) return;
+		renameMutation.mutate({ id: client.id, data: { name: name.trim() } });
+	}
+
+	return (
+		<Dialog open={client != null} onOpenChange={handleOpen}>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>Rename client</DialogTitle>
+					<DialogDescription>
+						Give this Honami client a name you will recognize.
+					</DialogDescription>
+				</DialogHeader>
+				<form id="hsp-rename-form" onSubmit={handleSubmit}>
+					<FieldGroup>
+						<Field>
+							<FieldLabel htmlFor="hsp-client-name">Name</FieldLabel>
+							<Input
+								id="hsp-client-name"
+								value={name}
+								onChange={(e) => setName(e.target.value)}
+								required
+								maxLength={64}
+							/>
+						</Field>
+					</FieldGroup>
+				</form>
+				<DialogFooter>
+					<DialogClose asChild>
+						<Button variant="outline">Cancel</Button>
+					</DialogClose>
+					<Button
+						type="submit"
+						form="hsp-rename-form"
+						disabled={renameMutation.isPending}
+					>
+						{renameMutation.isPending ? "Saving…" : "Save"}
+					</Button>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
 	);
 }
 

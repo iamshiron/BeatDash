@@ -26,6 +26,7 @@ import type {
 import type {
   HspClientDto,
   HspClientTokenDto,
+  HspClientUpdateDto,
   HspIngestDto,
   HspIngestResultDto,
   HspLinkRequestDto
@@ -266,7 +267,106 @@ export function useListHspClients<TData = Awaited<ReturnType<typeof listHspClien
 
 
 
-export type unlinkHspClientResponse204 = {
+export type renameHspClientResponse204 = {
+  data: void
+  status: 204
+}
+
+export type renameHspClientResponse401 = {
+  data: void
+  status: 401
+}
+
+export type renameHspClientResponse404 = {
+  data: void
+  status: 404
+}
+
+export type renameHspClientResponseSuccess = (renameHspClientResponse204) & {
+  headers: Headers;
+};
+export type renameHspClientResponseError = (renameHspClientResponse401 | renameHspClientResponse404) & {
+  headers: Headers;
+};
+
+export type renameHspClientResponse = (renameHspClientResponseSuccess | renameHspClientResponseError)
+
+export const getRenameHspClientUrl = (id: string,) => {
+
+
+
+
+  return `/api/hsp/clients/${id}`
+}
+
+/**
+ * Rename a linked Honami Sensor Proxy client.
+ */
+export const renameHspClient = async (id: string,
+    hspClientUpdateDto: HspClientUpdateDto, options?: RequestInit): Promise<renameHspClientResponse> => {
+
+  const res = await fetch(getRenameHspClientUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(hspClientUpdateDto)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: renameHspClientResponse['data'] = body ? JSON.parse(body) : undefined
+  return { data, status: res.status, headers: res.headers } as renameHspClientResponse
+}
+
+
+
+
+
+export const getRenameHspClientMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof renameHspClient>>, TError,{id: string;data: HspClientUpdateDto}, TContext>, fetch?: RequestInit}
+): UseMutationOptions<Awaited<ReturnType<typeof renameHspClient>>, TError,{id: string;data: HspClientUpdateDto}, TContext> => {
+
+const mutationKey = ['renameHspClient'];
+const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, fetch: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof renameHspClient>>, {id: string;data: HspClientUpdateDto}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  renameHspClient(id,data,fetchOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RenameHspClientMutationResult = NonNullable<Awaited<ReturnType<typeof renameHspClient>>>
+    export type RenameHspClientMutationBody = HspClientUpdateDto
+    export type RenameHspClientMutationError = void
+
+    export const useRenameHspClient = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof renameHspClient>>, TError,{id: string;data: HspClientUpdateDto}, TContext>, fetch?: RequestInit}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof renameHspClient>>,
+        TError,
+        {id: string;data: HspClientUpdateDto},
+        TContext
+      > => {
+      return useMutation(getRenameHspClientMutationOptions(options), queryClient);
+    }
+    export type unlinkHspClientResponse204 = {
   data: void
   status: 204
 }

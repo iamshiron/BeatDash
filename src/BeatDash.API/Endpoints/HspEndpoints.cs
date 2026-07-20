@@ -76,6 +76,31 @@ public static class HspEndpoints {
             .Produces<IList<HspClientDto>>()
             .Produces(401);
 
+        // Rename a linked client.
+        group.MapPatch("/clients/{id:guid}", async (
+                Guid id, HspClientUpdateDto body, ClaimsPrincipal principal,
+                BeatDashDbContext db, CancellationToken ct) => {
+                var userId = IdentityUtils.GetUserID(principal);
+                if (userId is null) return Results.Unauthorized();
+
+                var client = await db.HealthProxyClients
+                    .SingleOrDefaultAsync(c => c.Id == id && c.UserId == userId, ct);
+                if (client is null) return Results.NotFound();
+
+                if (!string.IsNullOrWhiteSpace(body.Name)) {
+                    var name = body.Name.Trim();
+                    client.Name = name.Length > MaxNameLength ? name[..MaxNameLength] : name;
+                }
+                await db.SaveChangesAsync(ct);
+                return Results.NoContent();
+            })
+            .WithName("RenameHspClient")
+            .WithDescription("Rename a linked Honami Sensor Proxy client.")
+            .RequireAuthorization()
+            .Produces(204)
+            .Produces(401)
+            .Produces(404);
+
         // Unlink (revoke) a client.
         group.MapDelete("/clients/{id:guid}", async (
                 Guid id, ClaimsPrincipal principal, BeatDashDbContext db, CancellationToken ct) => {
@@ -204,6 +229,9 @@ public static class HspEndpoints {
 
 /// <summary>Request to link a new client; an optional label for the Devices list.</summary>
 public sealed record HspLinkRequestDto(string? Name);
+
+/// <summary>Fields updatable on a linked client.</summary>
+public sealed record HspClientUpdateDto(string? Name);
 
 /// <summary>A freshly linked client with its plaintext token — shown once, encoded into the link QR.</summary>
 public sealed record HspClientTokenDto(Guid Id, string Name, string Token);

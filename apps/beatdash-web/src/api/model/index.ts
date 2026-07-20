@@ -36,6 +36,7 @@ export * from './healthTrendWeekDto.ts';
 export * from './heartRatePointDto.ts';
 export * from './hspClientDto.ts';
 export * from './hspClientTokenDto.ts';
+export * from './hspClientUpdateDto.ts';
 export * from './hspIngestDto.ts';
 export * from './hspIngestResultDto.ts';
 export * from './hspLinkRequestDto.ts';
