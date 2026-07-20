@@ -48,6 +48,7 @@ The dashboard (shown above) opens on an overview of your account: total plays, p
 -   **Device pairing** — link one or more Beat Saber installs to your account with a PIN
 -   **Lists** — group maps into named collections
 -   **Public profile** — a shareable page with the sections you choose to make visible
+-   **Health & fitness (optional)** — opt-in calorie, active-time, and heart-rate insights per play and per session. Wearable heart rate is pushed through the **Honami Sensor Proxy**, a device-agnostic companion app that forwards your smartwatch's sensor data to BeatDash. The app is currently in development — the first version will be available on GitHub soon™.
 
 ---
 
