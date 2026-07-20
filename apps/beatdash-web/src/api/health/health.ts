@@ -21,7 +21,9 @@ import type {
 
 import type {
   AnonymousTypeOfstring,
+  GetHeartRateCurveParams,
   HealthOverviewDto,
+  HeartRatePointDto,
   WorkoutDto
 } from '../model';
 
@@ -402,6 +404,141 @@ export function useGetSessionWorkout<TData = Awaited<ReturnType<typeof getSessio
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetSessionWorkoutQueryOptions(sessionId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export type getHeartRateCurveResponse200 = {
+  data: HeartRatePointDto[]
+  status: 200
+}
+
+export type getHeartRateCurveResponse204 = {
+  data: void
+  status: 204
+}
+
+export type getHeartRateCurveResponse401 = {
+  data: void
+  status: 401
+}
+
+export type getHeartRateCurveResponseSuccess = (getHeartRateCurveResponse200 | getHeartRateCurveResponse204) & {
+  headers: Headers;
+};
+export type getHeartRateCurveResponseError = (getHeartRateCurveResponse401) & {
+  headers: Headers;
+};
+
+export type getHeartRateCurveResponse = (getHeartRateCurveResponseSuccess | getHeartRateCurveResponseError)
+
+export const getGetHeartRateCurveUrl = (params: GetHeartRateCurveParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/health/heartrate?${stringifiedParams}` : `/api/health/heartrate`
+}
+
+/**
+ * Heart-rate curve over a time window (e.g. a whole sitting), relative to 'from'.
+ */
+export const getHeartRateCurve = async (params: GetHeartRateCurveParams, options?: RequestInit): Promise<getHeartRateCurveResponse> => {
+
+  const res = await fetch(getGetHeartRateCurveUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: getHeartRateCurveResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as getHeartRateCurveResponse
+}
+
+
+
+
+
+export const getGetHeartRateCurveQueryKey = (params?: GetHeartRateCurveParams,) => {
+    return [
+    `/api/health/heartrate`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetHeartRateCurveQueryOptions = <TData = Awaited<ReturnType<typeof getHeartRateCurve>>, TError = void>(params: GetHeartRateCurveParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getHeartRateCurve>>, TError, TData>>, fetch?: RequestInit}
+) => {
+
+const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetHeartRateCurveQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getHeartRateCurve>>> = ({ signal }) => getHeartRateCurve(params, { signal, ...fetchOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getHeartRateCurve>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetHeartRateCurveQueryResult = NonNullable<Awaited<ReturnType<typeof getHeartRateCurve>>>
+export type GetHeartRateCurveQueryError = void
+
+
+export function useGetHeartRateCurve<TData = Awaited<ReturnType<typeof getHeartRateCurve>>, TError = void>(
+ params: GetHeartRateCurveParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getHeartRateCurve>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getHeartRateCurve>>,
+          TError,
+          Awaited<ReturnType<typeof getHeartRateCurve>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetHeartRateCurve<TData = Awaited<ReturnType<typeof getHeartRateCurve>>, TError = void>(
+ params: GetHeartRateCurveParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getHeartRateCurve>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getHeartRateCurve>>,
+          TError,
+          Awaited<ReturnType<typeof getHeartRateCurve>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetHeartRateCurve<TData = Awaited<ReturnType<typeof getHeartRateCurve>>, TError = void>(
+ params: GetHeartRateCurveParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getHeartRateCurve>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetHeartRateCurve<TData = Awaited<ReturnType<typeof getHeartRateCurve>>, TError = void>(
+ params: GetHeartRateCurveParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getHeartRateCurve>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetHeartRateCurveQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

@@ -16,6 +16,10 @@ public interface IHealthService {
 
     /// <summary>Per-play workout figures, or null when tracking is off, no weight, or the play isn't the user's.</summary>
     Task<WorkoutDto?> GetWorkoutAsync(Guid userId, Guid sessionId, CancellationToken ct = default);
+
+    /// <summary>Heart-rate curve over a time window (e.g. a whole sitting), or null when tracking is off.</summary>
+    Task<IList<HeartRatePointDto>?> GetHeartRateCurveAsync(
+        Guid userId, DateTimeOffset from, DateTimeOffset to, CancellationToken ct = default);
 }
 
 /// <inheritdoc />
@@ -150,6 +154,32 @@ public sealed class HealthService(BeatDashDbContext db) : IHealthService {
             est.Kcal, est.ActiveMinutes, est.Intensity01, est.Met, Confidence(est.Confidence),
             mo?.LeftSaberTravel ?? 0, mo?.RightSaberTravel ?? 0,
             AvgHeartRate: est.AvgHr, MaxHeartRate: maxHr, HeartRateCurve: hrCurve);
+    }
+
+    /// <inheritdoc />
+    public async Task<IList<HeartRatePointDto>?> GetHeartRateCurveAsync(
+        Guid userId, DateTimeOffset from, DateTimeOffset to, CancellationToken ct = default) {
+        var enabled = await db.Users
+            .Where(u => u.Id == userId)
+            .Select(u => u.HealthTrackingEnabled)
+            .FirstOrDefaultAsync(ct);
+        if (!enabled) return null;
+
+        var fromUtc = from.UtcDateTime;
+        var toUtc = to.UtcDateTime;
+        var samples = await db.SensorSamples
+            .AsNoTracking()
+            .Where(s => s.UserId == userId && s.Metric == HspMetrics.HeartRate
+                && s.RecordedAt >= fromUtc && s.RecordedAt <= toUtc)
+            .OrderBy(s => s.RecordedAt)
+            .Select(s => new { s.RecordedAt, s.Value })
+            .ToListAsync(ct);
+
+        return samples
+            .Select(s => new HeartRatePointDto(
+                (int) Math.Max(0, (s.RecordedAt - fromUtc).TotalSeconds),
+                (int) Math.Round(s.Value)))
+            .ToList();
     }
 
     // --- helpers ---

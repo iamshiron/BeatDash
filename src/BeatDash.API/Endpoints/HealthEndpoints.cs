@@ -38,6 +38,22 @@ public static class HealthEndpoints {
             .Produces<WorkoutDto>()
             .Produces(404)
             .Produces(401);
+
+        endpoints.MapGet("/health/heartrate", async (
+                DateTimeOffset from, DateTimeOffset to,
+                ClaimsPrincipal principal, IHealthService health, CancellationToken ct) => {
+                var userId = IdentityUtils.GetUserID(principal);
+                if (userId is null) return Results.Unauthorized();
+                var curve = await health.GetHeartRateCurveAsync(userId.Value, from, to, ct);
+                return curve is null ? Results.NoContent() : Results.Ok(curve);
+            })
+            .WithName("GetHeartRateCurve")
+            .WithDescription("Heart-rate curve over a time window (e.g. a whole sitting), relative to 'from'.")
+            .WithTags("Health")
+            .RequireAuthorization()
+            .Produces<IList<HeartRatePointDto>>()
+            .Produces(204)
+            .Produces(401);
     }
 }
 

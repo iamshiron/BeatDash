@@ -11,5 +11,5 @@ export interface HspIngestResultDto {
   /** @pattern ^-?(?:0|[1-9]\d*)$ */
   received: number | string;
   /** @pattern ^-?(?:0|[1-9]\d*)$ */
-  rejected: number | string;
+  outOfSession: number | string;
 }

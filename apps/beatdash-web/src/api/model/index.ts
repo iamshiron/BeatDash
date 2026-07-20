@@ -28,6 +28,7 @@ export * from './getApiSessionsPbParams.ts';
 export * from './getApiSessionsRecommendationsParams.ts';
 export * from './getApiSessionsSkillProgressionParams.ts';
 export * from './getApiSessionsWeaknessParams.ts';
+export * from './getHeartRateCurveParams.ts';
 export * from './getSittingsParams.ts';
 export * from './gridCellDto.ts';
 export * from './healthDayDto.ts';

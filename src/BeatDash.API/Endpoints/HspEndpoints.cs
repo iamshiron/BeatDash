@@ -18,7 +18,9 @@ public static class HspEndpoints {
     private const int MaxNameLength = 64;
     private const string TokenHeader = "X-Honami-Token";
     private const string DefaultName = "Honami client";
-    private static readonly TimeSpan FutureSkew = TimeSpan.FromMinutes(5);
+    // A play can't have started more than this before a sample and still contain it — bounds the
+    // play-window query around the batch's time span.
+    private static readonly TimeSpan MaxPlayDuration = TimeSpan.FromMinutes(20);
 
     public static void MapHspEndpoints(this IEndpointRouteBuilder endpoints) {
         var group = endpoints.MapGroup("/hsp").WithTags("HSP");
@@ -159,27 +161,57 @@ public static class HspEndpoints {
                 if (body.Samples.Count > MaxBatch)
                     return Results.BadRequest(new[] { $"Too many samples (max {MaxBatch})." });
 
-                var cutoff = DateTime.UtcNow + FutureSkew;
-                var valid = body.Samples
-                    .Where(s => !string.IsNullOrWhiteSpace(s.Metric) && HspMetrics.IsValid(s.Metric, s.Value))
-                    .Select(s => new { s.Metric, s.Value, s.Unit, RecordedAt = ToUtc(s.RecordedAt), Source = s.Source ?? body.Source ?? client.Name })
-                    .Where(s => s.RecordedAt <= cutoff)
+                // The client is trusted for values and timestamps — we don't verify them. We only
+                // need a metric name and a UTC instant to place each sample against a session.
+                var parsed = body.Samples
+                    .Where(s => !string.IsNullOrWhiteSpace(s.Metric))
+                    .Select(s => new {
+                        s.Metric, s.Value, s.Unit,
+                        RecordedAt = ToUtc(s.RecordedAt),
+                        Source = s.Source ?? body.Source ?? client.Name
+                    })
                     .ToList();
-                var rejected = received - valid.Count;
-                if (valid.Count == 0)
-                    return Results.Ok(new HspIngestResultDto(0, received, rejected));
+                if (parsed.Count == 0)
+                    return Results.Ok(new HspIngestResultDto(0, received, 0));
 
-                // Dedupe against existing rows in the batch's time span (unique on UserId+Metric+RecordedAt).
-                var min = valid.Min(s => s.RecordedAt);
-                var max = valid.Max(s => s.RecordedAt);
+                var min = parsed.Min(s => s.RecordedAt);
+                var max = parsed.Max(s => s.RecordedAt);
+
+                // Keep only samples that fall inside one of the user's play windows; drop the rest.
+                var plays = await db.PlaySessions
+                    .AsNoTracking()
+                    .Where(p => p.UserId == client.UserId && !p.AutoMode && p.Results != null
+                        && p.StartedAt >= min - MaxPlayDuration && p.StartedAt <= max)
+                    .Select(p => new { p.StartedAt, p.EndedAt, Ms = p.Results!.EndSongTimeMs })
+                    .ToListAsync(ct);
+                var windows = plays
+                    .Select(p => (Start: p.StartedAt, End: p.EndedAt ?? p.StartedAt.AddMilliseconds(p.Ms)))
+                    .Where(w => w.End >= min)
+                    .ToList();
+
+                var inSession = parsed
+                    .Where(s => windows.Any(w => s.RecordedAt >= w.Start && s.RecordedAt <= w.End))
+                    .ToList();
+                var outOfSession = parsed.Count - inSession.Count;
+                if (inSession.Count == 0) {
+                    logger.LogInformation(
+                        "HSP ingest from '{Client}': accepted=0, received={Received}, outOfSession={Out}.",
+                        client.Name, received, outOfSession);
+                    return Results.Ok(new HspIngestResultDto(0, received, outOfSession));
+                }
+
+                // Dedupe against existing rows in the span (unique on UserId+Metric+RecordedAt).
+                var dedupeMin = inSession.Min(s => s.RecordedAt);
+                var dedupeMax = inSession.Max(s => s.RecordedAt);
                 var seen = (await db.SensorSamples
-                        .Where(x => x.UserId == client.UserId && x.RecordedAt >= min && x.RecordedAt <= max)
+                        .Where(x => x.UserId == client.UserId
+                            && x.RecordedAt >= dedupeMin && x.RecordedAt <= dedupeMax)
                         .Select(x => new { x.Metric, x.RecordedAt })
                         .ToListAsync(ct))
                     .Select(x => (x.Metric, x.RecordedAt))
                     .ToHashSet();
 
-                var toInsert = valid
+                var toInsert = inSession
                     .Where(s => seen.Add((s.Metric, s.RecordedAt))) // also dedupes within the batch
                     .Select(s => new SensorSample {
                         UserId = client.UserId,
@@ -198,9 +230,9 @@ public static class HspEndpoints {
                 }
 
                 logger.LogInformation(
-                    "HSP ingest from '{Client}': accepted={Accepted}, received={Received}, rejected={Rejected}.",
-                    client.Name, toInsert.Count, received, rejected);
-                return Results.Ok(new HspIngestResultDto(toInsert.Count, received, rejected));
+                    "HSP ingest from '{Client}': accepted={Accepted}, received={Received}, outOfSession={Out}.",
+                    client.Name, toInsert.Count, received, outOfSession);
+                return Results.Ok(new HspIngestResultDto(toInsert.Count, received, outOfSession));
             })
             .WithName("HspIngest")
             .WithDescription("Push a batch of generalized sensor samples authenticated by a Honami client token.")
@@ -247,8 +279,8 @@ public sealed record HspIngestDto(string? Source, IList<HspSampleDto> Samples);
 public sealed record HspSampleDto(string Metric, double Value, string? Unit, DateTime RecordedAt, string? Source);
 
 /// <summary>
-/// Ingest outcome: <paramref name="Accepted"/> newly stored (after validation + dedupe),
-/// out of <paramref name="Received"/> sent, with <paramref name="Rejected"/> dropped for failing
-/// validation (unknown metric, out-of-range value, or a timestamp too far in the future).
+/// Ingest outcome: <paramref name="Accepted"/> newly stored (after dedupe), out of
+/// <paramref name="Received"/> sent, with <paramref name="OutOfSession"/> dropped for not falling
+/// inside any play window. (The remainder were duplicates already stored.)
 /// </summary>
-public sealed record HspIngestResultDto(int Accepted, int Received, int Rejected);
+public sealed record HspIngestResultDto(int Accepted, int Received, int OutOfSession);

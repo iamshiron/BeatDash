@@ -4,12 +4,16 @@ import {
 	AltArrowDownIcon,
 	BoltIcon,
 	FireIcon,
+	HeartPulseIcon,
 	MedalStarIcon,
 	TargetIcon,
 } from "@solar-icons/react/dynamic";
 import { useState } from "react";
+import { useGetHeartRateCurve } from "@/api/health/health";
 import type { SessionSummaryDto } from "@/api/model";
 import { SessionRow } from "@/components/profile/SessionRow";
+import { HeartRateCurve } from "@/components/sessions/HeartRateCurve";
+import { useAuth } from "@/contexts/auth";
 import { formatAccuracy, RANK_STYLES } from "@/lib/sessions";
 
 function formatPlayTime(ms: number): string {
@@ -41,12 +45,37 @@ function HeaderStat({
 	);
 }
 
+function HrStat({ label, value }: { label: string; value: number | null }) {
+	return (
+		<div className="flex items-baseline gap-1 rounded-md border border-border/40 bg-card/60 px-2 py-1">
+			<span className="font-heading text-sm font-bold tabular-nums text-rose-400">
+				{value ?? "—"}
+			</span>
+			<span className="text-[10px] text-muted-foreground">{label} bpm</span>
+		</div>
+	);
+}
+
 /**
  * One sitting (a cluster of plays) as a collapsible card: a summary header that
  * expands to reveal every play in the session.
  */
 export function SittingCard({ sitting }: { sitting: SessionSummaryDto }) {
 	const [open, setOpen] = useState(false);
+	const { user } = useAuth();
+	const healthEnabled = Boolean(user?.healthTrackingEnabled);
+
+	// Lazily fetch the session-wide heart-rate curve only once the card is expanded.
+	const hrQuery = useGetHeartRateCurve(
+		{ from: sitting.startedAt, to: sitting.endedAt },
+		{ query: { enabled: open && healthEnabled && sitting.endedAt != null } },
+	);
+	const hrCurve = hrQuery.data?.status === 200 ? hrQuery.data.data : [];
+	const hrValues = hrCurve.map((p) => Number(p.bpm));
+	const avgHr = hrValues.length
+		? Math.round(hrValues.reduce((a, b) => a + b, 0) / hrValues.length)
+		: null;
+	const maxHr = hrValues.length ? Math.max(...hrValues) : null;
 	const start = new Date(sitting.startedAt);
 	const dateLabel = start.toLocaleDateString(undefined, {
 		weekday: "short",
@@ -148,6 +177,21 @@ export function SittingCard({ sitting }: { sitting: SessionSummaryDto }) {
 							</span>
 						))}
 					</div>
+					{hrCurve.length >= 2 && (
+						<div className="mb-2 rounded-lg border border-border/40 bg-card/40 p-2">
+							<div className="mb-2 flex items-center justify-between gap-2 px-1">
+								<div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+									<HeartPulseIcon className="size-3.5 text-rose-400" />
+									Heart rate this session
+								</div>
+								<div className="flex items-center gap-2">
+									<HrStat label="Avg" value={avgHr} />
+									<HrStat label="Max" value={maxHr} />
+								</div>
+							</div>
+							<HeartRateCurve points={hrCurve} />
+						</div>
+					)}
 					{sitting.plays.map((play) => (
 						<SessionRow key={play.id} session={play} />
 					))}
