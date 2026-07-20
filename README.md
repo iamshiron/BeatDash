@@ -40,6 +40,13 @@ The dashboard (shown above) opens on an overview of your account: total plays, p
       <p>Browse the maps you've played. Filter by played, unplayed, or liked, search by name, and see difficulties, note counts, length, star rating, and cover art for each.</p>
     </td>
   </tr>
+  <tr>
+    <td width="50%">
+      <h3>Public profile</h3>
+      <p>A shareable page for your account with only the sections you choose to make public — banner and avatar, career stats, a skill radar, an activity heatmap, and your recent and best plays. Anyone with the link can view it; you stay in control of what's shown.</p>
+    </td>
+    <td width="50%"><img src="assets/feature-profile.png" alt="Public profile" width="420"></td>
+  </tr>
 </table>
 
 ### Also included
@@ -47,7 +54,6 @@ The dashboard (shown above) opens on an overview of your account: total plays, p
 -   **Live tracking** — maps and score appear on the dashboard in real time as you play
 -   **Device pairing** — link one or more Beat Saber installs to your account with a PIN
 -   **Lists** — group maps into named collections
--   **Public profile** — a shareable page with the sections you choose to make visible
 -   **Health & fitness (optional)** — opt-in calorie, active-time, and heart-rate insights per play and per session. Wearable heart rate is pushed through the **Honami Sensor Proxy**, a device-agnostic companion app that forwards your smartwatch's sensor data to BeatDash. The app is currently in development — the first version will be available on GitHub soon™.
 
 ---
