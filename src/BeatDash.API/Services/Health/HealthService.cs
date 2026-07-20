@@ -118,7 +118,9 @@ public sealed class HealthService(BeatDashDbContext db) : IHealthService {
             .Where(s => s.Id == sessionId)
             .Where(BaseFilter(userId))
             .Select(s => new {
-                s.StartedAt, s.EndedAt, s.Results!.EndSongTimeMs,
+                s.StartedAt,
+                s.EndedAt,
+                s.Results!.EndSongTimeMs,
                 Nps = s.BeatmapDifficulty.NotesPerSecond
             })
             .FirstOrDefaultAsync(ct);

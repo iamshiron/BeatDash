@@ -111,8 +111,8 @@ export function AddHspClientDialog({
 						Link a Honami Health Proxy client
 					</DialogTitle>
 					<DialogDescription>
-						Scan this code in the Honami companion app to push heart rate and other
-						sensor data from your watch into BeatDash.
+						Scan this code in the Honami companion app to push heart rate and
+						other sensor data from your watch into BeatDash.
 					</DialogDescription>
 				</DialogHeader>
 
@@ -149,8 +149,8 @@ export function AddHspClientDialog({
 								</div>
 							) : serverError ? (
 								<p className="py-8 text-center text-sm text-destructive">
-									Linked the client but couldn't read the server address to build
-									the code.
+									Linked the client but couldn't read the server address to
+									build the code.
 								</p>
 							) : (
 								<div className="flex items-center justify-center py-16">

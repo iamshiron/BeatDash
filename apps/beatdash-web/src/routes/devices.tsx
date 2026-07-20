@@ -417,8 +417,8 @@ function HspDeleteDialog({
 				<AlertDialogHeader>
 					<AlertDialogTitle>Unlink client?</AlertDialogTitle>
 					<AlertDialogDescription>
-						{client?.name} will stop being able to push sensor data. Its token is
-						revoked immediately and cannot be reused.
+						{client?.name} will stop being able to push sensor data. Its token
+						is revoked immediately and cannot be reused.
 					</AlertDialogDescription>
 				</AlertDialogHeader>
 				<AlertDialogFooter>

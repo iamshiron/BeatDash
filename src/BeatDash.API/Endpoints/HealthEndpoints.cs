@@ -11,11 +11,11 @@ public static class HealthEndpoints {
     public static void MapHealthEndpoints(this IEndpointRouteBuilder endpoints) {
         endpoints.MapGet("/health/overview", async (
                 ClaimsPrincipal principal, IHealthService health, CancellationToken ct) => {
-                var userId = IdentityUtils.GetUserID(principal);
-                if (userId is null) return Results.Unauthorized();
-                var overview = await health.GetOverviewAsync(userId.Value, ct);
-                return overview is null ? Results.NoContent() : Results.Ok(overview);
-            })
+                    var userId = IdentityUtils.GetUserID(principal);
+                    if (userId is null) return Results.Unauthorized();
+                    var overview = await health.GetOverviewAsync(userId.Value, ct);
+                    return overview is null ? Results.NoContent() : Results.Ok(overview);
+                })
             .WithName("GetHealthOverview")
             .WithDescription("The current user's fitness overview (calories, active time, trends, body context).")
             .WithTags("Health")
@@ -26,11 +26,11 @@ public static class HealthEndpoints {
 
         endpoints.MapGet("/sessions/{sessionId:guid}/workout", async (
                 Guid sessionId, ClaimsPrincipal principal, IHealthService health, CancellationToken ct) => {
-                var userId = IdentityUtils.GetUserID(principal);
-                if (userId is null) return Results.Unauthorized();
-                var workout = await health.GetWorkoutAsync(userId.Value, sessionId, ct);
-                return workout is null ? Results.NotFound() : Results.Ok(workout);
-            })
+                    var userId = IdentityUtils.GetUserID(principal);
+                    if (userId is null) return Results.Unauthorized();
+                    var workout = await health.GetWorkoutAsync(userId.Value, sessionId, ct);
+                    return workout is null ? Results.NotFound() : Results.Ok(workout);
+                })
             .WithName("GetSessionWorkout")
             .WithDescription("Per-play workout figures (calories, active time, intensity, movement, heart rate).")
             .WithTags("Health")
@@ -42,11 +42,11 @@ public static class HealthEndpoints {
         endpoints.MapGet("/health/heartrate", async (
                 DateTimeOffset from, DateTimeOffset to,
                 ClaimsPrincipal principal, IHealthService health, CancellationToken ct) => {
-                var userId = IdentityUtils.GetUserID(principal);
-                if (userId is null) return Results.Unauthorized();
-                var curve = await health.GetHeartRateCurveAsync(userId.Value, from, to, ct);
-                return curve is null ? Results.NoContent() : Results.Ok(curve);
-            })
+                    var userId = IdentityUtils.GetUserID(principal);
+                    if (userId is null) return Results.Unauthorized();
+                    var curve = await health.GetHeartRateCurveAsync(userId.Value, from, to, ct);
+                    return curve is null ? Results.NoContent() : Results.Ok(curve);
+                })
             .WithName("GetHeartRateCurve")
             .WithDescription("Heart-rate curve over a time window (e.g. a whole sitting), relative to 'from'.")
             .WithTags("Health")

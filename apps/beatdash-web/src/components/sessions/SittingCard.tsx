@@ -89,7 +89,8 @@ export function SittingCard({ sitting }: { sitting: SessionSummaryDto }) {
 
 	const playCount = Number(sitting.playCount);
 	const completed = Number(sitting.completedPlayCount);
-	const kcalRaw = sitting.caloriesKcal != null ? Number(sitting.caloriesKcal) : null;
+	const kcalRaw =
+		sitting.caloriesKcal != null ? Number(sitting.caloriesKcal) : null;
 	const kcal = kcalRaw != null ? Math.round(kcalRaw) : null;
 	// Burn rate over the active play time (the biggest driver of total burn).
 	const minutes = Number(sitting.totalPlayTimeMs) / 60000;

@@ -46,9 +46,7 @@ export function UserMenu() {
 			<DropdownMenuTrigger asChild>
 				<Button variant="ghost" className="h-8 gap-2 pl-1.5 pr-2 max-md:pr-1.5">
 					<Avatar size="sm">
-						{user?.avatarUrl && (
-							<AvatarImage src={user.avatarUrl} alt={name} />
-						)}
+						{user?.avatarUrl && <AvatarImage src={user.avatarUrl} alt={name} />}
 						<AvatarFallback>{initials}</AvatarFallback>
 					</Avatar>
 					<span className="hidden max-w-24 truncate text-xs font-medium md:inline">
