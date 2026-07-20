@@ -77,5 +77,10 @@ public sealed record WorkoutDto(
     double LeftDistanceM,
     double RightDistanceM,
     double? AvgHeartRate,
-    int? MaxHeartRate
+    int? MaxHeartRate,
+    // Wearable heart-rate samples across the play (empty when none were pushed).
+    IList<HeartRatePointDto> HeartRateCurve
 );
+
+/// <summary>One heart-rate reading, positioned by seconds elapsed since the play started.</summary>
+public sealed record HeartRatePointDto(int SecondsIntoPlay, int Bpm);

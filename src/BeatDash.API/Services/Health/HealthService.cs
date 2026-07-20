@@ -120,7 +120,23 @@ public sealed class HealthService(BeatDashDbContext db) : IHealthService {
         if (play is null) return null;
 
         var windowEnd = play.EndedAt ?? play.StartedAt.AddMilliseconds(play.EndSongTimeMs);
-        var (avgHr, maxHr) = await HeartRateInWindowAsync(userId, play.StartedAt, windowEnd, ct);
+
+        // Heart-rate samples that fall inside the play window, ordered — used for the avg/max
+        // and the per-play HR curve (bpm across the song).
+        var hrSamples = await db.HeartRateSamples
+            .AsNoTracking()
+            .Where(h => h.UserId == userId && h.RecordedAt >= play.StartedAt && h.RecordedAt <= windowEnd)
+            .OrderBy(h => h.RecordedAt)
+            .Select(h => new { h.RecordedAt, h.Bpm })
+            .ToListAsync(ct);
+
+        double? avgHr = hrSamples.Count > 0 ? hrSamples.Average(h => h.Bpm) : null;
+        int? maxHr = hrSamples.Count > 0 ? hrSamples.Max(h => h.Bpm) : null;
+        var hrCurve = hrSamples
+            .Select(h => new HeartRatePointDto(
+                (int) Math.Max(0, (h.RecordedAt - play.StartedAt).TotalSeconds),
+                h.Bpm))
+            .ToList();
 
         var mo = (await LoadMotionAsync([sessionId], ct)).GetValueOrDefault(sessionId);
 
@@ -131,17 +147,7 @@ public sealed class HealthService(BeatDashDbContext db) : IHealthService {
         return new WorkoutDto(
             est.Kcal, est.ActiveMinutes, est.Intensity01, est.Met, Confidence(est.Confidence),
             mo?.LeftSaberTravel ?? 0, mo?.RightSaberTravel ?? 0,
-            AvgHeartRate: est.AvgHr, MaxHeartRate: maxHr);
-    }
-
-    private async Task<(double? Avg, int? Max)> HeartRateInWindowAsync(
-        Guid userId, DateTime start, DateTime end, CancellationToken ct) {
-        var bpms = await db.HeartRateSamples
-            .AsNoTracking()
-            .Where(h => h.UserId == userId && h.RecordedAt >= start && h.RecordedAt <= end)
-            .Select(h => h.Bpm)
-            .ToListAsync(ct);
-        return bpms.Count == 0 ? (null, null) : (bpms.Average(), bpms.Max());
+            AvgHeartRate: est.AvgHr, MaxHeartRate: maxHr, HeartRateCurve: hrCurve);
     }
 
     // --- helpers ---

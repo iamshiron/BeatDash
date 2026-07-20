@@ -36,6 +36,7 @@ export * from './healthOverviewDto.ts';
 export * from './healthTrendWeekDto.ts';
 export * from './heartRateIngestDto.ts';
 export * from './heartRateIngestResultDto.ts';
+export * from './heartRatePointDto.ts';
 export * from './heartRateSampleDto.ts';
 export * from './httpValidationProblemDetails.ts';
 export * from './httpValidationProblemDetailsErrors.ts';

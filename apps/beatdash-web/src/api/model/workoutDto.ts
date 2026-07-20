@@ -4,6 +4,7 @@
  * Shiron.BeatDash.API | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { HeartRatePointDto } from './heartRatePointDto.ts';
 
 export interface WorkoutDto {
   /** @pattern ^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$ */
@@ -32,4 +33,5 @@ export interface WorkoutDto {
      * @pattern ^-?(?:0|[1-9]\d*)$
      */
   maxHeartRate: number | string | null;
+  heartRateCurve: HeartRatePointDto[];
 }

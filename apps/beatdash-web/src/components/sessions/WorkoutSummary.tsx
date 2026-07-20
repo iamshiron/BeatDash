@@ -9,6 +9,7 @@ import {
 import { cn } from "@shiron/ui/lib/utils";
 import { HeartPulseIcon } from "@solar-icons/react/dynamic";
 import { useGetSessionWorkout } from "@/api/health/health";
+import { HeartRateCurve } from "@/components/sessions/HeartRateCurve";
 import { useAuth } from "@/contexts/auth";
 
 function Metric({ label, value }: { label: string; value: string }) {
@@ -67,6 +68,7 @@ export function WorkoutSummary({ sessionId }: { sessionId: string }) {
 		workout.avgHeartRate != null ? Number(workout.avgHeartRate) : null;
 	const maxHr =
 		workout.maxHeartRate != null ? Number(workout.maxHeartRate) : null;
+	const hrCurve = workout.heartRateCurve ?? [];
 
 	return (
 		<Card className="mb-4">
@@ -97,6 +99,15 @@ export function WorkoutSummary({ sessionId }: { sessionId: string }) {
 						<Metric label="Max heart rate" value={`${maxHr} bpm`} />
 					)}
 				</div>
+				{hrCurve.length >= 2 && (
+					<div className="mt-4">
+						<div className="mb-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+							<HeartPulseIcon className="size-3.5" />
+							Heart rate over the play
+						</div>
+						<HeartRateCurve points={hrCurve} />
+					</div>
+				)}
 				{avgHr == null && (
 					<p className="mt-3 flex items-center gap-1.5 text-[11px] text-muted-foreground">
 						<HeartPulseIcon className="size-3.5" />
