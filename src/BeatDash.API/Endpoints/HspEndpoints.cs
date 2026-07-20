@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Shiron.BeatDash.API.Services.Health;
 using Shiron.BeatDash.DB;
@@ -9,51 +8,126 @@ namespace Shiron.BeatDash.API.Endpoints;
 
 /// <summary>
 /// Honami Sensor Proxy (HSP): the generalized, backend-agnostic ingestion surface a wearable /
-/// companion app pushes sensor samples to. A session-authed endpoint mints the per-user push
-/// token; a token-authenticated endpoint accepts a batch of typed samples. The Beat Saber client
-/// is deliberately not involved.
+/// companion app pushes sensor samples to. Client management (link / list / unlink) is guarded by
+/// the user's normal session; only <c>/hsp/ingest</c> accepts the opaque per-client push token,
+/// which is validated by hash here and nowhere else — so it can never reach any other endpoint.
+/// Multiple clients can be linked and push concurrently.
 /// </summary>
 public static class HspEndpoints {
     private const int MaxBatch = 5000;
+    private const int MaxNameLength = 64;
     private const string TokenHeader = "X-Honami-Token";
+    private const string DefaultName = "Honami client";
     private static readonly TimeSpan FutureSkew = TimeSpan.FromMinutes(5);
 
     public static void MapHspEndpoints(this IEndpointRouteBuilder endpoints) {
         var group = endpoints.MapGroup("/hsp").WithTags("HSP");
 
-        // Mint (or rotate) the caller's push token — returned in plaintext exactly once. Used to
-        // build the QR a Honami client scans. Re-minting invalidates previously linked clients.
-        group.MapPost("/token", async (ClaimsPrincipal principal, UserManager<User> userManager) => {
-                var user = await userManager.GetUserAsync(principal);
-                if (user is null) return Results.Unauthorized();
+        // Link a new client — mints a scoped token (plaintext returned once, for the QR).
+        group.MapPost("/clients", async (
+                HspLinkRequestDto? body, ClaimsPrincipal principal, BeatDashDbContext db, CancellationToken ct) => {
+                var userId = IdentityUtils.GetUserID(principal);
+                if (userId is null) return Results.Unauthorized();
+
+                var name = string.IsNullOrWhiteSpace(body?.Name) ? DefaultName : body.Name.Trim();
+                if (name.Length > MaxNameLength) name = name[..MaxNameLength];
 
                 var token = HealthIngestToken.Generate();
-                user.HealthIngestTokenHash = HealthIngestToken.Hash(token);
-                var result = await userManager.UpdateAsync(user);
-                if (!result.Succeeded)
-                    return Results.BadRequest(result.Errors.Select(e => e.Description).ToList());
+                var client = new HealthProxyClient {
+                    UserId = userId.Value,
+                    Name = name,
+                    TokenHash = HealthIngestToken.Hash(token)
+                };
+                db.HealthProxyClients.Add(client);
+                await db.SaveChangesAsync(ct);
 
-                return Results.Ok(new HspTokenDto(token));
+                return Results.Ok(new HspClientTokenDto(client.Id, client.Name, token));
             })
-            .WithName("GenerateHspToken")
-            .WithDescription("Generate or rotate the Honami Sensor Proxy push token (plaintext shown once).")
+            .WithName("LinkHspClient")
+            .WithDescription("Link a new Honami Sensor Proxy client and mint its scoped push token (shown once).")
             .RequireAuthorization()
-            .Produces<HspTokenDto>()
+            .Produces<HspClientTokenDto>()
             .Produces(401);
 
-        // Token-authenticated push of a generalized sample batch from a Honami client.
+        // List the caller's linked clients (for the Devices list).
+        group.MapGet("/clients", async (ClaimsPrincipal principal, BeatDashDbContext db, CancellationToken ct) => {
+                var userId = IdentityUtils.GetUserID(principal);
+                if (userId is null) return Results.Unauthorized();
+
+                var clients = await db.HealthProxyClients
+                    .AsNoTracking()
+                    .Where(c => c.UserId == userId)
+                    .OrderBy(c => c.CreatedAt)
+                    .Select(c => new HspClientDto(
+                        c.Id, c.Name, c.CreatedAt, c.LastSeenAt,
+                        // Most recent heart-rate this client pushed — a quick live readout.
+                        db.SensorSamples
+                            .Where(s => s.ClientId == c.Id && s.Metric == HspMetrics.HeartRate)
+                            .OrderByDescending(s => s.RecordedAt)
+                            .Select(s => (double?) s.Value)
+                            .FirstOrDefault()))
+                    .ToListAsync(ct);
+
+                return Results.Ok(clients);
+            })
+            .WithName("ListHspClients")
+            .WithDescription("List the caller's linked Honami Sensor Proxy clients.")
+            .RequireAuthorization()
+            .Produces<IList<HspClientDto>>()
+            .Produces(401);
+
+        // Unlink (revoke) a client.
+        group.MapDelete("/clients/{id:guid}", async (
+                Guid id, ClaimsPrincipal principal, BeatDashDbContext db, CancellationToken ct) => {
+                var userId = IdentityUtils.GetUserID(principal);
+                if (userId is null) return Results.Unauthorized();
+
+                await db.HealthProxyClients
+                    .Where(c => c.Id == id && c.UserId == userId)
+                    .ExecuteDeleteAsync(ct);
+                return Results.NoContent();
+            })
+            .WithName("UnlinkHspClient")
+            .WithDescription("Unlink a Honami Sensor Proxy client, revoking its token.")
+            .RequireAuthorization()
+            .Produces(204)
+            .Produces(401);
+
+        // Token-authenticated push of a generalized sample batch from a linked client.
         group.MapPost("/ingest", async (
-                HttpContext http, HspIngestDto body, BeatDashDbContext db, CancellationToken ct) => {
+                HttpContext http, HspIngestDto body, BeatDashDbContext db,
+                ILoggerFactory loggerFactory, CancellationToken ct) => {
+                var logger = loggerFactory.CreateLogger("Hsp.Ingest");
                 var token = ExtractToken(http.Request);
                 if (token is null) return Results.Unauthorized();
 
                 var hash = HealthIngestToken.Hash(token);
-                var user = await db.Users.FirstOrDefaultAsync(u => u.HealthIngestTokenHash == hash, ct);
-                if (user is null) return Results.Unauthorized();
+                var client = await db.HealthProxyClients.FirstOrDefaultAsync(c => c.TokenHash == hash, ct);
+                if (client is null) {
+                    logger.LogWarning("HSP ingest rejected: no client matches the supplied token.");
+                    return Results.Unauthorized();
+                }
 
-                // Silently no-op when the user hasn't enabled tracking (token stays valid).
-                if (!user.HealthTrackingEnabled)
-                    return Results.Ok(new HspIngestResultDto(0));
+                // The client authenticated — mark it connected now, regardless of what the batch
+                // contains (an empty/all-invalid push still proves the client reached us).
+                client.LastSeenAt = DateTime.UtcNow;
+                await db.SaveChangesAsync(ct);
+
+                var received = body.Samples?.Count ?? 0;
+                var dump = body.Samples is { Count: > 0 }
+                    ? string.Join(", ", body.Samples.Select(s => $"{s.Metric}={s.Value}{s.Unit}@{s.RecordedAt:o}"))
+                    : "(none)";
+                logger.LogInformation(
+                    "HSP ingest from '{Client}' (source={Source}): {Count} sample(s): {Samples}",
+                    client.Name, body.Source ?? "(none)", received, dump);
+
+                // Silently no-op when the owner hasn't enabled tracking (token stays valid).
+                var trackingEnabled = await db.Users
+                    .Where(u => u.Id == client.UserId)
+                    .Select(u => u.HealthTrackingEnabled)
+                    .FirstOrDefaultAsync(ct);
+                if (!trackingEnabled)
+                    return Results.Ok(new HspIngestResultDto(0, received, 0));
 
                 if (body.Samples is not { Count: > 0 })
                     return Results.BadRequest(new[] { "No samples provided." });
@@ -63,17 +137,18 @@ public static class HspEndpoints {
                 var cutoff = DateTime.UtcNow + FutureSkew;
                 var valid = body.Samples
                     .Where(s => !string.IsNullOrWhiteSpace(s.Metric) && HspMetrics.IsValid(s.Metric, s.Value))
-                    .Select(s => new { s.Metric, s.Value, s.Unit, RecordedAt = ToUtc(s.RecordedAt), Source = s.Source ?? body.Source })
+                    .Select(s => new { s.Metric, s.Value, s.Unit, RecordedAt = ToUtc(s.RecordedAt), Source = s.Source ?? body.Source ?? client.Name })
                     .Where(s => s.RecordedAt <= cutoff)
                     .ToList();
+                var rejected = received - valid.Count;
                 if (valid.Count == 0)
-                    return Results.Ok(new HspIngestResultDto(0));
+                    return Results.Ok(new HspIngestResultDto(0, received, rejected));
 
                 // Dedupe against existing rows in the batch's time span (unique on UserId+Metric+RecordedAt).
                 var min = valid.Min(s => s.RecordedAt);
                 var max = valid.Max(s => s.RecordedAt);
                 var seen = (await db.SensorSamples
-                        .Where(x => x.UserId == user.Id && x.RecordedAt >= min && x.RecordedAt <= max)
+                        .Where(x => x.UserId == client.UserId && x.RecordedAt >= min && x.RecordedAt <= max)
                         .Select(x => new { x.Metric, x.RecordedAt })
                         .ToListAsync(ct))
                     .Select(x => (x.Metric, x.RecordedAt))
@@ -82,7 +157,8 @@ public static class HspEndpoints {
                 var toInsert = valid
                     .Where(s => seen.Add((s.Metric, s.RecordedAt))) // also dedupes within the batch
                     .Select(s => new SensorSample {
-                        UserId = user.Id,
+                        UserId = client.UserId,
+                        ClientId = client.Id,
                         Metric = s.Metric,
                         Value = s.Value,
                         Unit = s.Unit ?? HspMetrics.CanonicalUnit(s.Metric),
@@ -96,10 +172,13 @@ public static class HspEndpoints {
                     await db.SaveChangesAsync(ct);
                 }
 
-                return Results.Ok(new HspIngestResultDto(toInsert.Count));
+                logger.LogInformation(
+                    "HSP ingest from '{Client}': accepted={Accepted}, received={Received}, rejected={Rejected}.",
+                    client.Name, toInsert.Count, received, rejected);
+                return Results.Ok(new HspIngestResultDto(toInsert.Count, received, rejected));
             })
             .WithName("HspIngest")
-            .WithDescription("Push a batch of generalized sensor samples authenticated by the Honami push token.")
+            .WithDescription("Push a batch of generalized sensor samples authenticated by a Honami client token.")
             .AllowAnonymous()
             .DisableAntiforgery()
             .Produces<HspIngestResultDto>()
@@ -123,8 +202,15 @@ public static class HspEndpoints {
     };
 }
 
-/// <summary>The freshly generated push token; shown to the user once (encoded into the link QR).</summary>
-public sealed record HspTokenDto(string Token);
+/// <summary>Request to link a new client; an optional label for the Devices list.</summary>
+public sealed record HspLinkRequestDto(string? Name);
+
+/// <summary>A freshly linked client with its plaintext token — shown once, encoded into the link QR.</summary>
+public sealed record HspClientTokenDto(Guid Id, string Name, string Token);
+
+/// <summary>A linked client as shown in the Devices list, with its most recent heart rate.</summary>
+public sealed record HspClientDto(
+    Guid Id, string Name, DateTime CreatedAt, DateTime? LastSeenAt, double? LastHeartRate);
 
 /// <summary>A batch of generalized sensor samples.</summary>
 public sealed record HspIngestDto(string? Source, IList<HspSampleDto> Samples);
@@ -132,5 +218,9 @@ public sealed record HspIngestDto(string? Source, IList<HspSampleDto> Samples);
 /// <summary>One generalized sample: a metric, its value, and when it was measured.</summary>
 public sealed record HspSampleDto(string Metric, double Value, string? Unit, DateTime RecordedAt, string? Source);
 
-/// <summary>How many new samples were stored (after validation + dedupe).</summary>
-public sealed record HspIngestResultDto(int Accepted);
+/// <summary>
+/// Ingest outcome: <paramref name="Accepted"/> newly stored (after validation + dedupe),
+/// out of <paramref name="Received"/> sent, with <paramref name="Rejected"/> dropped for failing
+/// validation (unknown metric, out-of-range value, or a timestamp too far in the future).
+/// </summary>
+public sealed record HspIngestResultDto(int Accepted, int Received, int Rejected);

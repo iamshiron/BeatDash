@@ -33,6 +33,8 @@ public class BeatDashDbContext(DbContextOptions<BeatDashDbContext> options) : Id
 
     public DbSet<SensorSample> SensorSamples => Set<SensorSample>();
 
+    public DbSet<HealthProxyClient> HealthProxyClients => Set<HealthProxyClient>();
+
     protected override void OnModelCreating(ModelBuilder builder) {
         base.OnModelCreating(builder);
 
@@ -287,7 +289,25 @@ public class BeatDashDbContext(DbContextOptions<BeatDashDbContext> options) : Id
                 .WithMany()
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+            // Attribute samples to the pushing client; unlinking a client keeps its data.
+            c.HasIndex(x => x.ClientId);
+            c.HasOne<HealthProxyClient>()
+                .WithMany()
+                .HasForeignKey(x => x.ClientId)
+                .OnDelete(DeleteBehavior.SetNull);
             c.ToTable("SensorSamples");
+        });
+
+        builder.Entity<HealthProxyClient>(c => {
+            c.HasKey(x => x.Id);
+            // Ingest resolves the client by token hash on every push — must be unique + indexed.
+            c.HasIndex(x => x.TokenHash).IsUnique();
+            c.HasIndex(x => x.UserId);
+            c.HasOne(x => x.User)
+                .WithMany(u => u.HealthProxyClients)
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            c.ToTable("HealthProxyClients");
         });
     }
 }

@@ -56,7 +56,12 @@ import {
 	useGetApiDevice,
 	usePatchApiDeviceClientId,
 } from "@/api/device/device";
-import type { DeviceResponseDto } from "@/api/model";
+import {
+	getListHspClientsQueryKey,
+	useListHspClients,
+	useUnlinkHspClient,
+} from "@/api/hsp/hsp";
+import type { DeviceResponseDto, HspClientDto } from "@/api/model";
 import { AddDeviceDialog } from "@/components/devices/AddDeviceDialog";
 import { AddHspClientDialog } from "@/components/devices/AddHspClientDialog";
 import { AppShell } from "@/components/layout/AppShell";
@@ -89,6 +94,14 @@ function DevicesPage() {
 
 	const { data, isLoading } = useGetApiDevice();
 	const devices = data?.status === 200 ? data.data : [];
+
+	const { data: hspData, isLoading: hspLoading } = useListHspClients({
+		query: { enabled: healthEnabled, refetchInterval: 3000 },
+	});
+	const hspClients = hspData?.status === 200 ? hspData.data : [];
+	const [hspDeleteTarget, setHspDeleteTarget] = useState<HspClientDto | null>(
+		null,
+	);
 
 	const queryClient = useQueryClient();
 	useRealtimeEvent("receiveDeviceStatus", (event) => {
@@ -135,45 +148,57 @@ function DevicesPage() {
 				</div>
 			</div>
 
-			{isLoading && (
+			{(isLoading || (healthEnabled && hspLoading)) && (
 				<div className="mt-6 flex flex-col gap-3">
 					<Skeleton className="h-20 rounded-lg" />
 					<Skeleton className="h-20 rounded-lg" />
 				</div>
 			)}
 
-			{!isLoading && devices.length === 0 && (
-				<Empty className="mt-10">
-					<EmptyHeader>
-						<EmptyMedia variant="icon">
-							<MonitorIcon />
-						</EmptyMedia>
-						<EmptyTitle>No devices paired</EmptyTitle>
-						<EmptyDescription>
-							Pair your VR headset to start syncing your Beat Saber sessions.
-						</EmptyDescription>
-					</EmptyHeader>
-					<EmptyContent>
-						<Button onClick={() => setPairDialogOpen(true)}>
-							<AddCircleIcon />
-							Pair a Device
-						</Button>
-					</EmptyContent>
-				</Empty>
-			)}
+			{!isLoading &&
+				!(healthEnabled && hspLoading) &&
+				devices.length === 0 &&
+				hspClients.length === 0 && (
+					<Empty className="mt-10">
+						<EmptyHeader>
+							<EmptyMedia variant="icon">
+								<MonitorIcon />
+							</EmptyMedia>
+							<EmptyTitle>No devices paired</EmptyTitle>
+							<EmptyDescription>
+								Pair your VR headset to start syncing your Beat Saber sessions.
+							</EmptyDescription>
+						</EmptyHeader>
+						<EmptyContent>
+							<Button onClick={() => setPairDialogOpen(true)}>
+								<AddCircleIcon />
+								Pair a Device
+							</Button>
+						</EmptyContent>
+					</Empty>
+				)}
 
-			{!isLoading && devices.length > 0 && (
-				<div className="mt-6 flex flex-col gap-3">
-					{devices.map((device) => (
-						<DeviceRow
-							key={device.clientId}
-							device={device}
-							onRename={() => setRenameTarget(device)}
-							onDelete={() => setDeleteTarget(device)}
-						/>
-					))}
-				</div>
-			)}
+			{!isLoading &&
+				!(healthEnabled && hspLoading) &&
+				(devices.length > 0 || hspClients.length > 0) && (
+					<div className="mt-6 flex flex-col gap-3">
+						{devices.map((device) => (
+							<DeviceRow
+								key={device.clientId}
+								device={device}
+								onRename={() => setRenameTarget(device)}
+								onDelete={() => setDeleteTarget(device)}
+							/>
+						))}
+						{hspClients.map((client) => (
+							<HspClientRow
+								key={client.id}
+								client={client}
+								onDelete={() => setHspDeleteTarget(client)}
+							/>
+						))}
+					</div>
+				)}
 
 			<AddDeviceDialog open={pairDialogOpen} onOpenChange={setPairDialogOpen} />
 
@@ -193,7 +218,126 @@ function DevicesPage() {
 				device={deleteTarget}
 				onClose={() => setDeleteTarget(null)}
 			/>
+
+			<HspDeleteDialog
+				client={hspDeleteTarget}
+				onClose={() => setHspDeleteTarget(null)}
+			/>
 		</AppShell>
+	);
+}
+
+function HspClientRow({
+	client,
+	onDelete,
+}: {
+	client: HspClientDto;
+	onDelete: () => void;
+}) {
+	useNow();
+	const lastSeen = client.lastSeenAt
+		? `Last active ${formatDistanceToNow(new Date(client.lastSeenAt), { addSuffix: true })}`
+		: "Not connected yet";
+
+	return (
+		<Card>
+			<CardHeader>
+				<div className="flex items-center gap-2">
+					<HeartPulseIcon className="size-4 text-primary" weight="Bold" />
+					<CardTitle>{client.name}</CardTitle>
+				</div>
+				<CardAction>
+					<Badge
+						variant="outline"
+						className="border-primary/30 bg-primary/10 text-primary"
+					>
+						HSP
+					</Badge>
+				</CardAction>
+			</CardHeader>
+			<CardContent className="flex items-center justify-between">
+				<div className="flex flex-col gap-0.5 text-muted-foreground">
+					<span>{lastSeen}</span>
+					<span className="font-mono text-[0.625rem] opacity-60">
+						{client.id}
+					</span>
+				</div>
+				<div className="flex items-center gap-3">
+					{client.lastHeartRate != null && (
+						<div className="flex items-center gap-1.5 text-rose-400">
+							<HeartPulseIcon className="size-4 animate-pulse" weight="Bold" />
+							<span className="font-heading text-lg font-bold tabular-nums">
+								{Math.round(Number(client.lastHeartRate))}
+							</span>
+							<span className="text-[10px] text-muted-foreground">bpm</span>
+						</div>
+					)}
+					<Button
+						variant="outline"
+						size="icon"
+						onClick={onDelete}
+						aria-label="Unlink client"
+					>
+						<TrashBinMinimalisticIcon />
+					</Button>
+				</div>
+			</CardContent>
+		</Card>
+	);
+}
+
+function HspDeleteDialog({
+	client,
+	onClose,
+}: {
+	client: HspClientDto | null;
+	onClose: () => void;
+}) {
+	const queryClient = useQueryClient();
+
+	const unlinkMutation = useUnlinkHspClient({
+		mutation: {
+			onSuccess: async (response) => {
+				if (response.status !== 204) {
+					toast.error("Failed to unlink the client.");
+					return;
+				}
+				await queryClient.invalidateQueries({
+					queryKey: getListHspClientsQueryKey(),
+				});
+				toast.success("Client unlinked.");
+				onClose();
+			},
+		},
+	});
+
+	return (
+		<AlertDialog
+			open={client != null}
+			onOpenChange={(isOpen) => !isOpen && onClose()}
+		>
+			<AlertDialogContent>
+				<AlertDialogHeader>
+					<AlertDialogTitle>Unlink client?</AlertDialogTitle>
+					<AlertDialogDescription>
+						{client?.name} will stop being able to push sensor data. Its token is
+						revoked immediately and cannot be reused.
+					</AlertDialogDescription>
+				</AlertDialogHeader>
+				<AlertDialogFooter>
+					<AlertDialogCancel>Cancel</AlertDialogCancel>
+					<AlertDialogAction
+						variant="destructive"
+						disabled={unlinkMutation.isPending}
+						onClick={() => {
+							if (client) unlinkMutation.mutate({ id: client.id });
+						}}
+					>
+						{unlinkMutation.isPending ? "Unlinking…" : "Unlink"}
+					</AlertDialogAction>
+				</AlertDialogFooter>
+			</AlertDialogContent>
+		</AlertDialog>
 	);
 }
 

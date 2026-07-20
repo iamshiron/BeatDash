@@ -40,12 +40,11 @@ public class User : IdentityUser<Guid> {
     public double? BodyFatPercent { get; set; }
     public int? RestingHeartRate { get; set; }
 
-    /// <summary>
-    /// SHA-256 hash of the user's wearable ingest token (a companion app pushes heart-rate
-    /// samples authenticated by this token). Null until the user generates one; the plaintext
-    /// token is shown once at generation and never stored.
-    /// </summary>
-    [MaxLength(128)] public string? HealthIngestTokenHash { get; set; }
-
     public IList<Device> Devices { get; set; } = [];
+
+    /// <summary>
+    /// Linked Honami Sensor Proxy clients (companion apps that push sensor samples). Each has
+    /// its own scoped token, so several wearables can push concurrently.
+    /// </summary>
+    public IList<HealthProxyClient> HealthProxyClients { get; set; } = [];
 }

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Shiron.BeatDash.DB;
@@ -12,9 +13,11 @@ using Shiron.BeatDash.DB;
 namespace Shiron.BeatDash.DB.Migrations
 {
     [DbContext(typeof(BeatDashDbContext))]
-    partial class BeatDashDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260720125057_AddHealthProxyClients")]
+    partial class AddHealthProxyClients
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -985,9 +988,6 @@ namespace Shiron.BeatDash.DB.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("ClientId")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("Metric")
                         .IsRequired()
                         .HasMaxLength(48)
@@ -1011,8 +1011,6 @@ namespace Shiron.BeatDash.DB.Migrations
                         .HasColumnType("double precision");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ClientId");
 
                     b.HasIndex("UserId", "Metric", "RecordedAt")
                         .IsUnique();
@@ -1616,11 +1614,6 @@ namespace Shiron.BeatDash.DB.Migrations
 
             modelBuilder.Entity("Shiron.BeatDash.DB.Schema.SensorSample", b =>
                 {
-                    b.HasOne("Shiron.BeatDash.DB.Schema.HealthProxyClient", null)
-                        .WithMany()
-                        .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("Shiron.BeatDash.DB.Schema.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")

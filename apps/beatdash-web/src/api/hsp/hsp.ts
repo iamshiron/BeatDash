@@ -5,82 +5,108 @@
  * OpenAPI spec version: 1.0.0
  */
 import {
-  useMutation
+  useMutation,
+  useQuery
 } from '@tanstack/react-query';
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
   MutationFunction,
   QueryClient,
+  QueryFunction,
+  QueryKey,
+  UndefinedInitialDataOptions,
   UseMutationOptions,
-  UseMutationResult
+  UseMutationResult,
+  UseQueryOptions,
+  UseQueryResult
 } from '@tanstack/react-query';
 
 import type {
+  HspClientDto,
+  HspClientTokenDto,
   HspIngestDto,
   HspIngestResultDto,
-  HspTokenDto
+  HspLinkRequestDto
 } from '../model';
 
 
 
 
 
-export type generateHspTokenResponse200 = {
-  data: HspTokenDto
+const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKey: K } => {
+  const result = { queryKey } as T & { queryKey: K };
+  for (const key of Object.keys(query)) {
+    // The explicit queryKey always wins, matching the previous
+    // `{ ...query, queryKey }` spread where it was set last.
+    if (key === 'queryKey') continue;
+    Object.defineProperty(result, key, {
+      enumerable: true,
+      configurable: true,
+      get: () => (query as Record<string, unknown>)[key],
+    });
+  }
+  return result;
+};
+
+export type linkHspClientResponse200 = {
+  data: HspClientTokenDto
   status: 200
 }
 
-export type generateHspTokenResponse401 = {
+export type linkHspClientResponse401 = {
   data: void
   status: 401
 }
 
-export type generateHspTokenResponseSuccess = (generateHspTokenResponse200) & {
+export type linkHspClientResponseSuccess = (linkHspClientResponse200) & {
   headers: Headers;
 };
-export type generateHspTokenResponseError = (generateHspTokenResponse401) & {
+export type linkHspClientResponseError = (linkHspClientResponse401) & {
   headers: Headers;
 };
 
-export type generateHspTokenResponse = (generateHspTokenResponseSuccess | generateHspTokenResponseError)
+export type linkHspClientResponse = (linkHspClientResponseSuccess | linkHspClientResponseError)
 
-export const getGenerateHspTokenUrl = () => {
-
-
+export const getLinkHspClientUrl = () => {
 
 
-  return `/api/hsp/token`
+
+
+  return `/api/hsp/clients`
 }
 
 /**
- * Generate or rotate the Honami Sensor Proxy push token (plaintext shown once).
+ * Link a new Honami Sensor Proxy client and mint its scoped push token (shown once).
  */
-export const generateHspToken = async ( options?: RequestInit): Promise<generateHspTokenResponse> => {
+export const linkHspClient = async (nullHspLinkRequestDto?: null | HspLinkRequestDto, options?: RequestInit): Promise<linkHspClientResponse> => {
 
-  const res = await fetch(getGenerateHspTokenUrl(),
+  const res = await fetch(getLinkHspClientUrl(),
   {
     ...options,
-    method: 'POST'
-
-
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(nullHspLinkRequestDto)
   }
 )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
 
-  const data: generateHspTokenResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as generateHspTokenResponse
+  const data: linkHspClientResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as linkHspClientResponse
 }
 
 
 
 
 
-export const getGenerateHspTokenMutationOptions = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateHspToken>>, TError,void, TContext>, fetch?: RequestInit}
-): UseMutationOptions<Awaited<ReturnType<typeof generateHspToken>>, TError,void, TContext> => {
+export const getLinkHspClientMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof linkHspClient>>, TError,{data?: null | HspLinkRequestDto}, TContext>, fetch?: RequestInit}
+): UseMutationOptions<Awaited<ReturnType<typeof linkHspClient>>, TError,{data?: null | HspLinkRequestDto}, TContext> => {
 
-const mutationKey = ['generateHspToken'];
+const mutationKey = ['linkHspClient'];
 const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -90,10 +116,10 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateHspToken>>, void> = () => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof linkHspClient>>, {data?: null | HspLinkRequestDto}> = (props) => {
+          const {data} = props ?? {};
 
-
-          return  generateHspToken(fetchOptions)
+          return  linkHspClient(data,fetchOptions)
         }
 
 
@@ -103,19 +129,235 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type GenerateHspTokenMutationResult = NonNullable<Awaited<ReturnType<typeof generateHspToken>>>
+    export type LinkHspClientMutationResult = NonNullable<Awaited<ReturnType<typeof linkHspClient>>>
+    export type LinkHspClientMutationBody = null | HspLinkRequestDto | undefined
+    export type LinkHspClientMutationError = void
 
-    export type GenerateHspTokenMutationError = void
-
-    export const useGenerateHspToken = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateHspToken>>, TError,void, TContext>, fetch?: RequestInit}
+    export const useLinkHspClient = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof linkHspClient>>, TError,{data?: null | HspLinkRequestDto}, TContext>, fetch?: RequestInit}
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof generateHspToken>>,
+        Awaited<ReturnType<typeof linkHspClient>>,
         TError,
-        void,
+        {data?: null | HspLinkRequestDto},
         TContext
       > => {
-      return useMutation(getGenerateHspTokenMutationOptions(options), queryClient);
+      return useMutation(getLinkHspClientMutationOptions(options), queryClient);
+    }
+    export type listHspClientsResponse200 = {
+  data: HspClientDto[]
+  status: 200
+}
+
+export type listHspClientsResponse401 = {
+  data: void
+  status: 401
+}
+
+export type listHspClientsResponseSuccess = (listHspClientsResponse200) & {
+  headers: Headers;
+};
+export type listHspClientsResponseError = (listHspClientsResponse401) & {
+  headers: Headers;
+};
+
+export type listHspClientsResponse = (listHspClientsResponseSuccess | listHspClientsResponseError)
+
+export const getListHspClientsUrl = () => {
+
+
+
+
+  return `/api/hsp/clients`
+}
+
+/**
+ * List the caller's linked Honami Sensor Proxy clients.
+ */
+export const listHspClients = async ( options?: RequestInit): Promise<listHspClientsResponse> => {
+
+  const res = await fetch(getListHspClientsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: listHspClientsResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as listHspClientsResponse
+}
+
+
+
+
+
+export const getListHspClientsQueryKey = () => {
+    return [
+    `/api/hsp/clients`
+    ] as const;
+    }
+
+
+export const getListHspClientsQueryOptions = <TData = Awaited<ReturnType<typeof listHspClients>>, TError = void>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listHspClients>>, TError, TData>>, fetch?: RequestInit}
+) => {
+
+const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListHspClientsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listHspClients>>> = ({ signal }) => listHspClients({ signal, ...fetchOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listHspClients>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListHspClientsQueryResult = NonNullable<Awaited<ReturnType<typeof listHspClients>>>
+export type ListHspClientsQueryError = void
+
+
+export function useListHspClients<TData = Awaited<ReturnType<typeof listHspClients>>, TError = void>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listHspClients>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listHspClients>>,
+          TError,
+          Awaited<ReturnType<typeof listHspClients>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListHspClients<TData = Awaited<ReturnType<typeof listHspClients>>, TError = void>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listHspClients>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listHspClients>>,
+          TError,
+          Awaited<ReturnType<typeof listHspClients>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListHspClients<TData = Awaited<ReturnType<typeof listHspClients>>, TError = void>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listHspClients>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListHspClients<TData = Awaited<ReturnType<typeof listHspClients>>, TError = void>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listHspClients>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListHspClientsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export type unlinkHspClientResponse204 = {
+  data: void
+  status: 204
+}
+
+export type unlinkHspClientResponse401 = {
+  data: void
+  status: 401
+}
+
+export type unlinkHspClientResponseSuccess = (unlinkHspClientResponse204) & {
+  headers: Headers;
+};
+export type unlinkHspClientResponseError = (unlinkHspClientResponse401) & {
+  headers: Headers;
+};
+
+export type unlinkHspClientResponse = (unlinkHspClientResponseSuccess | unlinkHspClientResponseError)
+
+export const getUnlinkHspClientUrl = (id: string,) => {
+
+
+
+
+  return `/api/hsp/clients/${id}`
+}
+
+/**
+ * Unlink a Honami Sensor Proxy client, revoking its token.
+ */
+export const unlinkHspClient = async (id: string, options?: RequestInit): Promise<unlinkHspClientResponse> => {
+
+  const res = await fetch(getUnlinkHspClientUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: unlinkHspClientResponse['data'] = body ? JSON.parse(body) : undefined
+  return { data, status: res.status, headers: res.headers } as unlinkHspClientResponse
+}
+
+
+
+
+
+export const getUnlinkHspClientMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unlinkHspClient>>, TError,{id: string}, TContext>, fetch?: RequestInit}
+): UseMutationOptions<Awaited<ReturnType<typeof unlinkHspClient>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['unlinkHspClient'];
+const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, fetch: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof unlinkHspClient>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  unlinkHspClient(id,fetchOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UnlinkHspClientMutationResult = NonNullable<Awaited<ReturnType<typeof unlinkHspClient>>>
+
+    export type UnlinkHspClientMutationError = void
+
+    export const useUnlinkHspClient = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unlinkHspClient>>, TError,{id: string}, TContext>, fetch?: RequestInit}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof unlinkHspClient>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getUnlinkHspClientMutationOptions(options), queryClient);
     }
     export type hspIngestResponse200 = {
   data: HspIngestResultDto
@@ -150,7 +392,7 @@ export const getHspIngestUrl = () => {
 }
 
 /**
- * Push a batch of generalized sensor samples authenticated by the Honami push token.
+ * Push a batch of generalized sensor samples authenticated by a Honami client token.
  */
 export const hspIngest = async (hspIngestDto: HspIngestDto, options?: RequestInit): Promise<hspIngestResponse> => {
 

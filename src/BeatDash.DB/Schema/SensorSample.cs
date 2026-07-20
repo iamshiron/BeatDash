@@ -14,6 +14,9 @@ public sealed class SensorSample {
     public Guid UserId { get; set; }
     public User User { get; set; } = null!;
 
+    /// <summary>The Honami client that pushed this sample; null for samples with no linked client.</summary>
+    public Guid? ClientId { get; set; }
+
     /// <summary>Canonical metric name, e.g. <c>heart_rate</c>, <c>calories</c>, <c>steps</c>.</summary>
     [MaxLength(48)] public required string Metric { get; set; }
 

@@ -8,22 +8,24 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@shiron/ui/components/ui/dialog";
+import { Field, FieldLabel } from "@shiron/ui/components/ui/field";
 import { Input } from "@shiron/ui/components/ui/input";
 import { Spinner } from "@shiron/ui/components/ui/spinner";
 import { CopyIcon, HeartPulseIcon } from "@solar-icons/react/dynamic";
+import { useQueryClient } from "@tanstack/react-query";
 import { QRCodeSVG } from "qrcode.react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { generateHspToken } from "@/api/hsp/hsp";
+import { getListHspClientsQueryKey, linkHspClient } from "@/api/hsp/hsp";
 import { useGetApiServer } from "@/api/server/server";
 
 // Metrics advertised to the client for provisioning (mirrors the backend HspMetrics registry).
 const METRICS = ["heart_rate", "calories", "steps", "spo2"] as const;
 
 /**
- * Links a Honami Health Proxy client: mints a fresh push token and renders a QR (plus a
- * copyable URL + token fallback) the companion app scans to start pushing sensor samples.
- * Minting rotates the token, so a new code disconnects any previously linked client.
+ * Links a Honami Health Proxy client: mints a fresh scoped token for a named client and renders
+ * a QR (plus a copyable URL + token fallback) the companion app scans to start pushing sensor
+ * samples. Several clients can be linked and push concurrently.
  */
 export function AddHspClientDialog({
 	open,
@@ -32,13 +34,18 @@ export function AddHspClientDialog({
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 }) {
-	const [token, setToken] = useState<string | null>(null);
+	const queryClient = useQueryClient();
+	const [name, setName] = useState("");
+	const [linked, setLinked] = useState<{ name: string; token: string } | null>(
+		null,
+	);
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState(false);
 
 	useEffect(() => {
 		if (!open) {
-			setToken(null);
+			setName("");
+			setLinked(null);
 			setError(false);
 			setIsLoading(false);
 		}
@@ -54,18 +61,17 @@ export function AddHspClientDialog({
 	const address = serverInfo
 		? `${serverInfo.hostAddress}:${serverInfo.apiPort}`
 		: "";
-	const ingestUrl = serverInfo
-		? `http://${address}/api/hsp/ingest`
-		: "";
+	const ingestUrl = serverInfo ? `http://${address}/api/hsp/ingest` : "";
 
 	const payload =
-		token && ingestUrl
+		linked && ingestUrl
 			? JSON.stringify({
 					v: 1,
 					name: "BeatDash",
+					client: linked.name,
 					ingest: ingestUrl,
 					auth: "token",
-					token,
+					token: linked.token,
 					metrics: METRICS,
 				})
 			: null;
@@ -73,10 +79,16 @@ export function AddHspClientDialog({
 	const handleGenerate = () => {
 		setIsLoading(true);
 		setError(false);
-		generateHspToken()
+		linkHspClient({ name: name.trim() || null })
 			.then((response) => {
-				if (response.status === 200) setToken(response.data.token);
-				else setError(true);
+				if (response.status === 200) {
+					setLinked({ name: response.data.name, token: response.data.token });
+					queryClient.invalidateQueries({
+						queryKey: getListHspClientsQueryKey(),
+					});
+				} else {
+					setError(true);
+				}
 			})
 			.catch(() => setError(true))
 			.finally(() => setIsLoading(false));
@@ -104,26 +116,31 @@ export function AddHspClientDialog({
 					</DialogDescription>
 				</DialogHeader>
 
-				{!token && (
+				{!linked && (
 					<div className="flex flex-col gap-4">
-						<p className="text-sm text-muted-foreground">
-							Generate a pairing code, then open the Honami app and scan it to add
-							BeatDash as a destination. Generating a new code disconnects any
-							client you linked before.
-						</p>
+						<Field>
+							<FieldLabel htmlFor="hsp-name">Client name</FieldLabel>
+							<Input
+								id="hsp-name"
+								value={name}
+								onChange={(e) => setName(e.target.value)}
+								placeholder="Galaxy Watch"
+								maxLength={64}
+							/>
+						</Field>
 						{error && (
 							<p className="text-center text-sm text-destructive">
-								Failed to generate a pairing code. Please try again.
+								Failed to link the client. Please try again.
 							</p>
 						)}
 						<Button onClick={handleGenerate} disabled={isLoading}>
 							{isLoading ? <Spinner className="size-4" /> : null}
-							{isLoading ? "Generating…" : "Generate pairing code"}
+							{isLoading ? "Linking…" : "Generate pairing code"}
 						</Button>
 					</div>
 				)}
 
-				{token && (
+				{linked && (
 					<div className="flex flex-col gap-4">
 						<div className="flex justify-center">
 							{payload ? (
@@ -132,7 +149,7 @@ export function AddHspClientDialog({
 								</div>
 							) : serverError ? (
 								<p className="py-8 text-center text-sm text-destructive">
-									Generated a token but couldn't read the server address to build
+									Linked the client but couldn't read the server address to build
 									the code.
 								</p>
 							) : (
@@ -171,7 +188,7 @@ export function AddHspClientDialog({
 							<div className="flex items-center gap-2">
 								<Input
 									readOnly
-									value={token}
+									value={linked.token}
 									className="font-mono text-xs"
 									onFocus={(e) => e.currentTarget.select()}
 									aria-label="Push token"
@@ -179,7 +196,7 @@ export function AddHspClientDialog({
 								<Button
 									variant="outline"
 									size="icon-sm"
-									onClick={() => copy(token, "Token")}
+									onClick={() => copy(linked.token, "Token")}
 									aria-label="Copy token"
 								>
 									<CopyIcon />
