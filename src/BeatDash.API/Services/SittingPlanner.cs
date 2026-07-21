@@ -65,4 +65,20 @@ public static class SittingPlanner {
                 .OrderByDescending(s => s.Duration).ThenByDescending(s => s.StartedAt).ToList(),
             _ => sittings.OrderByDescending(s => s.StartedAt).ToList(),
         };
+
+    /// <summary>Aggregate, hydration-free overview across every sitting.</summary>
+    public static SittingsOverviewDto Overview(IReadOnlyList<Sitting> sittings) {
+        if (sittings.Count == 0) return new SittingsOverviewDto(0, 0, 0, 0, null);
+
+        var totalPlays = sittings.Sum(s => s.PlayCount);
+        var totalActiveMs = (long) sittings.Sum(s => s.Duration.TotalMilliseconds);
+        var lastPlayedAt = sittings.Max(s => s.EndedAt);
+
+        return new SittingsOverviewDto(
+            sittings.Count,
+            totalPlays,
+            totalActiveMs,
+            (double) totalPlays / sittings.Count,
+            lastPlayedAt);
+    }
 }

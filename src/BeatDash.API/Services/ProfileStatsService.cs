@@ -47,6 +47,9 @@ public interface IProfileStatsService {
     /// </summary>
     Task<PagedResult<SessionSummaryDto>> GetSittingsAsync(
         Guid userId, int page, int pageSize, SittingSortBy sortBy = SittingSortBy.Newest, CancellationToken ct = default);
+
+    /// <summary>Hydration-free totals across every one of the player's sittings.</summary>
+    Task<SittingsOverviewDto> GetSittingsOverviewAsync(Guid userId, CancellationToken ct = default);
 }
 
 /// <inheritdoc />
@@ -508,6 +511,12 @@ public sealed class ProfileStatsService(BeatDashDbContext db) : IProfileStatsSer
             .ToList();
 
         return new PagedResult<SessionSummaryDto>(items, totalCount, page, pageSize, totalPages);
+    }
+
+    /// <inheritdoc />
+    public async Task<SittingsOverviewDto> GetSittingsOverviewAsync(Guid userId, CancellationToken ct = default) {
+        var timeline = await LoadTimelineAsync(userId, ct);
+        return SittingPlanner.Overview(SittingPlanner.Group(timeline, SittingGap));
     }
 
     /// <summary>

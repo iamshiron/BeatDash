@@ -98,4 +98,43 @@ public class SittingPlannerTests {
         Assert.Equal(longSitting.StartedAt, sorted[0].StartedAt);
         Assert.Equal(shortSitting.StartedAt, sorted[1].StartedAt);
     }
+
+    [Fact]
+    public void Overview_EmptyTimeline_ReturnsZeroedTotals() {
+        var overview = SittingPlanner.Overview([]);
+
+        Assert.Equal(0, overview.TotalSessions);
+        Assert.Equal(0, overview.TotalPlays);
+        Assert.Equal(0, overview.TotalActiveMs);
+        Assert.Equal(0, overview.AvgPlaysPerSession);
+        Assert.Null(overview.LastPlayedAt);
+    }
+
+    [Fact]
+    public void Overview_AggregatesAcrossSittings() {
+        // Two sittings: 3 plays over 20 min, then 1 play over 5 min.
+        var first = new Sitting(
+            [Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid()], Base, Base.AddMinutes(20));
+        var second = new Sitting(
+            [Guid.NewGuid()], Base.AddHours(2), Base.AddHours(2).AddMinutes(5));
+
+        var overview = SittingPlanner.Overview([first, second]);
+
+        Assert.Equal(2, overview.TotalSessions);
+        Assert.Equal(4, overview.TotalPlays);
+        Assert.Equal((long) TimeSpan.FromMinutes(25).TotalMilliseconds, overview.TotalActiveMs);
+        Assert.Equal(2.0, overview.AvgPlaysPerSession);
+        Assert.Equal(second.EndedAt, overview.LastPlayedAt);
+    }
+
+    [Fact]
+    public void GroupThenOverview_MatchesGroupedShape() {
+        var timeline = new[] { Play(0), Play(6), Play(6 + 4 + 46) };
+
+        var overview = SittingPlanner.Overview(SittingPlanner.Group(timeline, Gap));
+
+        Assert.Equal(2, overview.TotalSessions);
+        Assert.Equal(3, overview.TotalPlays);
+        Assert.Equal(1.5, overview.AvgPlaysPerSession);
+    }
 }

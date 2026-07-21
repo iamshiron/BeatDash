@@ -100,6 +100,7 @@ export * from './sessionSortBy.ts';
 export * from './sessionSummaryDto.ts';
 export * from './sessionTopDifficultyDto.ts';
 export * from './sittingSortBy.ts';
+export * from './sittingsOverviewDto.ts';
 export * from './skillCharacteristicDto.ts';
 export * from './skillProfileDto.ts';
 export * from './skillProgressionDto.ts';

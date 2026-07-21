@@ -25,3 +25,16 @@ public sealed record SessionSummaryDto(
     double? CaloriesKcal,
     double? ActiveMinutes
 );
+
+/// <summary>
+/// At-a-glance totals across every one of the player's sittings. Derived from the play
+/// timeline alone (no per-play hydration), so it stays cheap regardless of history size.
+/// </summary>
+public sealed record SittingsOverviewDto(
+    int TotalSessions,
+    int TotalPlays,
+    // Summed wall-clock span of every sitting (first play's start → last play's end).
+    long TotalActiveMs,
+    double AvgPlaysPerSession,
+    DateTime? LastPlayedAt
+);

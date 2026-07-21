@@ -38,6 +38,7 @@ import type {
   SessionRecapDto,
   SessionSummaryDto,
   SessionTopDifficultyDto,
+  SittingsOverviewDto,
   SkillProfileDto,
   SkillProgressionDto,
   TrendBucketDto,
@@ -1300,6 +1301,129 @@ export function useGetSittings<TData = Awaited<ReturnType<typeof getSittings>>, 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetSittingsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export type getSittingsOverviewResponse200 = {
+  data: SittingsOverviewDto
+  status: 200
+}
+
+export type getSittingsOverviewResponse401 = {
+  data: void
+  status: 401
+}
+
+export type getSittingsOverviewResponseSuccess = (getSittingsOverviewResponse200) & {
+  headers: Headers;
+};
+export type getSittingsOverviewResponseError = (getSittingsOverviewResponse401) & {
+  headers: Headers;
+};
+
+export type getSittingsOverviewResponse = (getSittingsOverviewResponseSuccess | getSittingsOverviewResponseError)
+
+export const getGetSittingsOverviewUrl = () => {
+
+
+
+
+  return `/api/sessions/sittings/overview`
+}
+
+/**
+ * At-a-glance totals across every one of the user's sessions.
+ */
+export const getSittingsOverview = async ( options?: RequestInit): Promise<getSittingsOverviewResponse> => {
+
+  const res = await fetch(getGetSittingsOverviewUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: getSittingsOverviewResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as getSittingsOverviewResponse
+}
+
+
+
+
+
+export const getGetSittingsOverviewQueryKey = () => {
+    return [
+    `/api/sessions/sittings/overview`
+    ] as const;
+    }
+
+
+export const getGetSittingsOverviewQueryOptions = <TData = Awaited<ReturnType<typeof getSittingsOverview>>, TError = void>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSittingsOverview>>, TError, TData>>, fetch?: RequestInit}
+) => {
+
+const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSittingsOverviewQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSittingsOverview>>> = ({ signal }) => getSittingsOverview({ signal, ...fetchOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSittingsOverview>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetSittingsOverviewQueryResult = NonNullable<Awaited<ReturnType<typeof getSittingsOverview>>>
+export type GetSittingsOverviewQueryError = void
+
+
+export function useGetSittingsOverview<TData = Awaited<ReturnType<typeof getSittingsOverview>>, TError = void>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSittingsOverview>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSittingsOverview>>,
+          TError,
+          Awaited<ReturnType<typeof getSittingsOverview>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSittingsOverview<TData = Awaited<ReturnType<typeof getSittingsOverview>>, TError = void>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSittingsOverview>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSittingsOverview>>,
+          TError,
+          Awaited<ReturnType<typeof getSittingsOverview>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSittingsOverview<TData = Awaited<ReturnType<typeof getSittingsOverview>>, TError = void>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSittingsOverview>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetSittingsOverview<TData = Awaited<ReturnType<typeof getSittingsOverview>>, TError = void>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSittingsOverview>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSittingsOverviewQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

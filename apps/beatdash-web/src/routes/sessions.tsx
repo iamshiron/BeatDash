@@ -28,6 +28,7 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useGetSittings } from "@/api/sessions/sessions";
 import { ErrorState } from "@/components/common/ErrorState";
 import { AppShell } from "@/components/layout/AppShell";
+import { SessionsOverview } from "@/components/sessions/SessionsOverview";
 import { SittingCard } from "@/components/sessions/SittingCard";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import {
@@ -127,6 +128,8 @@ function SessionsPage() {
 					</SelectContent>
 				</Select>
 			</div>
+
+			<SessionsOverview />
 
 			{isLoading && (
 				<div className="flex flex-col gap-3">

@@ -385,6 +385,21 @@ public static class SessionEndpoints {
             .Produces<PagedResult<SessionSummaryDto>>()
             .Produces(401);
 
+        group.MapGet("/sittings/overview", async (
+            ClaimsPrincipal user,
+            IProfileStatsService profileStats,
+            CancellationToken ct) => {
+                var userId = IdentityUtils.GetUserID(user);
+                if (!userId.HasValue) return Results.Unauthorized();
+
+                return Results.Ok(await profileStats.GetSittingsOverviewAsync(userId.Value, ct));
+            })
+            .WithName("GetSittingsOverview")
+            .WithDescription("At-a-glance totals across every one of the user's sessions.")
+            .RequireAuthorization()
+            .Produces<SittingsOverviewDto>()
+            .Produces(401);
+
         group.MapGet("/recommendations", async (
             int? limit,
             ClaimsPrincipal user,
