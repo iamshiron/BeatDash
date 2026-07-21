@@ -4,6 +4,7 @@
  * Shiron.BeatDash.API | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { SittingSortBy } from './sittingSortBy.ts';
 
 export type GetSittingsParams = {
 /**
@@ -14,4 +15,5 @@ page?: number | string;
  * @pattern ^-?(?:0|[1-9]\d*)$
  */
 pageSize?: number | string;
+sortBy?: SittingSortBy;
 };

@@ -17,4 +17,7 @@
         <Project Path="external/lib/src/Types.Ext.EFCore/Shiron.Lib.Types.Ext.EFCore.csproj" />
         <Project Path="external/lib/src/Utils/Shiron.Lib.Utils.csproj" />
     </Folder>
+    <Folder Name="/tests/">
+        <Project Path="tests/BeatDash.API.Tests/Shiron.BeatDash.API.Tests.csproj" />
+    </Folder>
 </Solution>

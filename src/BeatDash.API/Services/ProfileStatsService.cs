@@ -41,11 +41,12 @@ public interface IProfileStatsService {
     Task<SessionSummaryDto?> GetLatestSessionSummaryAsync(Guid userId, CancellationToken ct = default);
 
     /// <summary>
-    /// All of the player's sittings (clusters of plays with no long idle gap), newest first
-    /// and paginated. Each carries its plays plus aggregate stats, including calories when
-    /// health tracking is on.
+    /// All of the player's sittings (clusters of plays with no long idle gap), ordered by
+    /// <paramref name="sortBy"/> and paginated. Each carries its plays plus aggregate stats,
+    /// including calories when health tracking is on.
     /// </summary>
-    Task<PagedResult<SessionSummaryDto>> GetSittingsAsync(Guid userId, int page, int pageSize, CancellationToken ct = default);
+    Task<PagedResult<SessionSummaryDto>> GetSittingsAsync(
+        Guid userId, int page, int pageSize, SittingSortBy sortBy = SittingSortBy.Newest, CancellationToken ct = default);
 }
 
 /// <inheritdoc />
@@ -469,34 +470,14 @@ public sealed class ProfileStatsService(BeatDashDbContext db) : IProfileStatsSer
 
     /// <inheritdoc />
     public async Task<PagedResult<SessionSummaryDto>> GetSittingsAsync(
-        Guid userId, int page, int pageSize, CancellationToken ct = default) {
+        Guid userId, int page, int pageSize, SittingSortBy sortBy = SittingSortBy.Newest, CancellationToken ct = default) {
         page = Math.Max(1, page);
         pageSize = Math.Clamp(pageSize, 1, 50);
 
-        // Lightweight timeline of every non-auto play (including failed/quit/incomplete —
-        // they're real effort and should show in the session), grouped by idle gap.
-        var timeline = await db.PlaySessions
-            .AsNoTracking()
-            .Where(s => s.UserId == userId && !s.AutoMode)
-            .OrderBy(s => s.StartedAt)
-            .Select(s => new { s.Id, s.StartedAt, s.EndedAt })
-            .ToListAsync(ct);
+        var timeline = await LoadTimelineAsync(userId, ct);
         if (timeline.Count == 0) return PagedResult<SessionSummaryDto>.Empty(page, pageSize);
 
-        var sittings = new List<List<Guid>>();
-        var current = new List<Guid> { timeline[0].Id };
-        var prevEnd = timeline[0].EndedAt ?? timeline[0].StartedAt;
-        for (var i = 1; i < timeline.Count; i++) {
-            var t = timeline[i];
-            if (t.StartedAt - prevEnd > SittingGap) {
-                sittings.Add(current);
-                current = [];
-            }
-            current.Add(t.Id);
-            prevEnd = t.EndedAt ?? t.StartedAt;
-        }
-        sittings.Add(current);
-        sittings.Reverse(); // newest first
+        var sittings = SittingPlanner.Sort(SittingPlanner.Group(timeline, SittingGap), sortBy);
 
         var totalCount = sittings.Count;
         var totalPages = (int) Math.Ceiling(totalCount / (double) pageSize);
@@ -505,7 +486,7 @@ public sealed class ProfileStatsService(BeatDashDbContext db) : IProfileStatsSer
             return new PagedResult<SessionSummaryDto>([], totalCount, page, pageSize, totalPages);
 
         // Hydrate only the plays on this page.
-        var pagePlayIds = pageSittings.SelectMany(x => x).ToList();
+        var pagePlayIds = pageSittings.SelectMany(x => x.PlayIds).ToList();
         var plays = await db.PlaySessions
             .AsNoTracking()
             .Where(s => pagePlayIds.Contains(s.Id))
@@ -521,13 +502,25 @@ public sealed class ProfileStatsService(BeatDashDbContext db) : IProfileStatsSer
             bestScores.TryGetValue(s.BeatmapDifficultyId, out var max) && s.Results!.Score == max;
 
         var items = pageSittings
-            .Select(ids => Summarize(
-                ids.Select(id => playById[id]).OrderBy(p => p.StartedAt).ToList(),
+            .Select(sitting => Summarize(
+                sitting.PlayIds.Select(id => playById[id]).OrderBy(p => p.StartedAt).ToList(),
                 motion, cal, IsPb))
             .ToList();
 
         return new PagedResult<SessionSummaryDto>(items, totalCount, page, pageSize, totalPages);
     }
+
+    /// <summary>
+    /// Lightweight, oldest-first timeline of every non-auto play (including failed/quit/incomplete —
+    /// they're real effort and should show in the session), for grouping into sittings.
+    /// </summary>
+    private async Task<IReadOnlyList<PlayInstant>> LoadTimelineAsync(Guid userId, CancellationToken ct) =>
+        await db.PlaySessions
+            .AsNoTracking()
+            .Where(s => s.UserId == userId && !s.AutoMode)
+            .OrderBy(s => s.StartedAt)
+            .Select(s => new PlayInstant(s.Id, s.StartedAt, s.EndedAt ?? s.StartedAt))
+            .ToListAsync(ct);
 
     /// <summary>Highest completed score per difficulty for the user, for PB flags.</summary>
     private Task<Dictionary<Guid, int>> BestScoresByDifficultyAsync(

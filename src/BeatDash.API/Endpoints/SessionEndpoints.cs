@@ -368,6 +368,7 @@ public static class SessionEndpoints {
         group.MapGet("/sittings", async (
             int? page,
             int? pageSize,
+            SittingSortBy? sortBy,
             ClaimsPrincipal user,
             IProfileStatsService profileStats,
             CancellationToken ct) => {
@@ -375,11 +376,11 @@ public static class SessionEndpoints {
                 if (!userId.HasValue) return Results.Unauthorized();
 
                 var result = await profileStats.GetSittingsAsync(
-                    userId.Value, page ?? 1, pageSize ?? 20, ct);
+                    userId.Value, page ?? 1, pageSize ?? 20, sortBy ?? SittingSortBy.Newest, ct);
                 return Results.Ok(result);
             })
             .WithName("GetSittings")
-            .WithDescription("The user's sessions (sittings of plays), newest first, paginated.")
+            .WithDescription("The user's sessions (sittings of plays), ordered by sortBy, paginated.")
             .RequireAuthorization()
             .Produces<PagedResult<SessionSummaryDto>>()
             .Produces(401);
@@ -709,6 +710,9 @@ public sealed record PlaySessionQueryParams(
 
 public enum SessionSortBy { StartedAt, Score, Accuracy, Duration, MaxCombo }
 public enum SortDirection { Asc, Desc }
+
+/// <summary>Ordering for the sessions (sittings) list. Keys are computable from the play timeline alone.</summary>
+public enum SittingSortBy { Newest, Oldest, MostPlays, Longest }
 
 public sealed record PlaySessionListItemDto(
     Guid Id,

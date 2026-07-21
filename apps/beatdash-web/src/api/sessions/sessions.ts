@@ -1216,7 +1216,7 @@ export const getGetSittingsUrl = (params?: GetSittingsParams,) => {
 }
 
 /**
- * The user's sessions (sittings of plays), newest first, paginated.
+ * The user's sessions (sittings of plays), ordered by sortBy, paginated.
  */
 export const getSittings = async (params?: GetSittingsParams, options?: RequestInit): Promise<getSittingsResponse> => {
 
