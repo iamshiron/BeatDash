@@ -11,6 +11,7 @@ import {
 	EmptyMedia,
 	EmptyTitle,
 } from "@shiron/ui/components/ui/empty";
+import { GlassPanel } from "@shiron/ui/components/ui/glass-panel";
 import { Input } from "@shiron/ui/components/ui/input";
 import { Skeleton } from "@shiron/ui/components/ui/skeleton";
 import { cn } from "@shiron/ui/lib/utils";
@@ -329,71 +330,79 @@ function ProfileBody({ profile }: { profile: PublicProfileDto }) {
 				</div>
 			</div>
 
-			{(hasSkill || hasActivity) && (
-				<div className="grid gap-6 lg:grid-cols-2">
-					{hasSkill && skill && (
-						<Section
-							title="Skill profile"
-							subtitle={`${Number(skill.playsConsidered)} plays`}
-						>
-							<SkillRadarChart data={skill} />
+			{hasAnySection && (
+				<GlassPanel className="flex flex-col gap-6">
+					{(hasSkill || hasActivity) && (
+						<div className="grid gap-6 lg:grid-cols-2">
+							{hasSkill && skill && (
+								<Section
+									title="Skill profile"
+									subtitle={`${Number(skill.playsConsidered)} plays`}
+								>
+									<SkillRadarChart data={skill} />
+								</Section>
+							)}
+							{hasActivity && activity && (
+								<Section title="Activity">
+									<ActivityHeatmap activity={activity} />
+								</Section>
+							)}
+						</div>
+					)}
+
+					{history && (
+						<div className="grid gap-6 sm:grid-cols-2">
+							<Section title="Recent plays">
+								<div className="flex flex-col gap-1.5">
+									{history.recentSessions.map((s) => (
+										<SessionRow key={s.id} session={s} interactive={false} />
+									))}
+								</div>
+							</Section>
+							<Section title="Best accuracy">
+								<div className="flex flex-col gap-1.5">
+									{history.topScores.map((s) => (
+										<SessionRow key={s.id} session={s} interactive={false} />
+									))}
+								</div>
+							</Section>
+						</div>
+					)}
+
+					{stats && stats.mostPlayedMaps.length > 0 && (
+						<Section title="Most played">
+							<div className="grid gap-1.5 sm:grid-cols-2">
+								{stats.mostPlayedMaps.map((m) => (
+									<MostPlayedRow
+										key={m.beatmapId}
+										map={m}
+										interactive={false}
+									/>
+								))}
+							</div>
 						</Section>
 					)}
-					{hasActivity && activity && (
-						<Section title="Activity">
-							<ActivityHeatmap activity={activity} />
+
+					{hasPlaylists && profile.playlists && (
+						<Section title="Playlists">
+							<div className="grid gap-2 sm:grid-cols-2">
+								{profile.playlists.map((playlist) => (
+									<PlaylistCard key={playlist.id} playlist={playlist} />
+								))}
+							</div>
 						</Section>
 					)}
-				</div>
-			)}
 
-			{history && (
-				<div className="grid gap-6 sm:grid-cols-2">
-					<Section title="Recent plays">
-						<div className="flex flex-col gap-1.5">
-							{history.recentSessions.map((s) => (
-								<SessionRow key={s.id} session={s} interactive={false} />
-							))}
-						</div>
-					</Section>
-					<Section title="Best accuracy">
-						<div className="flex flex-col gap-1.5">
-							{history.topScores.map((s) => (
-								<SessionRow key={s.id} session={s} interactive={false} />
-							))}
-						</div>
-					</Section>
-				</div>
-			)}
-
-			{stats && stats.mostPlayedMaps.length > 0 && (
-				<Section title="Most played">
-					<div className="grid gap-1.5 sm:grid-cols-2">
-						{stats.mostPlayedMaps.map((m) => (
-							<MostPlayedRow key={m.beatmapId} map={m} interactive={false} />
-						))}
-					</div>
-				</Section>
-			)}
-
-			{hasPlaylists && profile.playlists && (
-				<Section title="Playlists">
-					<div className="grid gap-2 sm:grid-cols-2">
-						{profile.playlists.map((playlist) => (
-							<PlaylistCard key={playlist.id} playlist={playlist} />
-						))}
-					</div>
-				</Section>
-			)}
-
-			{hasLiked && profile.likedMaps && (
-				<Section title="Liked maps">
-					<div className="grid gap-1.5 sm:grid-cols-2">
-						{profile.likedMaps.map((map) => (
-							<LikedMapRow key={map.beatmapId} map={map} />
-						))}
-					</div>
-				</Section>
+					{hasLiked && profile.likedMaps && (
+						<Section title="Liked maps">
+							<div className="grid gap-1.5 sm:grid-cols-2">
+								{profile.likedMaps.map((map) => (
+									<LikedMapRow key={map.beatmapId} map={map} />
+								))}
+							</div>
+						</Section>
+					)}
+				</GlassPanel>
 			)}
 
 			{!hasAnySection && (
