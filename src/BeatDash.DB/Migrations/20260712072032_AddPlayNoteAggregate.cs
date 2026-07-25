@@ -1,16 +1,13 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Shiron.BeatDash.DB.Migrations
-{
+namespace Shiron.BeatDash.DB.Migrations {
     /// <inheritdoc />
-    public partial class AddPlayNoteAggregate : Migration
-    {
+    public partial class AddPlayNoteAggregate : Migration {
         /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
+        protected override void Up(MigrationBuilder migrationBuilder) {
             migrationBuilder.AddColumn<DateTime>(
                 name: "AggregatedAt",
                 table: "PlaySessions",
@@ -19,8 +16,7 @@ namespace Shiron.BeatDash.DB.Migrations
 
             migrationBuilder.CreateTable(
                 name: "PlayNoteAggregates",
-                columns: table => new
-                {
+                columns: table => new {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     CharacteristicSerializedName = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
@@ -35,8 +31,7 @@ namespace Shiron.BeatDash.DB.Migrations
                     SumEarnedScore = table.Column<long>(type: "bigint", nullable: false),
                     SumMaxScore = table.Column<long>(type: "bigint", nullable: false)
                 },
-                constraints: table =>
-                {
+                constraints: table => {
                     table.PrimaryKey("PK_PlayNoteAggregates", x => x.Id);
                     table.ForeignKey(
                         name: "FK_PlayNoteAggregates_Users_UserId",
@@ -54,8 +49,7 @@ namespace Shiron.BeatDash.DB.Migrations
         }
 
         /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
+        protected override void Down(MigrationBuilder migrationBuilder) {
             migrationBuilder.DropTable(
                 name: "PlayNoteAggregates");
 

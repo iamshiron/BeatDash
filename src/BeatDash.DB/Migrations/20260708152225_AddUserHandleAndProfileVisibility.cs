@@ -1,15 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Shiron.BeatDash.DB.Migrations
-{
+namespace Shiron.BeatDash.DB.Migrations {
     /// <inheritdoc />
-    public partial class AddUserHandleAndProfileVisibility : Migration
-    {
+    public partial class AddUserHandleAndProfileVisibility : Migration {
         /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
+        protected override void Up(MigrationBuilder migrationBuilder) {
             migrationBuilder.AddColumn<string>(
                 name: "Handle",
                 table: "Users",
@@ -54,8 +51,7 @@ namespace Shiron.BeatDash.DB.Migrations
         }
 
         /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
+        protected override void Down(MigrationBuilder migrationBuilder) {
             migrationBuilder.DropIndex(
                 name: "IX_Users_Handle",
                 table: "Users");

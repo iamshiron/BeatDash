@@ -1,23 +1,19 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Shiron.BeatDash.DB.Migrations
-{
+namespace Shiron.BeatDash.DB.Migrations {
     /// <inheritdoc />
-    public partial class GeneralizeSensorSamples : Migration
-    {
+    public partial class GeneralizeSensorSamples : Migration {
         /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
+        protected override void Up(MigrationBuilder migrationBuilder) {
             migrationBuilder.DropTable(
                 name: "HeartRateSamples");
 
             migrationBuilder.CreateTable(
                 name: "SensorSamples",
-                columns: table => new
-                {
+                columns: table => new {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     Metric = table.Column<string>(type: "character varying(48)", maxLength: 48, nullable: false),
@@ -26,8 +22,7 @@ namespace Shiron.BeatDash.DB.Migrations
                     RecordedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Source = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true)
                 },
-                constraints: table =>
-                {
+                constraints: table => {
                     table.PrimaryKey("PK_SensorSamples", x => x.Id);
                     table.ForeignKey(
                         name: "FK_SensorSamples_Users_UserId",
@@ -45,15 +40,13 @@ namespace Shiron.BeatDash.DB.Migrations
         }
 
         /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
+        protected override void Down(MigrationBuilder migrationBuilder) {
             migrationBuilder.DropTable(
                 name: "SensorSamples");
 
             migrationBuilder.CreateTable(
                 name: "HeartRateSamples",
-                columns: table => new
-                {
+                columns: table => new {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     Bpm = table.Column<int>(type: "integer", nullable: false),
@@ -62,8 +55,7 @@ namespace Shiron.BeatDash.DB.Migrations
                     Source = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
                     Steps = table.Column<int>(type: "integer", nullable: true)
                 },
-                constraints: table =>
-                {
+                constraints: table => {
                     table.PrimaryKey("PK_HeartRateSamples", x => x.Id);
                     table.ForeignKey(
                         name: "FK_HeartRateSamples_Users_UserId",

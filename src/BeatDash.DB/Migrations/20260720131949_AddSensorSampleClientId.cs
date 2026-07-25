@@ -1,16 +1,13 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Shiron.BeatDash.DB.Migrations
-{
+namespace Shiron.BeatDash.DB.Migrations {
     /// <inheritdoc />
-    public partial class AddSensorSampleClientId : Migration
-    {
+    public partial class AddSensorSampleClientId : Migration {
         /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
+        protected override void Up(MigrationBuilder migrationBuilder) {
             migrationBuilder.AddColumn<Guid>(
                 name: "ClientId",
                 table: "SensorSamples",
@@ -32,8 +29,7 @@ namespace Shiron.BeatDash.DB.Migrations
         }
 
         /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
+        protected override void Down(MigrationBuilder migrationBuilder) {
             migrationBuilder.DropForeignKey(
                 name: "FK_SensorSamples_HealthProxyClients_ClientId",
                 table: "SensorSamples");

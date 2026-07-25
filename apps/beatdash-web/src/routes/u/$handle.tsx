@@ -741,16 +741,6 @@ function ProfileBanner({
 					style={{ backgroundImage: bannerGradient(seed) }}
 				/>
 			)}
-			{/* Blend the bottom into the card so the overlapping avatar reads cleanly.
-			    An uploaded banner gets a lighter scrim so it stays visible. */}
-			<div
-				className={cn(
-					"absolute inset-0",
-					bannerUrl
-						? "bg-gradient-to-t from-card/90 to-transparent"
-						: "bg-gradient-to-t from-card via-card/60 to-card/30",
-				)}
-			/>
 			{editable && (
 				<button
 					type="button"

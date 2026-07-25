@@ -1,20 +1,16 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Shiron.BeatDash.DB.Migrations
-{
+namespace Shiron.BeatDash.DB.Migrations {
     /// <inheritdoc />
-    public partial class AddPlaySessionMotionSummary : Migration
-    {
+    public partial class AddPlaySessionMotionSummary : Migration {
         /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
+        protected override void Up(MigrationBuilder migrationBuilder) {
             migrationBuilder.CreateTable(
                 name: "PlaySessionMotionSummaries",
-                columns: table => new
-                {
+                columns: table => new {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     PlaySessionId = table.Column<Guid>(type: "uuid", nullable: false),
                     FrameCount = table.Column<int>(type: "integer", nullable: false),
@@ -29,8 +25,7 @@ namespace Shiron.BeatDash.DB.Migrations
                     HeadRange = table.Column<double>(type: "double precision", nullable: false),
                     FatigueCurve = table.Column<string>(type: "jsonb", nullable: false)
                 },
-                constraints: table =>
-                {
+                constraints: table => {
                     table.PrimaryKey("PK_PlaySessionMotionSummaries", x => x.Id);
                     table.ForeignKey(
                         name: "FK_PlaySessionMotionSummaries_PlaySessions_PlaySessionId",
@@ -48,8 +43,7 @@ namespace Shiron.BeatDash.DB.Migrations
         }
 
         /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
+        protected override void Down(MigrationBuilder migrationBuilder) {
             migrationBuilder.DropTable(
                 name: "PlaySessionMotionSummaries");
         }

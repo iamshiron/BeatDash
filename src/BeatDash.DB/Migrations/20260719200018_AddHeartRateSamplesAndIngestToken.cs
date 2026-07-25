@@ -1,16 +1,13 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Shiron.BeatDash.DB.Migrations
-{
+namespace Shiron.BeatDash.DB.Migrations {
     /// <inheritdoc />
-    public partial class AddHeartRateSamplesAndIngestToken : Migration
-    {
+    public partial class AddHeartRateSamplesAndIngestToken : Migration {
         /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
+        protected override void Up(MigrationBuilder migrationBuilder) {
             migrationBuilder.AddColumn<string>(
                 name: "HealthIngestTokenHash",
                 table: "Users",
@@ -20,8 +17,7 @@ namespace Shiron.BeatDash.DB.Migrations
 
             migrationBuilder.CreateTable(
                 name: "HeartRateSamples",
-                columns: table => new
-                {
+                columns: table => new {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     RecordedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -30,8 +26,7 @@ namespace Shiron.BeatDash.DB.Migrations
                     Steps = table.Column<int>(type: "integer", nullable: true),
                     Source = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true)
                 },
-                constraints: table =>
-                {
+                constraints: table => {
                     table.PrimaryKey("PK_HeartRateSamples", x => x.Id);
                     table.ForeignKey(
                         name: "FK_HeartRateSamples_Users_UserId",
@@ -49,8 +44,7 @@ namespace Shiron.BeatDash.DB.Migrations
         }
 
         /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
+        protected override void Down(MigrationBuilder migrationBuilder) {
             migrationBuilder.DropTable(
                 name: "HeartRateSamples");
 
