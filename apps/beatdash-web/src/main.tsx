@@ -29,6 +29,8 @@ const router = createRouter({
 	defaultErrorComponent: RouteError,
 	defaultPendingComponent: RoutePending,
 	defaultNotFoundComponent: NotFound,
+	// Render the leading `@` on profile handles literally instead of as `%40`.
+	pathParamsAllowedCharacters: ["@"],
 	context: {
 		auth: {
 			user: undefined,
