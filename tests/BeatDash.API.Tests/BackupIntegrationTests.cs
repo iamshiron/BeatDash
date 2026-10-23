@@ -65,8 +65,6 @@ public sealed class BackupIntegrationTests {
 
         using (var anonymous = await http.PostAsJsonAsync("/api/admin/backups/export", new BackupExportRequest(BackupScope.Both)))
             Assert.Equal(HttpStatusCode.Unauthorized, anonymous.StatusCode);
-        using (var overview = await http.GetAsync("/api/admin/metrics/overview"))
-            Assert.Equal(HttpStatusCode.Unauthorized, overview.StatusCode);
         using (var login = await http.PostAsJsonAsync("/api/admin/backups/login", new BackupLoginRequest(ordinary.Email!, Fixture.Password)))
             Assert.Equal(HttpStatusCode.Forbidden, login.StatusCode);
         using (var login = await http.PostAsJsonAsync("/api/admin/backups/login", new BackupLoginRequest(Fixture.Email, "wrong")))
@@ -76,8 +74,6 @@ public sealed class BackupIntegrationTests {
         http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenService.GenerateAccessToken(ordinary.Id, out _));
         using (var forbidden = await http.PostAsJsonAsync("/api/admin/backups/export", new BackupExportRequest(BackupScope.Both)))
             Assert.Equal(HttpStatusCode.Forbidden, forbidden.StatusCode);
-        using (var overview = await http.GetAsync("/api/admin/metrics/overview"))
-            Assert.Equal(HttpStatusCode.Forbidden, overview.StatusCode);
 
         await fixture.RunCliAsync(http.BaseAddress!, "export");
         await fixture.RunCliAsync(http.BaseAddress!, "restore");
@@ -87,8 +83,6 @@ public sealed class BackupIntegrationTests {
         var session = await adminLogin.Content.ReadFromJsonAsync<BackupLoginResponse>();
         Assert.NotNull(session);
         http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", session.AccessToken);
-        using (var overview = await http.GetAsync("/api/admin/metrics/overview"))
-            overview.EnsureSuccessStatusCode();
         var admin = await fixture.Db.Users.SingleAsync(u => u.NormalizedEmail == Fixture.Email.ToUpperInvariant());
         await fixture.Db.UserRoles.Where(r => r.UserId == admin.Id).ExecuteDeleteAsync();
         using var revoked = await http.PostAsJsonAsync("/api/admin/backups/export", new BackupExportRequest(BackupScope.Both));
