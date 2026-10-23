@@ -7,7 +7,7 @@ public class PlaySession {
     public Guid UserId { get; set; }
     public User User { get; set; } = null!;
     public Guid BeatmapDifficultyId { get; set; }
-    public BeatmapDifficulty BeatmapDifficulty { get; set; }
+    public BeatmapDifficulty BeatmapDifficulty { get; set; } = null!;
 
     public required DateTime StartedAt { get; set; }
     public required DateTime? EndedAt { get; set; }
