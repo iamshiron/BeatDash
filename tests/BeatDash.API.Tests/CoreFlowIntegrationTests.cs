@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Net.Sockets;
 using System.Net.WebSockets;
 using System.Security.Cryptography;
 using System.Text;
@@ -94,18 +95,27 @@ public sealed class CoreFlowIntegrationTests {
     public async Task GameWebSocket_MapPlayIsPersistedOnlyForAuthenticatedOwner() {
         await using var fixture = await Fixture.CreateAsync();
         using var ownerClient = fixture.CreateClient(out var ownerCookies);
-        using var otherClient = fixture.CreateClient();
+        using var otherClient = fixture.CreateClient(out var otherCookies);
         var owner = await RegisterAndLoginAsync(ownerClient);
         await RegisterAndLoginAsync(otherClient);
+        using var ownerRealtime = await fixture.ConnectRealtimeSocketAsync(ownerClient, ownerCookies);
+        using var otherRealtime = await fixture.ConnectRealtimeSocketAsync(otherClient, otherCookies);
         var clientId = Guid.NewGuid();
         var pin = await ownerClient.GetFromJsonAsync<RegisterDeviceResponseDto>("/api/device/register");
         Assert.NotNull(pin);
-        using (var pair = await ownerClient.PostAsJsonAsync("/api/device/authenticate", new AuthenticateDeviceDto(pin.Pin, clientId)))
+        TokenPairExpiryDto tokens;
+        using (var pair = await ownerClient.PostAsJsonAsync("/api/device/authenticate", new AuthenticateDeviceDto(pin.Pin, clientId))) {
             pair.EnsureSuccessStatusCode();
+            tokens = Assert.IsType<TokenPairExpiryDto>(await pair.Content.ReadFromJsonAsync<TokenPairExpiryDto>());
+        }
+        Assert.Equal("ReceiveDevicePaired", await ReceiveSignalRInvocationAsync(ownerRealtime));
+        await AssertNoSignalRInvocationAsync(otherRealtime);
+        using (var reusedPin = await ownerClient.PostAsJsonAsync("/api/device/authenticate", new AuthenticateDeviceDto(pin.Pin, Guid.NewGuid())))
+            Assert.Equal(HttpStatusCode.Unauthorized, reusedPin.StatusCode);
 
         const string levelId = "custom_level_core_flow";
         await fixture.AddMapAsync(levelId);
-        using var socket = await fixture.ConnectGameSocketAsync(ownerCookies, clientId);
+        using var socket = await fixture.ConnectGameSocketAsync(tokens.AccessToken, clientId);
         var handshake = await ReceiveTextAsync(socket);
         Assert.Contains("UdpHandshakeMessage", handshake, StringComparison.Ordinal);
 
@@ -123,6 +133,8 @@ public sealed class CoreFlowIntegrationTests {
         });
         using var correlationDocument = JsonDocument.Parse(await ReceiveTextAsync(socket));
         var correlationId = correlationDocument.RootElement.GetProperty("CorrelationId").GetInt32();
+        Assert.Equal("ReceiveLiveMapStarted", await ReceiveSignalRInvocationAsync(ownerRealtime, "ReceiveLiveMapStarted"));
+        await AssertNoSignalRInvocationAsync(otherRealtime);
 
         await SendPacketAsync(socket, BinaryPacketTypes.MapState, new MapStateMessage {
             CorrelationId = correlationId, LevelId = levelId, State = "Finished",
@@ -138,10 +150,39 @@ public sealed class CoreFlowIntegrationTests {
         Assert.Equal(123_456, saved.Results!.Score);
         Assert.Equal(119_500, saved.Results.EndSongTimeMs);
 
+        using (var ownerSession = await ownerClient.GetAsync($"/api/sessions/{saved.Id}"))
+            Assert.Equal(HttpStatusCode.OK, ownerSession.StatusCode);
+        using (var otherSession = await otherClient.GetAsync($"/api/sessions/{saved.Id}"))
+            Assert.Equal(HttpStatusCode.NotFound, otherSession.StatusCode);
+
         using var sessions = await otherClient.GetAsync("/api/sessions");
         sessions.EnsureSuccessStatusCode();
         using var document = JsonDocument.Parse(await sessions.Content.ReadAsStringAsync());
         Assert.Equal(0, document.RootElement.GetProperty("totalCount").GetInt32());
+    }
+
+    [CoreFlowIntegrationFact]
+    public async Task PublicMapCover_IsDeliveredAnonymouslyWhileMapDataRemainsProtected() {
+        await using var fixture = await Fixture.CreateAsync();
+        using var client = fixture.CreateClient();
+        var cover = RandomNumberGenerator.GetBytes(128);
+        const string key = "covers/core-flow.png";
+        await fixture.UploadAssetAsync(key, cover);
+        var mapId = await fixture.AddMapAsync("custom_level_public_cover", key);
+
+        using (var coverResponse = await client.GetAsync($"/api/maps/{mapId}/cover")) {
+            coverResponse.EnsureSuccessStatusCode();
+            Assert.Equal("image/png", coverResponse.Content.Headers.ContentType!.MediaType);
+            Assert.Equal(cover, await coverResponse.Content.ReadAsByteArrayAsync());
+        }
+        using (var missingCover = await client.GetAsync($"/api/maps/{Guid.NewGuid()}/cover"))
+            Assert.Equal(HttpStatusCode.NotFound, missingCover.StatusCode);
+        using (var metadata = await client.GetAsync($"/api/maps/{mapId}"))
+            Assert.Equal(HttpStatusCode.Found, metadata.StatusCode);
+        using (var song = await client.GetAsync($"/api/maps/{mapId}/song"))
+            Assert.Equal(HttpStatusCode.Found, song.StatusCode);
+        using var lists = await client.GetAsync("/api/lists");
+        Assert.Equal(HttpStatusCode.Found, lists.StatusCode);
     }
 
     private static async Task<UserInfoDto> RegisterAndLoginAsync(HttpClient client) {
@@ -165,10 +206,32 @@ public sealed class CoreFlowIntegrationTests {
     }
 
     private static async Task<string> ReceiveTextAsync(ClientWebSocket socket) {
-        var buffer = new ArraySegment<byte>(new byte[4096]);
-        var result = await socket.ReceiveAsync(buffer, CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(10));
-        Assert.Equal(WebSocketMessageType.Text, result.MessageType);
-        return Encoding.UTF8.GetString(buffer.Array!, 0, result.Count);
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var payload = new MemoryStream();
+        var buffer = new byte[4096];
+        WebSocketReceiveResult result;
+        do {
+            result = await socket.ReceiveAsync(buffer, timeout.Token);
+            Assert.Equal(WebSocketMessageType.Text, result.MessageType);
+            payload.Write(buffer, 0, result.Count);
+        } while (!result.EndOfMessage);
+        return Encoding.UTF8.GetString(payload.GetBuffer(), 0, (int) payload.Length);
+    }
+
+    private static async Task<string> ReceiveSignalRInvocationAsync(ClientWebSocket socket, string? expectedTarget = null) {
+        var message = await ReceiveTextAsync(socket);
+        foreach (var frame in message.Split('\u001e', StringSplitOptions.RemoveEmptyEntries)) {
+            using var document = JsonDocument.Parse(frame);
+            if (document.RootElement.TryGetProperty("target", out var target)
+                && (expectedTarget is null || target.GetString() == expectedTarget))
+                return target.GetString()!;
+        }
+        return await ReceiveSignalRInvocationAsync(socket, expectedTarget);
+    }
+
+    private static async Task AssertNoSignalRInvocationAsync(ClientWebSocket socket) {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await ReceiveTextAsync(socket).WaitAsync(timeout.Token));
     }
 
     private sealed record Account(string DisplayName, string UserName, string Email, string Password) {
@@ -194,11 +257,10 @@ public sealed class CoreFlowIntegrationTests {
 
     private sealed class Fixture : IAsyncDisposable {
         private const string JwtSecret = "core-flow-integration-test-secret-at-least-32-characters";
-        private static int _nextUdpPort = 41000;
         private readonly string _adminConnection = Environment.GetEnvironmentVariable("BEATDASH_TEST_POSTGRES")!;
         private readonly string _databaseName = "core_flow_test_" + Guid.NewGuid().ToString("N");
         private readonly string _directory = Path.Combine(Path.GetTempPath(), "beatdash-core-flow-tests", Guid.NewGuid().ToString("N"));
-        private readonly int _udpPort = Interlocked.Increment(ref _nextUdpPort);
+        private readonly int _udpPort = GetAvailableUdpPort();
         private readonly IMinioClient _minio;
         private Process? _server;
 
@@ -234,9 +296,10 @@ public sealed class CoreFlowIntegrationTests {
             return new HttpClient(new HttpClientHandler { AllowAutoRedirect = false, CookieContainer = cookies }) { BaseAddress = Address };
         }
 
-        public async Task AddMapAsync(string levelId) {
+        public async Task<Guid> AddMapAsync(string levelId, string? coverImageKey = null) {
             var map = new Beatmap {
-                LevelId = levelId, SongName = "Core flow", SongAuthor = "Tests", Mapper = "Tests", Bpm = 120, DurationMs = 120_000
+                LevelId = levelId, SongName = "Core flow", SongAuthor = "Tests", Mapper = "Tests", Bpm = 120, DurationMs = 120_000,
+                CoverImageKey = coverImageKey
             };
             map.Difficulties.Add(new BeatmapDifficulty {
                 DifficultyRank = BeatmapDifficultyRank.Expert, DifficultyName = "Expert", NotesPerSecond = 4.2f,
@@ -246,15 +309,48 @@ public sealed class CoreFlowIntegrationTests {
             });
             Db.Beatmaps.Add(map);
             await Db.SaveChangesAsync();
+            return map.Id;
         }
 
-        public async Task<ClientWebSocket> ConnectGameSocketAsync(CookieContainer cookies, Guid clientId) {
+        public async Task UploadAssetAsync(string key, byte[] content) {
+            if (!await _minio.BucketExistsAsync(new BucketExistsArgs().WithBucket(StorageOptions.BucketAssets)))
+                await _minio.MakeBucketAsync(new MakeBucketArgs().WithBucket(StorageOptions.BucketAssets));
+            await using var stream = new MemoryStream(content);
+            await _minio.PutObjectAsync(new PutObjectArgs()
+                .WithBucket(StorageOptions.BucketAssets)
+                .WithObject(key)
+                .WithStreamData(stream)
+                .WithObjectSize(content.Length)
+                .WithContentType("image/png"));
+        }
+
+        public async Task<ClientWebSocket> ConnectGameSocketAsync(string accessToken, Guid clientId) {
             var socket = new ClientWebSocket();
-            socket.Options.Cookies = cookies;
+            socket.Options.SetRequestHeader("Authorization", "Bearer " + accessToken);
             socket.Options.SetRequestHeader("X-Client-Id", clientId.ToString());
             var builder = new UriBuilder(Address) { Scheme = "ws", Path = "/api/client/game" };
             await socket.ConnectAsync(builder.Uri, CancellationToken.None);
             return socket;
+        }
+
+        public async Task<ClientWebSocket> ConnectRealtimeSocketAsync(HttpClient client, CookieContainer cookies) {
+            using var negotiate = await client.PostAsync("/api/client/web/negotiate?negotiateVersion=1", null);
+            negotiate.EnsureSuccessStatusCode();
+            using var document = JsonDocument.Parse(await negotiate.Content.ReadAsStringAsync());
+            var token = document.RootElement.GetProperty("connectionToken").GetString();
+            Assert.NotNull(token);
+            var socket = new ClientWebSocket();
+            socket.Options.Cookies = cookies;
+            var builder = new UriBuilder(Address) { Scheme = "ws", Path = "/api/client/web", Query = "id=" + Uri.EscapeDataString(token) };
+            await socket.ConnectAsync(builder.Uri, CancellationToken.None);
+            await socket.SendAsync(Encoding.UTF8.GetBytes("{\"protocol\":\"json\",\"version\":1}\u001e"), WebSocketMessageType.Text, true, CancellationToken.None);
+            await ReceiveTextAsync(socket);
+            return socket;
+        }
+
+        private static int GetAvailableUdpPort() {
+            using var socket = new UdpClient(new IPEndPoint(IPAddress.Loopback, 0));
+            return ((IPEndPoint) socket.Client.LocalEndPoint!).Port;
         }
 
         public async Task<PlaySession> WaitForPlayAsync(Guid userId, int correlationId) {
