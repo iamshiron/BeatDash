@@ -38,15 +38,15 @@ import { useGetApiMaps } from "@/api/maps/maps";
 import type { MapListItemDto } from "@/api/model";
 import { ErrorState } from "@/components/common/ErrorState";
 import { AppShell } from "@/components/layout/AppShell";
-import { MapFilters } from "@/components/maps/MapFilters";
 import { MapCard } from "@/components/maps/MapCard";
+import { MapFilters } from "@/components/maps/MapFilters";
 import {
 	DEFAULT_DIRECTION,
 	DEFAULT_SORT,
 	MAP_SORT_OPTIONS,
+	type MapsSearch,
 	mapsSearchToApi,
 	normalizeMapsSearch,
-	type MapsSearch,
 	type SortDirection,
 } from "@/lib/maps";
 import { type MapProcessingEvent, useRealtimeEvent } from "@/realtime";
@@ -176,7 +176,7 @@ function MapsPage() {
 				<h1 className="font-heading text-lg font-semibold tracking-tight">
 					Maps
 				</h1>
-				<div className="flex items-center gap-2">
+				<div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
 					<MapFilters
 						search={search}
 						onChange={changeFilters}
@@ -233,7 +233,7 @@ function MapsPage() {
 						<HeartIcon className="size-4" weight={liked ? "Bold" : "Linear"} />
 						Liked
 					</Button>
-					<div className="relative w-full max-w-xs">
+					<div className="relative w-full sm:max-w-xs">
 						<MagnifierIcon className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 						<Input
 							value={input}

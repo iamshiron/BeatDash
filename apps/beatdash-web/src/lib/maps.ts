@@ -80,6 +80,8 @@ export type MapsSearch = {
 
 const DEFAULT_SORT: MapSortValue = "newest";
 const DEFAULT_DIRECTION: SortDirection = "desc";
+const INT32_MAX = 2_147_483_647;
+const NUMBER_PATTERN = /^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$/;
 
 function optionalText(value: unknown): string | undefined {
 	if (typeof value !== "string") return undefined;
@@ -89,9 +91,27 @@ function optionalText(value: unknown): string | undefined {
 		: undefined;
 }
 
-function optionalNumber(value: unknown): number | undefined {
+function optionalNumber(
+	value: unknown,
+	minimum = 0,
+	maximum = Number.POSITIVE_INFINITY,
+): number | undefined {
+	if (typeof value !== "number" && typeof value !== "string") return undefined;
+	if (typeof value === "string" && !NUMBER_PATTERN.test(value))
+		return undefined;
 	const number = typeof value === "number" ? value : Number(value);
-	return Number.isFinite(number) && number >= 0 ? number : undefined;
+	return Number.isFinite(number) && number >= minimum && number <= maximum
+		? number
+		: undefined;
+}
+
+function optionalInteger(
+	value: unknown,
+	minimum = 0,
+	maximum = INT32_MAX,
+): number | undefined {
+	const number = optionalNumber(value, minimum, maximum);
+	return number !== undefined && Number.isInteger(number) ? number : undefined;
 }
 
 function optionalEnum<T extends readonly string[]>(
@@ -106,9 +126,10 @@ function optionalEnum<T extends readonly string[]>(
 function normalizeRange(
 	min: unknown,
 	max: unknown,
+	normalizeNumber: (value: unknown) => number | undefined = optionalNumber,
 ): [number | undefined, number | undefined] {
-	const normalizedMin = optionalNumber(min);
-	const normalizedMax = optionalNumber(max);
+	const normalizedMin = normalizeNumber(min);
+	const normalizedMax = normalizeNumber(max);
 	return normalizedMin !== undefined &&
 		normalizedMax !== undefined &&
 		normalizedMin > normalizedMax
@@ -124,17 +145,19 @@ export function normalizeMapsSearch(
 	const [durationMin, durationMax] = normalizeRange(
 		search.durationMin,
 		search.durationMax,
+		optionalInteger,
 	);
 	const [npsMin, npsMax] = normalizeRange(search.npsMin, search.npsMax);
 	const [ratingMin, ratingMax] = normalizeRange(
 		search.ratingMin,
 		search.ratingMax,
+		(value) => optionalNumber(value, 0, 1),
 	);
 	const [ppMin, ppMax] = normalizeRange(search.ppMin, search.ppMax);
 
 	return {
 		q: optionalText(search.q),
-		p: Math.max(1, Math.floor(optionalNumber(search.p) ?? 1)),
+		p: optionalInteger(search.p, 1) ?? 1,
 		played:
 			search.played === "played" || search.played === "unplayed"
 				? search.played

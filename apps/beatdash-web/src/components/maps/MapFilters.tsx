@@ -16,13 +16,12 @@ import {
 } from "@shiron/ui/components/ui/select";
 import { Separator } from "@shiron/ui/components/ui/separator";
 import { FilterIcon } from "@solar-icons/react/dynamic";
-import { useDebouncedCallback } from "@tanstack/react-pacer";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
+	type BooleanFilter,
 	DIFFICULTY_OPTIONS,
 	FETCH_STATUS_OPTIONS,
 	getActiveMapFilters,
-	type BooleanFilter,
 	type MapsSearch,
 } from "@/lib/maps";
 
@@ -82,7 +81,7 @@ export function MapFilters({ search, onChange, onReset }: MapFiltersProps) {
 						placeholder="For example, Standard"
 						onChange={(characteristic) => onChange({ characteristic })}
 					/>
-					<Field label="Difficulty">
+					<Field label="Difficulty" htmlFor="map-difficulty">
 						<Select
 							value={search.difficulty ?? "all"}
 							onValueChange={(value) =>
@@ -151,11 +150,13 @@ export function MapFilters({ search, onChange, onReset }: MapFiltersProps) {
 					<Separator />
 
 					<BooleanSelect
+						id="map-ranked"
 						label="Ranked"
 						value={search.ranked}
 						onChange={(ranked) => onChange({ ranked })}
 					/>
 					<BooleanSelect
+						id="map-automapper"
 						label="Automapper"
 						value={search.automapper}
 						onChange={(automapper) => onChange({ automapper })}
@@ -167,7 +168,7 @@ export function MapFilters({ search, onChange, onReset }: MapFiltersProps) {
 						placeholder="For example, nightcore"
 						onChange={(tag) => onChange({ tag })}
 					/>
-					<Field label="Metadata status">
+					<Field label="Metadata status" htmlFor="map-fetch-status">
 						<Select
 							value={search.fetchStatus ?? "all"}
 							onValueChange={(value) =>
@@ -205,14 +206,18 @@ export function MapFilters({ search, onChange, onReset }: MapFiltersProps) {
 
 function Field({
 	label,
+	htmlFor,
 	children,
 }: {
 	label: string;
+	htmlFor?: string;
 	children: React.ReactNode;
 }) {
 	return (
 		<div className="flex flex-col gap-1.5">
-			<Label className="text-muted-foreground">{label}</Label>
+			<Label htmlFor={htmlFor} className="text-muted-foreground">
+				{label}
+			</Label>
 			{children}
 		</div>
 	);
@@ -232,13 +237,15 @@ function TextField({
 	onChange: (value: string | undefined) => void;
 }) {
 	const [input, setInput] = useState(value ?? "");
-	useEffect(() => setInput(value ?? ""), [value]);
-	const commit = useDebouncedCallback(
-		(next: string) => onChange(next.trim() || undefined),
-		{ wait: INPUT_DEBOUNCE_MS },
+	const { cancel, schedule } = useDebouncedChange((next: string) =>
+		onChange(next.trim() || undefined),
 	);
+	useEffect(() => {
+		setInput(value ?? "");
+		cancel();
+	}, [value, cancel]);
 	return (
-		<Field label={label}>
+		<Field label={label} htmlFor={id}>
 			<Input
 				id={id}
 				value={input}
@@ -246,7 +253,7 @@ function TextField({
 				className="h-8 text-xs"
 				onChange={(event) => {
 					setInput(event.target.value);
-					commit(event.target.value);
+					schedule(event.target.value);
 				}}
 			/>
 		</Field>
@@ -268,15 +275,36 @@ function RangeField({
 }) {
 	const [min, setMin] = useState(minValue?.toString() ?? "");
 	const [max, setMax] = useState(maxValue?.toString() ?? "");
+	const minInput = parseInput(min);
+	const maxInput = parseInput(max);
+	const isInverted =
+		minInput.valid &&
+		maxInput.valid &&
+		minInput.value !== undefined &&
+		maxInput.value !== undefined &&
+		minInput.value > maxInput.value;
+	const isInvalid = !minInput.valid || !maxInput.valid || isInverted;
+	const { cancel, schedule } = useDebouncedChange(
+		(nextMin: string, nextMax: string) => {
+			const parsedMin = parseInput(nextMin);
+			const parsedMax = parseInput(nextMax);
+			if (
+				!parsedMin.valid ||
+				!parsedMax.valid ||
+				(parsedMin.value !== undefined &&
+					parsedMax.value !== undefined &&
+					parsedMin.value > parsedMax.value)
+			) {
+				return;
+			}
+			onChange(parsedMin.value, parsedMax.value);
+		},
+	);
 	useEffect(() => {
 		setMin(minValue?.toString() ?? "");
 		setMax(maxValue?.toString() ?? "");
-	}, [minValue, maxValue]);
-	const commit = useDebouncedCallback(
-		(nextMin: string, nextMax: string) =>
-			onChange(toNumber(nextMin), toNumber(nextMax)),
-		{ wait: INPUT_DEBOUNCE_MS },
-	);
+		cancel();
+	}, [minValue, maxValue, cancel]);
 	return (
 		<Field label={label}>
 			<div className="grid grid-cols-2 gap-2">
@@ -287,11 +315,12 @@ function RangeField({
 					step={step}
 					value={min}
 					placeholder="Min"
+					aria-invalid={isInvalid}
 					className="h-8 text-xs"
 					onChange={(event) => {
 						const next = event.target.value;
 						setMin(next);
-						commit(next, max);
+						schedule(next, max);
 					}}
 				/>
 				<Input
@@ -301,29 +330,37 @@ function RangeField({
 					step={step}
 					value={max}
 					placeholder="Max"
+					aria-invalid={isInvalid}
 					className="h-8 text-xs"
 					onChange={(event) => {
 						const next = event.target.value;
 						setMax(next);
-						commit(min, next);
+						schedule(min, next);
 					}}
 				/>
 			</div>
+			{isInverted && (
+				<p className="text-xs text-destructive" role="alert">
+					Minimum cannot exceed maximum.
+				</p>
+			)}
 		</Field>
 	);
 }
 
 function BooleanSelect({
 	label,
+	id,
 	value,
 	onChange,
 }: {
 	label: string;
+	id: string;
 	value: BooleanFilter | undefined;
 	onChange: (value: BooleanFilter | undefined) => void;
 }) {
 	return (
-		<Field label={label}>
+		<Field label={label} htmlFor={id}>
 			<Select
 				value={value ?? "all"}
 				onValueChange={(next) =>
@@ -336,7 +373,7 @@ function BooleanSelect({
 					)
 				}
 			>
-				<SelectTrigger className="h-8 w-full text-xs">
+				<SelectTrigger className="h-8 w-full text-xs" id={id}>
 					<SelectValue placeholder={`Any ${label.toLowerCase()} maps`} />
 				</SelectTrigger>
 				<SelectContent>
@@ -349,8 +386,41 @@ function BooleanSelect({
 	);
 }
 
-function toNumber(value: string): number | undefined {
-	if (value.trim() === "") return undefined;
+function useDebouncedChange<TArgs extends unknown[]>(
+	onChange: (...args: TArgs) => void,
+) {
+	const timeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+	const callback = useRef(onChange);
+	callback.current = onChange;
+
+	useEffect(
+		() => () => {
+			if (timeout.current !== undefined) clearTimeout(timeout.current);
+		},
+		[],
+	);
+
+	const cancel = useCallback(() => {
+		if (timeout.current !== undefined) clearTimeout(timeout.current);
+		timeout.current = undefined;
+	}, []);
+	const schedule = useCallback((...args: TArgs) => {
+		if (timeout.current !== undefined) clearTimeout(timeout.current);
+		timeout.current = setTimeout(
+			() => callback.current(...args),
+			INPUT_DEBOUNCE_MS,
+		);
+	}, []);
+	return { cancel, schedule };
+}
+
+function parseInput(value: string): {
+	valid: boolean;
+	value: number | undefined;
+} {
+	if (value.trim() === "") return { valid: true, value: undefined };
 	const number = Number(value);
-	return Number.isFinite(number) && number >= 0 ? number : undefined;
+	return Number.isFinite(number) && number >= 0
+		? { valid: true, value: number }
+		: { valid: false, value: undefined };
 }

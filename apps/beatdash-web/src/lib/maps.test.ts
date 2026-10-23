@@ -39,6 +39,55 @@ describe("normalizeMapsSearch", () => {
 		expect(search.bpmMax).toBeUndefined();
 		expect(search.fetchStatus).toBeUndefined();
 	});
+
+	it("Rejected coercible, out-of-bounds, and non-integer URL values", () => {
+		const search = normalizeMapsSearch({
+			p: "1.5",
+			bpmMin: null,
+			bpmMax: false,
+			npsMin: "",
+			npsMax: [],
+			ppMin: " 12",
+			ppMax: "12 maps",
+			durationMin: "120.5",
+			durationMax: 2_147_483_648,
+			ratingMin: -0.01,
+			ratingMax: 1.01,
+		});
+
+		expect(search.p).toBe(1);
+		expect(search.bpmMin).toBeUndefined();
+		expect(search.bpmMax).toBeUndefined();
+		expect(search.npsMin).toBeUndefined();
+		expect(search.npsMax).toBeUndefined();
+		expect(search.ppMin).toBeUndefined();
+		expect(search.ppMax).toBeUndefined();
+		expect(search.durationMin).toBeUndefined();
+		expect(search.durationMax).toBeUndefined();
+		expect(search.ratingMin).toBeUndefined();
+		expect(search.ratingMax).toBeUndefined();
+		expect(normalizeMapsSearch({ p: 2_147_483_648 }).p).toBe(1);
+	});
+
+	it("Accepted API-compatible numeric strings at their bounds", () => {
+		const search = normalizeMapsSearch({
+			p: "2147483647",
+			durationMin: "0",
+			durationMax: "2147483647",
+			ratingMin: "0",
+			ratingMax: "1",
+			npsMin: "1e1",
+		});
+
+		expect(search).toMatchObject({
+			p: 2_147_483_647,
+			durationMin: 0,
+			durationMax: 2_147_483_647,
+			ratingMin: 0,
+			ratingMax: 1,
+			npsMin: 10,
+		});
+	});
 });
 
 describe("mapsSearchToApi", () => {
