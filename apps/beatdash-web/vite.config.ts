@@ -6,11 +6,11 @@ import path from 'path';
 
 export default defineConfig({
     envDir: '../../',
-    plugins: [TanStackRouterVite(), tailwindcss(), react()],
+    plugins: [TanStackRouterVite({ autoCodeSplitting: true }), tailwindcss(), react()],
     resolve: {
         alias: {
-            '@': path.resolve(__dirname, './src'),
-            '@shiron/ui': path.resolve(__dirname, '../../packages/ui/src'),
+            '@': path.resolve(import.meta.dirname, './src'),
+            '@shiron/ui': path.resolve(import.meta.dirname, '../../packages/ui/src'),
         },
     },
     server: {
