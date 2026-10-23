@@ -5,6 +5,7 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <WebClientRoot>$(MSBuildProjectDirectory)/../../apps/beatdash-web</WebClientRoot>
     </PropertyGroup>
 
     <ItemGroup>
@@ -30,5 +31,22 @@
         <ProjectReference Include="..\BeatDash.Data\Shiron.BeatDash.Data.csproj"/>
         <ProjectReference Include="..\BeatDash.DB\Shiron.BeatDash.DB.csproj"/>
     </ItemGroup>
+
+    <Target Name="BuildWebClient" BeforeTargets="AssignTargetPaths"
+            Condition="'$(DesignTimeBuild)' != 'true' and '$(SkipWebBuild)' != 'true'">
+        <Exec WorkingDirectory="$(WebClientRoot)" Command="pnpm run build" />
+    </Target>
+
+    <Target Name="IncludeWebClient" BeforeTargets="AssignTargetPaths" DependsOnTargets="BuildWebClient"
+            Condition="'$(DesignTimeBuild)' != 'true'">
+        <ItemGroup>
+            <_WebClientFile Include="$(WebClientRoot)/dist/**/*" />
+            <None Include="@(_WebClientFile)">
+                <Link>wwwroot/%(_WebClientFile.RecursiveDir)%(_WebClientFile.Filename)%(_WebClientFile.Extension)</Link>
+                <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+                <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+            </None>
+        </ItemGroup>
+    </Target>
 
 </Project>

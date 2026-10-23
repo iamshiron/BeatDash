@@ -1,11 +1,7 @@
 -- Ensure proper encoding
 SET client_encoding = 'UTF8';
 
--- Create the dedicated database
-CREATE DATABASE beatdash;
-
--- Setup BeatDash Database
-\c beatdash
+-- The PostgreSQL image creates and connects to POSTGRES_DB before running this script.
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 GRANT ALL PRIVILEGES ON SCHEMA public TO current_user;

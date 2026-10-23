@@ -72,12 +72,12 @@ The mod pairs with your account once, then stays connected:
 
 The mod authenticates over a WebSocket connection to the API. Access tokens expire every 15 minutes and refresh automatically — you only need to pair once per device.
 
-The backend runs in Docker. With Docker installed:
+The ASP.NET Core server hosts both the API and the built dashboard. See the developer setup below to run it with `dotnet`; Docker or Podman is only needed for infrastructure.
 
 1.  Download the latest BeatDash mod release and place it in your Beat Saber `Plugins` folder
-2.  Start the backend and dashboard:
+2.  Complete the developer setup below, then start the backend and dashboard:
     ```sh
-    docker compose up -d
+    dotnet run --project src/BeatDash.API
     ```
 3.  Open the dashboard in your browser, register, and follow the pairing flow above
 
@@ -184,7 +184,7 @@ Connections are grouped per user, so all of a user's open browser tabs receive t
 
 -   [.NET 10 SDK](https://dotnet.microsoft.com/)
 -   [Node.js](https://nodejs.org/) + [pnpm](https://pnpm.io/)
--   [Docker](https://www.docker.com/)
+-   [Docker](https://www.docker.com/) or Podman (for PostgreSQL and MinIO)
 
 ### Getting Started
 
@@ -197,21 +197,42 @@ Connections are grouped per user, so all of a user's open browser tabs receive t
 2.  Install dependencies and set up env:
 
     ```sh
-    pnpm install
+    pnpm install --frozen-lockfile
     cp .env.example .env
     ```
 
 3.  Start infrastructure (PostgreSQL, MinIO, Adminer):
 
     ```sh
-    docker compose up -d
+    docker compose --env-file .env -f docker/docker-compose.yml up -d
     ```
 
-4.  Run everything in dev mode:
+    With Podman, use `podman compose` instead of `docker compose`.
+
+4.  Apply the database migrations (requires the `dotnet-ef` tool):
 
     ```sh
-    pnpm dev
+    dotnet ef database update --project src/BeatDash.DB --startup-project src/BeatDash.API
     ```
+
+5.  Start the API and dashboard together:
+
+    ```sh
+    dotnet run --project src/BeatDash.API
+    ```
+
+    Open **http://localhost:1811**. The API build runs the frontend production build and bundles its files into `wwwroot` beside the server. No Node process is needed at runtime. Client-side routes work on refresh, while unknown `/api` routes still return 404.
+
+    For frontend hot reload instead, run `dotnet run --project src/BeatDash.API -p:SkipWebBuild=true` and `pnpm --filter @shiron/beatdash-web dev` in separate terminals. Open **http://localhost:1911**; Vite proxies API and WebSocket requests to port 1811. `SkipWebBuild` reuses any existing dashboard build.
+
+### Publish and run
+
+```sh
+dotnet publish src/BeatDash.API -c Release -o artifacts/server
+dotnet artifacts/server/Shiron.BeatDash.API.dll
+```
+
+Deploy the **entire** `artifacts/server` directory, including `wwwroot`. Publishing builds the frontend automatically; the destination only needs the .NET 10 ASP.NET Core runtime and access to PostgreSQL and MinIO. Supply the settings from `.env.example` through environment variables (or a `.env` in the working directory). Replace the example credentials and JWT secret before deploying. Node.js and pnpm are build-time dependencies only.
 
 ### Common Commands
 

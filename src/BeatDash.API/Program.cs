@@ -25,7 +25,10 @@ using Shiron.BeatDash.DB;
 using Shiron.BeatDash.DB.Schema;
 
 Env.TraversePath().Load();
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions {
+    Args = args,
+    WebRootPath = Path.Combine(AppContext.BaseDirectory, "wwwroot")
+});
 var jwtSecret = builder.Configuration.GetSection("Jwt")["SecretKey"] ?? throw new InvalidOperationException("JWT secret key not configured");
 var jwtIssuer = builder.Configuration.GetSection("Jwt")["Issuer"] ?? throw new InvalidOperationException("JWT issuer not configured");
 var jwtAudience = builder.Configuration.GetSection("Jwt")["Audience"] ?? throw new InvalidOperationException("JWT audience not configured");
@@ -192,6 +195,8 @@ builder.Services.AddSignalR();
 builder.Services.AddScoped<IRealtimeBroadcaster, RealtimeBroadcaster>();
 
 var app = builder.Build();
+app.UseDefaultFiles();
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -233,5 +238,8 @@ api.MapHealthEndpoints();
 api.MapHspEndpoints();
 api.MapServerInfoEndpoints();
 api.MapHub<RealtimeHub>("/client/web");
+
+app.MapFallback("/api/{**path}", () => Results.NotFound());
+app.MapFallbackToFile("index.html");
 
 app.Run();

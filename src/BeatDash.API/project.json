@@ -1,11 +1,23 @@
 {
     "$schema": "https://raw.githubusercontent.com/nrwl/nx/refs/heads/master/packages/nx/schemas/project-schema.json",
+    "implicitDependencies": ["@shiron/beatdash-web"],
     "targets": {
+        "build": {
+            "options": {
+                "command": "dotnet build -p:SkipWebBuild=true"
+            }
+        },
+        "build:release": {
+            "dependsOn": ["^build:release", "@shiron/beatdash-web:build"],
+            "options": {
+                "command": "dotnet build -p:SkipWebBuild=true"
+            }
+        },
         "migrate": {
             "cache": false,
             "executor": "nx:run-commands",
             "options": {
-                "command": "dotnet ef database update --project {projectRoot} --startup-project src/BeatDash.API/",
+                "command": "dotnet ef database update --project src/BeatDash.DB --startup-project src/BeatDash.API/",
                 "cwd": "{workspaceRoot}"
             }
         }
