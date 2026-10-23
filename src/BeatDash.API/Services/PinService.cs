@@ -10,15 +10,16 @@ public interface IPinService {
 
 public class PinService(IMemoryCache cache) : IPinService {
     private const int PinExpiryMinutes = 15;
-    private const int MaxPin = 999999;
+    private const int MaxPinExclusive = 1_000_000;
 
     public string GeneratePin(Guid userId, out DateTime expires) {
-        if (cache.TryGetValue(userId.ToString(), out _)) {
+        if (cache.TryGetValue<string>(userId.ToString(), out var previousPin) && previousPin is not null) {
             cache.Remove(userId.ToString());
+            cache.Remove(previousPin);
         }
 
         expires = DateTime.UtcNow.AddMinutes(PinExpiryMinutes);
-        var pin = RandomNumberGenerator.GetInt32(0, MaxPin).ToString("D6");
+        var pin = RandomNumberGenerator.GetInt32(0, MaxPinExclusive).ToString("D6");
 
         var cacheOptions = new MemoryCacheEntryOptions {
             AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(PinExpiryMinutes)
