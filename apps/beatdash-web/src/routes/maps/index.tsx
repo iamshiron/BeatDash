@@ -196,7 +196,10 @@ function MapsPage() {
 						</SelectContent>
 					</Select>
 					<Select value={direction} onValueChange={changeDirection}>
-						<SelectTrigger className="h-9 w-24" aria-label="Sort direction">
+						<SelectTrigger
+							className="h-9 w-32 shrink-0"
+							aria-label="Sort direction"
+						>
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent align="end">
