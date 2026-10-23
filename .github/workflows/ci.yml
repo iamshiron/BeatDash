@@ -85,5 +85,8 @@ jobs:
       - name: Lint
         run: pnpm --filter @shiron/beatdash-web exec biome ci src
 
+      - name: Test
+        run: pnpm --filter @shiron/beatdash-web test
+
       - name: Build
         run: pnpm --filter @shiron/beatdash-web build

@@ -8,36 +8,63 @@ public interface IPinService {
     bool TryConsumePin(string pin, out Guid userId);
 }
 
-public class PinService(IMemoryCache cache) : IPinService {
+public sealed class PinService : IPinService {
     private const int PinExpiryMinutes = 15;
-    private const int MaxPin = 999999;
+    private const int MaxPinExclusive = 1_000_000;
+    private readonly IMemoryCache _cache;
+    private readonly Func<int, int, int> _randomNumber;
+    private readonly object _gate = new();
+
+    public PinService(IMemoryCache cache) : this(cache, RandomNumberGenerator.GetInt32) { }
+
+    internal PinService(IMemoryCache cache, Func<int, int, int> randomNumber) {
+        _cache = cache;
+        _randomNumber = randomNumber;
+    }
 
     public string GeneratePin(Guid userId, out DateTime expires) {
-        if (cache.TryGetValue(userId.ToString(), out _)) {
-            cache.Remove(userId.ToString());
+        lock (_gate) {
+            var userKey = userId.ToString();
+            var pin = ReservePin();
+
+            if (_cache.TryGetValue<string>(userKey, out var previousPin) && previousPin is not null) {
+                _cache.Remove(previousPin);
+            }
+
+            expires = DateTime.UtcNow.AddMinutes(PinExpiryMinutes);
+            var cacheOptions = new MemoryCacheEntryOptions {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(PinExpiryMinutes)
+            };
+
+            _cache.Set(pin, userId, cacheOptions);
+            _cache.Set(userKey, pin, cacheOptions);
+
+            return pin;
         }
-
-        expires = DateTime.UtcNow.AddMinutes(PinExpiryMinutes);
-        var pin = RandomNumberGenerator.GetInt32(0, MaxPin).ToString("D6");
-
-        var cacheOptions = new MemoryCacheEntryOptions {
-            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(PinExpiryMinutes)
-        };
-
-        cache.Set(pin, userId, cacheOptions);
-        cache.Set(userId.ToString(), pin, cacheOptions);
-
-        return pin;
     }
 
     public bool TryConsumePin(string pin, out Guid userId) {
-        if (cache.TryGetValue(pin, out userId)) {
-            cache.Remove(pin);
-            cache.Remove(userId.ToString());
+        lock (_gate) {
+            if (!_cache.TryGetValue(pin, out userId)) {
+                userId = Guid.Empty;
+                return false;
+            }
 
+            _cache.Remove(pin);
+            var userKey = userId.ToString();
+            if (_cache.TryGetValue<string>(userKey, out var activePin) && activePin == pin) {
+                _cache.Remove(userKey);
+            }
             return true;
         }
-        userId = Guid.Empty;
-        return false;
+    }
+
+    private string ReservePin() {
+        for (var attempts = 0; attempts < MaxPinExclusive; attempts++) {
+            var pin = _randomNumber(0, MaxPinExclusive).ToString("D6");
+            if (!_cache.TryGetValue(pin, out _)) return pin;
+        }
+
+        throw new InvalidOperationException("No device PINs are available.");
     }
 }
