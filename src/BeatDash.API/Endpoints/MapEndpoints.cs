@@ -208,7 +208,7 @@ public static class MapEndpoints {
                 if (data is null) return Results.NotFound();
 
                 return Results.File(data, "image/png");
-            }).RequireAuthorization().Produces(404).Produces(200);
+            }).AllowAnonymous().Produces(404).Produces(200);
 
         // Streams the map's song audio, extracted on demand from the stored BeatSaver
         // zip. Range processing is enabled so the browser's <audio> element can seek
