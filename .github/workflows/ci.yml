@@ -36,7 +36,7 @@ jobs:
 
       - name: Build (Release)
         run: |
-          dotnet build src/BeatDash.API/Shiron.BeatDash.API.csproj -c Release --no-restore
+          dotnet build src/BeatDash.API/Shiron.BeatDash.API.csproj -c Release --no-restore -p:SkipWebBuild=true
           dotnet build src/BeatDash.Cli/Shiron.BeatDash.Cli.csproj -c Release --no-restore
 
       # dotnet format is the .NET lint/style gate. Run it per project so the
@@ -84,6 +84,9 @@ jobs:
 
       - name: Lint
         run: pnpm --filter @shiron/beatdash-web exec biome ci src
+
+      - name: Test
+        run: pnpm --filter @shiron/beatdash-web test
 
       - name: Build
         run: pnpm --filter @shiron/beatdash-web build

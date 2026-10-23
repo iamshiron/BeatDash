@@ -35,7 +35,10 @@ var jwtSecret = builder.Configuration.GetSection("Jwt")["SecretKey"] ?? throw ne
 var jwtIssuer = builder.Configuration.GetSection("Jwt")["Issuer"] ?? throw new InvalidOperationException("JWT issuer not configured");
 var jwtAudience = builder.Configuration.GetSection("Jwt")["Audience"] ?? throw new InvalidOperationException("JWT audience not configured");
 var backupOptions = builder.Configuration.GetSection("Backup").Get<BackupOptions>() ?? new BackupOptions();
+var hspOptions = builder.Configuration.GetSection("Hsp").Get<HspOptions>() ?? new HspOptions();
+_ = hspOptions.GetPublicIngestUri();
 builder.Services.Configure<BackupOptions>(builder.Configuration.GetSection("Backup"));
+builder.Services.Configure<HspOptions>(builder.Configuration.GetSection("Hsp"));
 var backupDirectory = Path.GetFullPath(backupOptions.WorkDirectory);
 var webDirectory = Path.GetFullPath(builder.Environment.WebRootPath!);
 if (backupOptions.MaxArchiveBytes <= 0 || backupDirectory == webDirectory
@@ -139,7 +142,7 @@ builder.Services.AddScoped<IPracticeRecommendationService, PracticeRecommendatio
 if (!backupOptions.MaintenanceMode) builder.Services.AddHostedService<MotionSummaryBackfillService>();
 builder.Services.AddSingleton<IStorageService, MinioStorageService>();
 builder.Services.AddScoped<IMapAudioService, MapAudioService>();
-builder.Services.AddScoped<IPinService, PinService>();
+builder.Services.AddSingleton<IPinService, PinService>();
 builder.Services.AddScoped<IBeatmapPersistenceService, BeatmapPersistenceService>();
 if (!backupOptions.MaintenanceMode) builder.Services.AddHostedService<UdpSocketService>();
 

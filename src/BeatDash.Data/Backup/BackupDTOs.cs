@@ -3,7 +3,7 @@ using System;
 namespace Shiron.BeatDash.Data.Backup;
 
 /// <summary>Credentials for a short-lived, admin-only backup session.</summary>
-public sealed record BackupLoginRequest(string Email, string Password, string TwoFactorCode = null);
+public sealed record BackupLoginRequest(string Email, string Password, string? TwoFactorCode = null);
 /// <summary>A bearer token restricted to backup administration.</summary>
 public sealed record BackupLoginResponse(string AccessToken, DateTimeOffset ExpiresAt);
 /// <summary>Selection for an export operation.</summary>

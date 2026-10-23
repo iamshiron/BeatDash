@@ -30,6 +30,33 @@ public static class AdminMetricsEndpoints {
             return Results.Ok(new MetricConfigResponse(config, features));
         }).Produces<MetricConfigResponse>();
 
+        group.MapGet("/overview", async (BeatDashDbContext db, CancellationToken ct) => {
+            var users = await db.Users.CountAsync(ct);
+            var devices = await db.Devices.CountAsync(ct);
+            var maps = await db.Beatmaps.CountAsync(ct);
+            var plays = await db.PlaySessions.CountAsync(ct);
+            var difficulties = await db.BeatmapDifficulties.CountAsync(ct);
+            var analyzed = await db.BeatmapDifficultyAnalyses.CountAsync(ct);
+            var analysisSucceeded = await db.BeatmapDifficultyAnalyses
+                .CountAsync(analysis => analysis.Status == BeatmapAnalysisStatus.Success, ct);
+            var featuresExtracted = await db.BeatmapDifficultyAnalyses
+                .CountAsync(analysis => analysis.FeatureStatus == FeatureExtractionStatus.Success, ct);
+            var metricsScored = await db.BeatmapDifficultyAnalyses
+                .CountAsync(analysis => analysis.MetricStatus == MetricStatus.Success, ct);
+
+            return Results.Ok(new AdminOverviewResponse(
+                users,
+                devices,
+                maps,
+                plays,
+                new AnalysisPipelineSummary(
+                    difficulties,
+                    analyzed,
+                    analysisSucceeded,
+                    featuresExtracted,
+                    metricsScored)));
+        }).Produces<AdminOverviewResponse>();
+
         // Score selected maps against an arbitrary config. Read-only: builds a transient
         // scorer, reuses stored features, persists nothing.
         group.MapPost("/score", async (
@@ -111,6 +138,22 @@ public static class AdminMetricsEndpoints {
 
 /// <summary>The running calibration plus the feature catalogue, for the editor UI.</summary>
 public sealed record MetricConfigResponse(MetricConfig Config, IReadOnlyList<FeatureCatalogItemDto> Features);
+
+/// <summary>Aggregate, non-identifying operational counts for the admin overview.</summary>
+public sealed record AdminOverviewResponse(
+    int Users,
+    int Devices,
+    int Maps,
+    int Plays,
+    AnalysisPipelineSummary AnalysisPipeline);
+
+/// <summary>Progress counts for the map analysis pipeline.</summary>
+public sealed record AnalysisPipelineSummary(
+    int Difficulties,
+    int Analyzed,
+    int AnalysisSucceeded,
+    int FeaturesExtracted,
+    int MetricsScored);
 
 /// <summary>One extractable feature the editor can weight against.</summary>
 public sealed record FeatureCatalogItemDto(string Key, string Description);

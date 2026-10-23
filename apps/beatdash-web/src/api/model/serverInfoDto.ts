@@ -11,4 +11,5 @@ export interface ServerInfoDto {
   /** @pattern ^-?(?:0|[1-9]\d*)$ */
   apiPort: number | string;
   hostAddress: string;
+  hspIngestUrl: string;
 }
