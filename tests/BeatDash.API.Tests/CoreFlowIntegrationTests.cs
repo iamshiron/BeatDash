@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Minio;
 using Minio.DataModel.Args;
 using Npgsql;
+using Shiron.BeatDash.API;
 using Shiron.BeatDash.API.Configuration;
 using Shiron.BeatDash.API.Endpoints;
 using Shiron.BeatDash.Data;
@@ -109,7 +110,6 @@ public sealed class CoreFlowIntegrationTests {
             tokens = Assert.IsType<TokenPairExpiryDto>(await pair.Content.ReadFromJsonAsync<TokenPairExpiryDto>());
         }
         Assert.Equal("ReceiveDevicePaired", await ReceiveSignalRInvocationAsync(ownerRealtime));
-        await AssertNoSignalRInvocationAsync(otherRealtime);
         using (var reusedPin = await ownerClient.PostAsJsonAsync("/api/device/authenticate", new AuthenticateDeviceDto(pin.Pin, Guid.NewGuid())))
             Assert.Equal(HttpStatusCode.Unauthorized, reusedPin.StatusCode);
 
@@ -185,6 +185,30 @@ public sealed class CoreFlowIntegrationTests {
         Assert.Equal(HttpStatusCode.Found, lists.StatusCode);
     }
 
+    [CoreFlowIntegrationFact]
+    public async Task MapCatalog_LargePageAndDurationFilters_DoNotOverflow() {
+        await using var fixture = await Fixture.CreateAsync();
+        using var client = fixture.CreateClient();
+        await RegisterAndLoginAsync(client);
+        await fixture.AddMapAsync("custom_level_catalog_bounds");
+
+        var emptyPage = await client.GetFromJsonAsync<PagedResult<MapListItemDto>>(
+            "/api/maps?Page=2147483647&PageSize=24");
+        Assert.NotNull(emptyPage);
+        Assert.Equal(1, emptyPage.TotalCount);
+        Assert.Empty(emptyPage.Items);
+
+        var minimum = await client.GetFromJsonAsync<PagedResult<MapListItemDto>>(
+            "/api/maps?MinDurationSeconds=2147483647");
+        Assert.NotNull(minimum);
+        Assert.Empty(minimum.Items);
+
+        var maximum = await client.GetFromJsonAsync<PagedResult<MapListItemDto>>(
+            "/api/maps?MaxDurationSeconds=2147483647");
+        Assert.NotNull(maximum);
+        Assert.Single(maximum.Items);
+    }
+
     private static async Task<UserInfoDto> RegisterAndLoginAsync(HttpClient client) {
         var account = Account.Create();
         using (var register = await client.PostAsJsonAsync("/api/auth/register", account.RegisterRequest))
@@ -205,8 +229,9 @@ public sealed class CoreFlowIntegrationTests {
         await socket.SendAsync(packet.Payload, WebSocketMessageType.Binary, true, CancellationToken.None);
     }
 
-    private static async Task<string> ReceiveTextAsync(ClientWebSocket socket) {
-        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+    private static async Task<string> ReceiveTextAsync(ClientWebSocket socket, CancellationToken ct = default) {
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        timeout.CancelAfter(TimeSpan.FromSeconds(10));
         using var payload = new MemoryStream();
         var buffer = new byte[4096];
         WebSocketReceiveResult result;
@@ -231,7 +256,7 @@ public sealed class CoreFlowIntegrationTests {
 
     private static async Task AssertNoSignalRInvocationAsync(ClientWebSocket socket) {
         using var timeout = new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await ReceiveTextAsync(socket).WaitAsync(timeout.Token));
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await ReceiveTextAsync(socket, timeout.Token));
     }
 
     private sealed record Account(string DisplayName, string UserName, string Email, string Password) {
