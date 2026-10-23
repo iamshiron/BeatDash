@@ -19,6 +19,7 @@ import {
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
+	SelectValue,
 } from "@shiron/ui/components/ui/select";
 import { Separator } from "@shiron/ui/components/ui/separator";
 import { Switch } from "@shiron/ui/components/ui/switch";
@@ -488,12 +489,6 @@ function numStr(value: string): number | null {
 
 type Unit = "metric" | "imperial";
 
-const SEX_LABELS: Record<string, string> = {
-	male: "Male",
-	female: "Female",
-	unspecified: "Prefer not to say",
-};
-
 function HealthCard() {
 	const { user } = useAuth();
 	const queryClient = useQueryClient();
@@ -728,19 +723,9 @@ function HealthCard() {
 
 							<Field>
 								<FieldLabel htmlFor="sex">Sex</FieldLabel>
-								<Select
-									value={sex}
-									// Radix can emit an empty value before the content mounts; ignore it
-									// so it doesn't clobber the seeded selection.
-									onValueChange={(v) => v && setSex(v)}
-								>
+								<Select value={sex} onValueChange={setSex}>
 									<SelectTrigger id="sex">
-										{/* Render the label directly (not via SelectValue) so a value
-										    seeded through an effect always shows — SelectValue won't
-										    resolve the label until the content mounts once. */}
-										<span data-slot="select-value">
-											{SEX_LABELS[sex] ?? "Select…"}
-										</span>
+										<SelectValue placeholder="Select…" />
 									</SelectTrigger>
 									<SelectContent>
 										<SelectItem value="male">Male</SelectItem>

@@ -187,7 +187,7 @@ function MapsPage() {
 							<SortVerticalIcon className="size-4 text-muted-foreground" />
 							<SelectValue />
 						</SelectTrigger>
-						<SelectContent align="end">
+						<SelectContent position="popper" align="end">
 							{MAP_SORT_OPTIONS.map((option) => (
 								<SelectItem key={option.value} value={option.value}>
 									{option.label}
@@ -202,7 +202,7 @@ function MapsPage() {
 						>
 							<SelectValue />
 						</SelectTrigger>
-						<SelectContent align="end">
+						<SelectContent position="popper" align="end">
 							<SelectItem value="desc">Descending</SelectItem>
 							<SelectItem value="asc">Ascending</SelectItem>
 						</SelectContent>
