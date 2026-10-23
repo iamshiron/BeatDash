@@ -190,7 +190,7 @@ public static class HspEndpoints {
                         .Select(p => new { p.StartedAt, p.EndedAt })
                         .ToListAsync(ct);
                     var windows = plays
-                        .Select(p => (Start: p.StartedAt, End: p.EndedAt ?? max))
+                        .Select(p => (Start: p.StartedAt, End: p.EndedAt ?? Min(max, p.StartedAt + MaxPlayDuration)))
                         .Where(w => w.End >= min)
                         .ToList();
 
@@ -259,12 +259,17 @@ public static class HspEndpoints {
     internal static bool IsWithinPlayWindow(DateTime recordedAt, DateTime startedAt, DateTime endedAt) =>
         recordedAt >= startedAt && recordedAt <= endedAt;
 
+    private static DateTime Min(DateTime left, DateTime right) => left <= right ? left : right;
+
     // Treat unspecified-kind timestamps as UTC (the API expects UTC ISO-8601).
-    private static DateTime ToUtc(DateTime value) => value.Kind switch {
-        DateTimeKind.Utc => value,
-        DateTimeKind.Local => value.ToUniversalTime(),
-        _ => DateTime.SpecifyKind(value, DateTimeKind.Utc)
-    };
+    private static DateTime ToUtc(DateTime value) {
+        var utc = value.Kind switch {
+            DateTimeKind.Utc => value,
+            DateTimeKind.Local => value.ToUniversalTime(),
+            _ => DateTime.SpecifyKind(value, DateTimeKind.Utc)
+        };
+        return utc.AddTicks(-(utc.Ticks % 10));
+    }
 }
 
 /// <summary>Request to link a new client; an optional label for the Devices list.</summary>

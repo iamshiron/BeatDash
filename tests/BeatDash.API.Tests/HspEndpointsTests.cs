@@ -11,26 +11,30 @@ public sealed class HspEndpointsTests {
             PublicIngestUrl = "https://dash.example/beatdash/api/hsp/ingest"
         };
 
-        var result = ServerInfoEndpoints.GetHspIngestUrl(options, "192.168.1.10", 5000);
+        var result = ServerInfoEndpoints.GetHspIngestUrl(options, new Uri("http://0.0.0.0:5000"), "192.168.1.10");
 
         Assert.Equal("https://dash.example/beatdash/api/hsp/ingest", result);
     }
 
     [Fact]
-    public void GetHspIngestUrl_PublicUrlNotConfigured_ReturnsLanHttpUrl() {
-        var result = ServerInfoEndpoints.GetHspIngestUrl(new HspOptions(), "192.168.1.10", 5000);
+    public void GetHspIngestUrl_PublicUrlWhitespace_ReturnsLanHttpUrl() {
+        var result = ServerInfoEndpoints.GetHspIngestUrl(new HspOptions { PublicIngestUrl = "  " }, new Uri("http://0.0.0.0:5000"), "192.168.1.10");
 
         Assert.Equal("http://192.168.1.10:5000/api/hsp/ingest", result);
     }
 
     [Fact]
-    public void IsWithinPlayWindow_ActiveSessionSample_ReturnsTrue() {
-        var startedAt = new DateTime(2026, 10, 23, 10, 0, 0, DateTimeKind.Utc);
-        var batchLatest = startedAt.AddMinutes(3);
+    public void GetHspIngestUrl_HttpsListener_ReturnsLanHttpsUrl() {
+        var result = ServerInfoEndpoints.GetHspIngestUrl(new HspOptions(), new Uri("https://0.0.0.0:5443"), "192.168.1.10");
 
-        var result = HspEndpoints.IsWithinPlayWindow(startedAt.AddMinutes(2), startedAt, batchLatest);
+        Assert.Equal("https://192.168.1.10:5443/api/hsp/ingest", result);
+    }
 
-        Assert.True(result);
+    [Fact]
+    public void GetPublicIngestUri_InvalidScheme_Throws() {
+        var options = new HspOptions { PublicIngestUrl = "ftp://dash.example/ingest" };
+
+        Assert.Throws<InvalidOperationException>(options.GetPublicIngestUri);
     }
 
     [Fact]
