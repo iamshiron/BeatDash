@@ -180,19 +180,22 @@ public static class HspEndpoints {
                     var max = parsed.Max(s => s.RecordedAt);
 
                     // Keep only samples that fall inside one of the user's play windows; drop the rest.
+                    // HSP flushes live readings independently of game-result delivery, so active and
+                    // incompletely-ended sessions do not have Results yet. Their open window extends
+                    // through this batch's latest reading.
                     var plays = await db.PlaySessions
                         .AsNoTracking()
-                        .Where(p => p.UserId == client.UserId && !p.AutoMode && p.Results != null
+                        .Where(p => p.UserId == client.UserId && !p.AutoMode
                             && p.StartedAt >= min - MaxPlayDuration && p.StartedAt <= max)
-                        .Select(p => new { p.StartedAt, p.EndedAt, Ms = p.Results!.EndSongTimeMs })
+                        .Select(p => new { p.StartedAt, p.EndedAt })
                         .ToListAsync(ct);
                     var windows = plays
-                        .Select(p => (Start: p.StartedAt, End: p.EndedAt ?? p.StartedAt.AddMilliseconds(p.Ms)))
+                        .Select(p => (Start: p.StartedAt, End: p.EndedAt ?? max))
                         .Where(w => w.End >= min)
                         .ToList();
 
                     var inSession = parsed
-                        .Where(s => windows.Any(w => s.RecordedAt >= w.Start && s.RecordedAt <= w.End))
+                        .Where(s => windows.Any(w => IsWithinPlayWindow(s.RecordedAt, w.Start, w.End)))
                         .ToList();
                     var outOfSession = parsed.Count - inSession.Count;
                     if (inSession.Count == 0) {
@@ -252,6 +255,9 @@ public static class HspEndpoints {
         var header = request.Headers[TokenHeader].ToString();
         return string.IsNullOrWhiteSpace(header) ? null : header.Trim();
     }
+
+    internal static bool IsWithinPlayWindow(DateTime recordedAt, DateTime startedAt, DateTime endedAt) =>
+        recordedAt >= startedAt && recordedAt <= endedAt;
 
     // Treat unspecified-kind timestamps as UTC (the API expects UTC ISO-8601).
     private static DateTime ToUtc(DateTime value) => value.Kind switch {

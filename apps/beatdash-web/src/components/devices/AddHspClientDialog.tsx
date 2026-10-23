@@ -58,10 +58,7 @@ export function AddHspClientDialog({
 	} = useGetApiServer({ query: { enabled: open } });
 
 	const serverInfo = serverResponse?.data;
-	const address = serverInfo
-		? `${serverInfo.hostAddress}:${serverInfo.apiPort}`
-		: "";
-	const ingestUrl = serverInfo ? `http://${address}/api/hsp/ingest` : "";
+	const ingestUrl = serverInfo?.hspIngestUrl ?? "";
 
 	const payload =
 		linked && ingestUrl

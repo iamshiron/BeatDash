@@ -12,14 +12,16 @@ public static class ServerInfoEndpoints {
     public static void MapServerInfoEndpoints(this IEndpointRouteBuilder endpoints) {
         var group = endpoints.MapGroup("/server").WithTags("Server");
 
-        group.MapGet("/", (IServer server, IOptions<UdpSocketOptions> udpOptions) => {
+        group.MapGet("/", (IServer server, IOptions<UdpSocketOptions> udpOptions, IOptions<HspOptions> hspOptions) => {
             var apiPort = GetBoundPort(server);
             var hostAddress = GetLanIpAddress();
+            var ingestUrl = GetHspIngestUrl(hspOptions.Value, hostAddress, apiPort);
 
             return Results.Ok(new ServerInfoDto(
                 udpOptions.Value.Port,
                 apiPort,
-                hostAddress
+                hostAddress,
+                ingestUrl
             ));
         }).Produces<ServerInfoDto>().RequireAuthorization();
     }
@@ -38,6 +40,9 @@ public static class ServerInfoEndpoints {
 
         return 0;
     }
+
+    internal static string GetHspIngestUrl(HspOptions options, string hostAddress, int apiPort) =>
+        options.PublicIngestUrl ?? $"http://{hostAddress}:{apiPort}/api/hsp/ingest";
 
     private static string GetLanIpAddress() {
         foreach (var ni in NetworkInterface.GetAllNetworkInterfaces()) {
@@ -66,4 +71,5 @@ public static class ServerInfoEndpoints {
 /// <param name="UdpPort">The UDP port the socket service is bound to.</param>
 /// <param name="ApiPort">The TCP port the HTTP API is listening on.</param>
 /// <param name="HostAddress">The LAN IPv4 address other machines can reach the server at.</param>
-public sealed record ServerInfoDto(int UdpPort, int ApiPort, string HostAddress);
+/// <param name="HspIngestUrl">The full URL HSP clients post sensor samples to.</param>
+public sealed record ServerInfoDto(int UdpPort, int ApiPort, string HostAddress, string HspIngestUrl);
