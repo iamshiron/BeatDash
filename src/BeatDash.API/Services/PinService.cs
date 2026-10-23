@@ -3,11 +3,15 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace Shiron.BeatDash.API.Services;
 
+/// <summary>Creates and atomically consumes short-lived device pairing codes.</summary>
 public interface IPinService {
+    /// <summary>Creates a code for the user and invalidates their previous active code.</summary>
     string GeneratePin(Guid userId, out DateTime expires);
+    /// <summary>Consumes a valid code once and returns its owning user.</summary>
     bool TryConsumePin(string pin, out Guid userId);
 }
 
+/// <summary>Coordinates pairing code reservations in the server's memory cache.</summary>
 public sealed class PinService : IPinService {
     private const int PinExpiryMinutes = 15;
     private const int MaxPinExclusive = 1_000_000;
@@ -15,6 +19,7 @@ public sealed class PinService : IPinService {
     private readonly Func<int, int, int> _randomNumber;
     private readonly object _gate = new();
 
+    /// <summary>Creates a pairing service backed by cryptographically random codes.</summary>
     public PinService(IMemoryCache cache) : this(cache, RandomNumberGenerator.GetInt32) { }
 
     internal PinService(IMemoryCache cache, Func<int, int, int> randomNumber) {
@@ -22,6 +27,7 @@ public sealed class PinService : IPinService {
         _randomNumber = randomNumber;
     }
 
+    /// <inheritdoc/>
     public string GeneratePin(Guid userId, out DateTime expires) {
         lock (_gate) {
             var userKey = userId.ToString();
@@ -43,6 +49,7 @@ public sealed class PinService : IPinService {
         }
     }
 
+    /// <inheritdoc/>
     public bool TryConsumePin(string pin, out Guid userId) {
         lock (_gate) {
             if (!_cache.TryGetValue(pin, out userId)) {

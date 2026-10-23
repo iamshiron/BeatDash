@@ -181,8 +181,8 @@ public static class HspEndpoints {
 
                     // Keep only samples that fall inside one of the user's play windows; drop the rest.
                     // HSP flushes live readings independently of game-result delivery, so active and
-                    // incompletely-ended sessions do not have Results yet. Their open window extends
-                    // through this batch's latest reading.
+                    // incompletely-ended sessions do not have Results yet. Their open window is
+                    // bounded by MaxPlayDuration.
                     var plays = await db.PlaySessions
                         .AsNoTracking()
                         .Where(p => p.UserId == client.UserId && !p.AutoMode

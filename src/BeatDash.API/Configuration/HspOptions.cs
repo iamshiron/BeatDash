@@ -4,7 +4,7 @@ namespace Shiron.BeatDash.API.Configuration;
 public sealed class HspOptions {
     /// <summary>
     /// Public absolute ingest URL, including any reverse-proxy path. Leave empty to advertise the
-    /// server's detected HTTP LAN address.
+    /// server's detected LAN address and listener scheme.
     /// </summary>
     public string? PublicIngestUrl { get; set; }
 
