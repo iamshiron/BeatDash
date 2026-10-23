@@ -1,0 +1,74 @@
+name: Integration tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: integration-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    name: API and storage integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: backup-test
+          POSTGRES_PASSWORD: backup-test-postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U backup-test -d postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      rustfs:
+        image: rustfs/rustfs:latest
+        env:
+          RUSTFS_ACCESS_KEY: backup-test
+          RUSTFS_SECRET_KEY: backup-test-secret
+          RUSTFS_VOLUMES: /data
+          RUSTFS_ADDRESS: 0.0.0.0:9000
+          RUSTFS_CONSOLE_ENABLE: "false"
+        ports:
+          - 9000:9000
+        options: >-
+          --health-cmd "curl --fail http://localhost:9000/health"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 30
+    env:
+      BEATDASH_TEST_POSTGRES: Host=127.0.0.1;Port=5432;Username=backup-test;Password=backup-test-postgres;Database=postgres
+      BEATDASH_TEST_RUSTFS: 127.0.0.1:9000
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: Test API, CLI and object storage
+        run: >-
+          dotnet test tests/BeatDash.API.Tests/Shiron.BeatDash.API.Tests.csproj
+          --configuration Release -p:SkipWebBuild=true --verbosity minimal
+          --logger "trx;LogFileName=integration.trx"
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-results
+          path: tests/BeatDash.API.Tests/TestResults/*.trx
+          if-no-files-found: ignore
