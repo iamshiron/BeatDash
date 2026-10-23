@@ -55,5 +55,5 @@ After successful restore/recovery, restart with `Backup__MaintenanceMode=false`.
 
 Run `dotnet test tests/BeatDash.API.Tests --configuration Release -p:SkipWebBuild=true`.
 Optional integration tests require **disposable** infrastructure: `BEATDASH_TEST_POSTGRES` (connection string with
-CREATE DATABASE permission) and `BEATDASH_TEST_MINIO` (`host:port`, credentials `backup-test` / `backup-test-secret`).
+CREATE DATABASE permission) and `BEATDASH_TEST_RUSTFS` (`host:port`, credentials `backup-test` / `backup-test-secret`).
 They verify every table/sequence, storage bytes/media types, scope isolation, authorization, and CLI/API round trips.

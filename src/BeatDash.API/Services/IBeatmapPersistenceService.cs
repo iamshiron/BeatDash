@@ -87,7 +87,7 @@ public sealed class BeatmapPersistenceService(
         if (string.IsNullOrEmpty(beatmap.CoverImageKey)) {
             var coverKey = $"{CoverKeyPrefix}{beatmap.Id}.png";
             logger.LogInformation(
-                "PersistAsync: uploading cover to MinIO bucket='{Bucket}', key='{Key}'",
+                "PersistAsync: uploading cover to object storage bucket='{Bucket}', key='{Key}'",
                 bucket, coverKey);
             await storage.UploadAsync(bucket, coverKey, CoverContentType, pair.ImageBytes, ct);
             beatmap.CoverImageKey = coverKey;

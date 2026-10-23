@@ -34,7 +34,7 @@ public sealed class BeatSaverMap {
     public DateTime? LastPublishedAt { get; set; }
 
     /// <summary>
-    /// The MinIO object key for the downloaded map zip (<c>maps/{beatmap-guid}.zip</c>),
+    /// The object-storage key for the downloaded map zip (<c>maps/{beatmap-guid}.zip</c>),
     /// resolved against the assets bucket. <see langword="null"/> until downloaded.
     /// </summary>
     [MaxLength(512)] public string? ZipObjectKey { get; set; }

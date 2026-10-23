@@ -63,12 +63,12 @@ var connectionString = builder.Configuration.GetConnectionString("Default")
 builder.Services.AddDbContextFactory<BeatDashDbContext>(options => options.UseNpgsql(connectionString));
 
 builder.Services.Configure<StorageOptions>(options => {
-    options.Endpoint = builder.Configuration["MINIO_ENDPOINT"] ?? "localhost:9000";
-    options.AccessKey = builder.Configuration["MINIO_ACCESS_KEY"] ?? "minioadmin";
-    options.SecretKey = builder.Configuration["MINIO_SECRET_KEY"] ?? "minioadmin";
-    options.UseSsl = bool.TryParse(builder.Configuration["MINIO_USE_SSL"], out var ssl) && ssl;
-    options.BucketAssets = builder.Configuration["MINIO_BUCKET_ASSETS"] ?? "beatdash-assets";
-    options.BucketUserData = builder.Configuration["MINIO_BUCKET_USER_DATA"] ?? "beatdash-user-data";
+    options.Endpoint = builder.Configuration["RUSTFS_ENDPOINT"] ?? builder.Configuration["MINIO_ENDPOINT"] ?? options.Endpoint;
+    options.AccessKey = builder.Configuration["RUSTFS_ACCESS_KEY"] ?? builder.Configuration["MINIO_ACCESS_KEY"] ?? options.AccessKey;
+    options.SecretKey = builder.Configuration["RUSTFS_SECRET_KEY"] ?? builder.Configuration["MINIO_SECRET_KEY"] ?? options.SecretKey;
+    options.UseSsl = bool.TryParse(builder.Configuration["RUSTFS_USE_SSL"] ?? builder.Configuration["MINIO_USE_SSL"], out var ssl) && ssl;
+    options.BucketAssets = builder.Configuration["RUSTFS_BUCKET_ASSETS"] ?? builder.Configuration["MINIO_BUCKET_ASSETS"] ?? options.BucketAssets;
+    options.BucketUserData = builder.Configuration["RUSTFS_BUCKET_USER_DATA"] ?? builder.Configuration["MINIO_BUCKET_USER_DATA"] ?? options.BucketUserData;
 });
 
 builder.Services.Configure<UdpSocketOptions>(builder.Configuration.GetSection("UdpSocket"));
@@ -195,7 +195,7 @@ builder.Services.AddQuartz(q => {
 });
 if (!backupOptions.MaintenanceMode) builder.Services.AddQuartzHostedService(o => o.WaitForJobsToComplete = true);
 
-// MinIO
+// RustFS uses the existing S3-compatible client, including backup streaming.
 builder.Services.AddSingleton<IMinioClient>(sp => {
     var opts = sp.GetRequiredService<IOptions<StorageOptions>>().Value;
     return new MinioClient()

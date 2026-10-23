@@ -7,7 +7,7 @@ namespace Shiron.BeatDash.API.Services;
 
 /// <summary>
 /// Provides object-storage operations (upload, download, bucket provisioning)
-/// over a backing <see cref="IMinioClient"/>.
+/// over RustFS using the S3-compatible <see cref="IMinioClient"/>.
 /// </summary>
 public interface IStorageService {
     /// <summary>
@@ -27,7 +27,7 @@ public interface IStorageService {
 }
 
 /// <summary>
-/// <see cref="IMinioClient"/>-backed implementation. Buckets that have already
+/// RustFS S3 implementation using <see cref="IMinioClient"/>. Buckets that have already
 /// been verified/created are remembered to avoid repeated existence checks.
 /// </summary>
 public sealed class MinioStorageService(IMinioClient minio, ILogger<MinioStorageService> logger) : IStorageService {

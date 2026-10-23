@@ -25,6 +25,33 @@ namespace Shiron.BeatDash.API.Tests;
 
 public sealed class BackupIntegrationTests {
     [BackupIntegrationFact]
+    public async Task Storage_RustFs_PreservesObjectBytesMetadataAndMissingObjectBehavior() {
+        await using var fixture = await Fixture.CreateAsync();
+        var bucket = fixture.StorageOptions.BucketAssets;
+        const string key = "covers/nested/a space + ü.png";
+        Assert.Null(await fixture.Storage.DownloadAsync(bucket, key, default));
+        await fixture.Storage.EnsureBucketAsync(bucket, default);
+        await fixture.Storage.EnsureBucketAsync(bucket, default);
+        Assert.Null(await fixture.Storage.DownloadAsync(bucket, key, default));
+
+        var payload = RandomNumberGenerator.GetBytes(6 * 1024 * 1024);
+        await fixture.Storage.UploadAsync(bucket, key, "image/png", payload, default);
+        Assert.Equal(payload, await fixture.Storage.DownloadAsync(bucket, key, default));
+        var backup = fixture.BackupStorage;
+        var objects = new List<BackupObjectDTO>();
+        await foreach (var item in backup.ListAsync(default)) objects.Add(item);
+        var stored = Assert.Single(objects);
+        Assert.Equal(key, stored.Key);
+        Assert.Equal("image/png", stored.ContentType);
+        Assert.Equal(payload.LongLength, stored.Payload.Length);
+
+        await fixture.Storage.UploadAsync(bucket, key, "application/octet-stream", [], default);
+        Assert.Equal(Array.Empty<byte>(), await fixture.Storage.DownloadAsync(bucket, key, default));
+        await backup.DeleteAsync(stored, default);
+        Assert.Null(await fixture.Storage.DownloadAsync(bucket, key, default));
+    }
+
+    [BackupIntegrationFact]
     public async Task ApiAndCli_BackupRoundTrip_EnforceAdminAuthenticationAndRevocation() {
         await using var fixture = await Fixture.CreateAsync();
         var ordinary = new User {
@@ -172,8 +199,8 @@ public sealed class BackupIntegrationTests {
     private sealed class BackupIntegrationFactAttribute : FactAttribute {
         public BackupIntegrationFactAttribute() {
             if (Environment.GetEnvironmentVariable("BEATDASH_TEST_POSTGRES") is null
-                || Environment.GetEnvironmentVariable("BEATDASH_TEST_MINIO") is null)
-                Skip = "Set BEATDASH_TEST_POSTGRES and BEATDASH_TEST_MINIO to disposable test infrastructure.";
+                || Environment.GetEnvironmentVariable("BEATDASH_TEST_RUSTFS") is null)
+                Skip = "Set BEATDASH_TEST_POSTGRES and BEATDASH_TEST_RUSTFS to disposable test infrastructure.";
         }
     }
 
@@ -190,6 +217,7 @@ public sealed class BackupIntegrationTests {
         public BeatDashDbContext Db { get; }
         public StorageOptions StorageOptions { get; }
         public IStorageService Storage { get; }
+        public BackupStorage BackupStorage { get; }
         public BackupService Service { get; }
 
         private Fixture() {
@@ -198,12 +226,13 @@ public sealed class BackupIntegrationTests {
             StorageOptions = new StorageOptions {
                 BucketAssets = "assets-" + Guid.NewGuid().ToString("N"), BucketUserData = "users-" + Guid.NewGuid().ToString("N")
             };
-            _minio = new MinioClient().WithEndpoint(Environment.GetEnvironmentVariable("BEATDASH_TEST_MINIO"))
+            _minio = new MinioClient().WithEndpoint(Environment.GetEnvironmentVariable("BEATDASH_TEST_RUSTFS"))
                 .WithCredentials("backup-test", "backup-test-secret").Build();
             Storage = new MinioStorageService(_minio, NullLogger<MinioStorageService>.Instance);
             var backupOptions = Options.Create(new BackupOptions { MaintenanceMode = true, WorkDirectory = _directory });
             _workspace = new BackupWorkspace(backupOptions);
-            Service = new BackupService(new BackupDatabase(Db), new BackupStorage(_minio, Storage, Options.Create(StorageOptions)),
+            BackupStorage = new BackupStorage(_minio, Storage, Options.Create(StorageOptions));
+            Service = new BackupService(new BackupDatabase(Db), BackupStorage,
                 _workspace, backupOptions, NullLogger<BackupService>.Instance);
         }
 
@@ -234,11 +263,11 @@ public sealed class BackupIntegrationTests {
             start.Environment["AdminUser__Role"] = "Admin";
             start.Environment["Backup__MaintenanceMode"] = "true";
             start.Environment["Backup__WorkDirectory"] = Path.Combine(_directory, "server-work");
-            start.Environment["MINIO_ENDPOINT"] = Environment.GetEnvironmentVariable("BEATDASH_TEST_MINIO");
-            start.Environment["MINIO_ACCESS_KEY"] = "backup-test";
-            start.Environment["MINIO_SECRET_KEY"] = "backup-test-secret";
-            start.Environment["MINIO_BUCKET_ASSETS"] = StorageOptions.BucketAssets;
-            start.Environment["MINIO_BUCKET_USER_DATA"] = StorageOptions.BucketUserData;
+            start.Environment["RUSTFS_ENDPOINT"] = Environment.GetEnvironmentVariable("BEATDASH_TEST_RUSTFS");
+            start.Environment["RUSTFS_ACCESS_KEY"] = "backup-test";
+            start.Environment["RUSTFS_SECRET_KEY"] = "backup-test-secret";
+            start.Environment["RUSTFS_BUCKET_ASSETS"] = StorageOptions.BucketAssets;
+            start.Environment["RUSTFS_BUCKET_USER_DATA"] = StorageOptions.BucketUserData;
             var ready = new TaskCompletionSource<Uri>(TaskCreationOptions.RunContinuationsAsynchronously);
             _server = new Process { StartInfo = start, EnableRaisingEvents = true };
             var errors = new System.Text.StringBuilder();

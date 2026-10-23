@@ -5,7 +5,7 @@ namespace Shiron.BeatDash.DB.Schema;
 
 /// <summary>
 /// A beatmap (song/level), deduplicated by its game <see cref="LevelId"/>.
-/// Holds song-level metadata and a link to the cover image stored in MinIO.
+/// Holds song-level metadata and a link to the cover image stored in RustFS.
 /// </summary>
 public sealed class Beatmap {
     public Guid Id { get; set; } = Guid.CreateVersion7();
@@ -25,7 +25,7 @@ public sealed class Beatmap {
     public required int DurationMs { get; set; }
 
     /// <summary>
-    /// The MinIO object key for the cover image (e.g. <c>covers/{guid}.png</c>),
+    /// The object-storage key for the cover image (e.g. <c>covers/{guid}.png</c>),
     /// resolved against the assets bucket. <see langword="null"/> until uploaded.
     /// </summary>
     [MaxLength(512)] public string? CoverImageKey { get; set; }

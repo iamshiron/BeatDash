@@ -115,7 +115,7 @@ docker/                  # Docker Compose configs for local infrastructure
 
 **Frontend:** React 19, Vite, TypeScript, TanStack Router/Query, Tailwind CSS v4, shadcn/ui, Orval, Biome
 
-**Backend:** .NET 10, ASP.NET Core Minimal APIs, EF Core, PostgreSQL (Npgsql), MinIO, SignalR, JWT Bearer auth
+**Backend:** .NET 10, ASP.NET Core Minimal APIs, EF Core, PostgreSQL (Npgsql), RustFS (S3-compatible), SignalR, JWT Bearer auth
 
 **Mod:** BSIPA plugin framework, Zenject DI, Harmony patching, WebSocket client
 
@@ -124,7 +124,7 @@ docker/                  # Docker Compose configs for local infrastructure
 -   **Beat Saber mod → API:** TCP WebSocket (`/api/client/game`) for reliable/persisted data, plus UDP datagrams for frequent live updates (falls back to TCP)
 -   **Web client → API:** REST (Orval-generated client) + SignalR (`/api/client/web`) for real-time updates
 -   **Auth:** ASP.NET Core Identity + JWT. Access tokens (15 min) + refresh tokens (30 days), per-device
--   **Storage:** PostgreSQL for relational data, MinIO for cover images
+-   **Storage:** PostgreSQL for relational data, RustFS for cover images
 
 ### Protocol
 
@@ -169,7 +169,7 @@ The mod uses two transports to the API, picking one per packet based on reliabil
 | Packet | Channel | Description |
 |---|---|---|
 | `MapStart` | TCP | Beatmap metadata when a song starts |
-| `MapCoverImage` | TCP | Cover art (stored in MinIO) |
+| `MapCoverImage` | TCP | Cover art (stored in RustFS) |
 | `MapState` | TCP | Gameplay state change (pause/resume/finish/fail/quit) |
 | `ScoreUpdate` | UDP → TCP | Live score snapshot on each scoring event |
 | `MotionFrameBatch` | UDP → TCP | Batched saber/head motion frames |
@@ -190,7 +190,7 @@ Connections are grouped per user, so all of a user's open browser tabs receive t
 
 -   [.NET 10 SDK](https://dotnet.microsoft.com/)
 -   [Node.js](https://nodejs.org/) + [pnpm](https://pnpm.io/)
--   [Docker](https://www.docker.com/) or Podman (for PostgreSQL and MinIO)
+-   [Docker](https://www.docker.com/) or Podman (for PostgreSQL and RustFS)
 
 ### Getting Started
 
@@ -207,7 +207,7 @@ Connections are grouped per user, so all of a user's open browser tabs receive t
     cp .env.example .env
     ```
 
-3.  Start infrastructure (PostgreSQL, MinIO, Adminer):
+3.  Start infrastructure (PostgreSQL, RustFS, Adminer):
 
     ```sh
     docker compose --env-file .env -f docker/docker-compose.yml up -d
@@ -238,7 +238,9 @@ dotnet publish src/BeatDash.API -c Release -o artifacts/server
 dotnet artifacts/server/Shiron.BeatDash.API.dll
 ```
 
-Deploy the **entire** `artifacts/server` directory, including `wwwroot`. Publishing builds the frontend automatically; the destination only needs the .NET 10 ASP.NET Core runtime and access to PostgreSQL and MinIO. Supply the settings from `.env.example` through environment variables (or a `.env` in the working directory). Replace the example credentials and JWT secret before deploying. Node.js and pnpm are build-time dependencies only.
+Deploy the **entire** `artifacts/server` directory, including `wwwroot`. Publishing builds the frontend automatically; the destination only needs the .NET 10 ASP.NET Core runtime and access to PostgreSQL and RustFS. Supply the settings from `.env.example` through environment variables (or a `.env` in the working directory). Replace the example credentials and JWT secret before deploying. Node.js and pnpm are build-time dependencies only.
+
+RustFS uses the existing S3 client and bucket layout: assets allow anonymous downloads, while user data remains private. The MinIO .NET SDK and `mc` provisioning client are retained as S3-compatible clients, not storage servers. `RUSTFS_*` settings take precedence over the legacy `MINIO_*` equivalents. Existing backup import/export remains unchanged; RustFS uses a separate `rustfs_data` volume and does not reuse MinIO's on-disk data.
 
 ### Common Commands
 
