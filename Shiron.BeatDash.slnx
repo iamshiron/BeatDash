@@ -11,11 +11,11 @@
 
     <Folder Name="/external/" />
     <Folder Name="/external/lib/">
-        <Project Path="external/lib/src/Collections/Shiron.Lib.Collections.csproj" />
-        <Project Path="external/lib/src/Types/Shiron.Lib.Types.csproj" />
-        <Project Path="external/lib/src/Types.Ext.Conversion/Shiron.Lib.Types.Ext.Conversion.csproj" />
-        <Project Path="external/lib/src/Types.Ext.EFCore/Shiron.Lib.Types.Ext.EFCore.csproj" />
-        <Project Path="external/lib/src/Utils/Shiron.Lib.Utils.csproj" />
+        <Project Path="external/lib/src/Collections/Lib.Collections.csproj" />
+        <Project Path="external/lib/src/Types/Lib.Types.csproj" />
+        <Project Path="external/lib/src/Types.Ext.Conversion/Lib.Types.Ext.Conversion.csproj" />
+        <Project Path="external/lib/src/Types.Ext.EFCore/Lib.Types.Ext.EFCore.csproj" />
+        <Project Path="external/lib/src/Utils/Lib.Utils.csproj" />
     </Folder>
     <Folder Name="/tests/">
         <Project Path="tests/BeatDash.API.Tests/Shiron.BeatDash.API.Tests.csproj" />
