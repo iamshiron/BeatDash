@@ -60,8 +60,8 @@ public static class MapEndpoints {
                 // --- Map-level filters ---
                 if (q.MinBpm.HasValue) query = query.Where(b => b.Bpm >= q.MinBpm.Value);
                 if (q.MaxBpm.HasValue) query = query.Where(b => b.Bpm <= q.MaxBpm.Value);
-                if (q.MinDurationSeconds.HasValue) query = query.Where(b => b.DurationMs >= q.MinDurationSeconds.Value * 1000);
-                if (q.MaxDurationSeconds.HasValue) query = query.Where(b => b.DurationMs <= q.MaxDurationSeconds.Value * 1000);
+                if (q.MinDurationSeconds.HasValue) query = query.Where(b => b.DurationMs >= q.MinDurationSeconds.Value * 1000L);
+                if (q.MaxDurationSeconds.HasValue) query = query.Where(b => b.DurationMs <= q.MaxDurationSeconds.Value * 1000L);
                 if (q.FetchStatus.HasValue) query = query.Where(b => b.FetchStatus == q.FetchStatus.Value);
 
                 if (q.Ranked.HasValue) {
@@ -122,10 +122,14 @@ public static class MapEndpoints {
                 var totalCount = await query.CountAsync(ct);
                 var totalPages = totalCount == 0 ? 0 : (int) Math.Ceiling(totalCount / (double) pageSize);
 
+                var offset = (long) (page - 1) * pageSize;
+                if (offset >= totalCount)
+                    return Results.Ok(new PagedResult<MapListItemDto>([], totalCount, page, pageSize, totalPages));
+
                 var maps = await query
                     .Include(b => b.Difficulties).ThenInclude(d => d.Analysis)
                     .Include(b => b.BeatSaverMap)
-                    .Skip((page - 1) * pageSize)
+                    .Skip((int) offset)
                     .Take(pageSize)
                     .ToListAsync(ct);
 

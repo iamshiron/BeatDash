@@ -81,7 +81,27 @@ export type MapsSearch = {
 const DEFAULT_SORT: MapSortValue = "newest";
 const DEFAULT_DIRECTION: SortDirection = "desc";
 const INT32_MAX = 2_147_483_647;
+const FLOAT32_MAX = 3.4028234663852886e38;
 const NUMBER_PATTERN = /^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$/;
+
+export type MapRangeKind = "number" | "float" | "duration" | "rating";
+
+/** Validates a draft range field against the endpoint's numeric constraints. */
+export function parseMapRangeInput(
+	value: string,
+	kind: MapRangeKind,
+): { valid: boolean; value: number | undefined } {
+	if (value.trim() === "") return { valid: true, value: undefined };
+	const number =
+		kind === "duration"
+			? optionalInteger(value)
+			: optionalNumber(
+					value,
+					0,
+					kind === "rating" ? 1 : kind === "float" ? FLOAT32_MAX : Infinity,
+				);
+	return { valid: number !== undefined, value: number };
+}
 
 function optionalText(value: unknown): string | undefined {
 	if (typeof value !== "string") return undefined;
@@ -141,13 +161,21 @@ function normalizeRange(
 export function normalizeMapsSearch(
 	search: Record<string, unknown>,
 ): MapsSearch {
-	const [bpmMin, bpmMax] = normalizeRange(search.bpmMin, search.bpmMax);
+	const [bpmMin, bpmMax] = normalizeRange(
+		search.bpmMin,
+		search.bpmMax,
+		(value) => optionalNumber(value, 0, FLOAT32_MAX),
+	);
 	const [durationMin, durationMax] = normalizeRange(
 		search.durationMin,
 		search.durationMax,
 		optionalInteger,
 	);
-	const [npsMin, npsMax] = normalizeRange(search.npsMin, search.npsMax);
+	const [npsMin, npsMax] = normalizeRange(
+		search.npsMin,
+		search.npsMax,
+		(value) => optionalNumber(value, 0, FLOAT32_MAX),
+	);
 	const [ratingMin, ratingMax] = normalizeRange(
 		search.ratingMin,
 		search.ratingMax,

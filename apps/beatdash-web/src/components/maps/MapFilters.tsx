@@ -16,13 +16,16 @@ import {
 } from "@shiron/ui/components/ui/select";
 import { Separator } from "@shiron/ui/components/ui/separator";
 import { FilterIcon } from "@solar-icons/react/dynamic";
+import { useRouter } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
 	type BooleanFilter,
 	DIFFICULTY_OPTIONS,
 	FETCH_STATUS_OPTIONS,
 	getActiveMapFilters,
+	type MapRangeKind,
 	type MapsSearch,
+	parseMapRangeInput,
 } from "@/lib/maps";
 
 const INPUT_DEBOUNCE_MS = 350;
@@ -117,6 +120,7 @@ export function MapFilters({ search, onChange, onReset }: MapFiltersProps) {
 					/>
 					<RangeField
 						label="Duration (seconds)"
+						kind="duration"
 						minValue={search.durationMin}
 						maxValue={search.durationMax}
 						onChange={(durationMin, durationMax) =>
@@ -132,6 +136,7 @@ export function MapFilters({ search, onChange, onReset }: MapFiltersProps) {
 					/>
 					<RangeField
 						label="Difficulty rating"
+						kind="rating"
 						minValue={search.ratingMin}
 						maxValue={search.ratingMax}
 						step="0.01"
@@ -141,6 +146,7 @@ export function MapFilters({ search, onChange, onReset }: MapFiltersProps) {
 					/>
 					<RangeField
 						label="Performance points"
+						kind="number"
 						minValue={search.ppMin}
 						maxValue={search.ppMax}
 						step="0.1"
@@ -240,10 +246,12 @@ function TextField({
 	const { cancel, schedule } = useDebouncedChange((next: string) =>
 		onChange(next.trim() || undefined),
 	);
-	useEffect(() => {
+	const discard = useCallback(() => {
 		setInput(value ?? "");
 		cancel();
 	}, [value, cancel]);
+	useEffect(discard, [discard]);
+	useDiscardOnNavigation(discard);
 	return (
 		<Field label={label} htmlFor={id}>
 			<Input
@@ -265,18 +273,20 @@ function RangeField({
 	minValue,
 	maxValue,
 	step = "1",
+	kind = "float",
 	onChange,
 }: {
 	label: string;
 	minValue: number | undefined;
 	maxValue: number | undefined;
 	step?: string;
+	kind?: MapRangeKind;
 	onChange: (min: number | undefined, max: number | undefined) => void;
 }) {
 	const [min, setMin] = useState(minValue?.toString() ?? "");
 	const [max, setMax] = useState(maxValue?.toString() ?? "");
-	const minInput = parseInput(min);
-	const maxInput = parseInput(max);
+	const minInput = parseMapRangeInput(min, kind);
+	const maxInput = parseMapRangeInput(max, kind);
 	const isInverted =
 		minInput.valid &&
 		maxInput.valid &&
@@ -286,8 +296,8 @@ function RangeField({
 	const isInvalid = !minInput.valid || !maxInput.valid || isInverted;
 	const { cancel, schedule } = useDebouncedChange(
 		(nextMin: string, nextMax: string) => {
-			const parsedMin = parseInput(nextMin);
-			const parsedMax = parseInput(nextMax);
+			const parsedMin = parseMapRangeInput(nextMin, kind);
+			const parsedMax = parseMapRangeInput(nextMax, kind);
 			if (
 				!parsedMin.valid ||
 				!parsedMax.valid ||
@@ -300,11 +310,13 @@ function RangeField({
 			onChange(parsedMin.value, parsedMax.value);
 		},
 	);
-	useEffect(() => {
+	const discard = useCallback(() => {
 		setMin(minValue?.toString() ?? "");
 		setMax(maxValue?.toString() ?? "");
 		cancel();
 	}, [minValue, maxValue, cancel]);
+	useEffect(discard, [discard]);
+	useDiscardOnNavigation(discard);
 	return (
 		<Field label={label}>
 			<div className="grid grid-cols-2 gap-2">
@@ -312,6 +324,13 @@ function RangeField({
 					aria-label={`Minimum ${label}`}
 					type="number"
 					min="0"
+					max={
+						kind === "rating"
+							? 1
+							: kind === "duration"
+								? 2_147_483_647
+								: undefined
+					}
 					step={step}
 					value={min}
 					placeholder="Min"
@@ -327,6 +346,13 @@ function RangeField({
 					aria-label={`Maximum ${label}`}
 					type="number"
 					min="0"
+					max={
+						kind === "rating"
+							? 1
+							: kind === "duration"
+								? 2_147_483_647
+								: undefined
+					}
 					step={step}
 					value={max}
 					placeholder="Max"
@@ -342,6 +368,15 @@ function RangeField({
 			{isInverted && (
 				<p className="text-xs text-destructive" role="alert">
 					Minimum cannot exceed maximum.
+				</p>
+			)}
+			{(!minInput.valid || !maxInput.valid) && (
+				<p className="text-xs text-destructive" role="alert">
+					{kind === "rating"
+						? "Enter a rating between 0 and 1."
+						: kind === "duration"
+							? "Enter whole seconds between 0 and 2147483647."
+							: "Enter a non-negative number within the supported range."}
 				</p>
 			)}
 		</Field>
@@ -386,6 +421,16 @@ function BooleanSelect({
 	);
 }
 
+function useDiscardOnNavigation(discard: () => void) {
+	const router = useRouter();
+	const callback = useRef(discard);
+	callback.current = discard;
+	useEffect(
+		() => router.subscribe("onBeforeNavigate", () => callback.current()),
+		[router],
+	);
+}
+
 function useDebouncedChange<TArgs extends unknown[]>(
 	onChange: (...args: TArgs) => void,
 ) {
@@ -412,15 +457,4 @@ function useDebouncedChange<TArgs extends unknown[]>(
 		);
 	}, []);
 	return { cancel, schedule };
-}
-
-function parseInput(value: string): {
-	valid: boolean;
-	value: number | undefined;
-} {
-	if (value.trim() === "") return { valid: true, value: undefined };
-	const number = Number(value);
-	return Number.isFinite(number) && number >= 0
-		? { valid: true, value: number }
-		: { valid: false, value: undefined };
 }

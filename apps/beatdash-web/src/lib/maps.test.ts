@@ -1,5 +1,32 @@
 import { describe, expect, it } from "vitest";
-import { mapsSearchToApi, normalizeMapsSearch } from "./maps";
+import {
+	mapsSearchToApi,
+	normalizeMapsSearch,
+	parseMapRangeInput,
+} from "./maps";
+
+describe("parseMapRangeInput", () => {
+	it("Validated draft values before they reach URL normalization", () => {
+		expect(parseMapRangeInput("120.5", "duration").valid).toBe(false);
+		expect(parseMapRangeInput("1.01", "rating").valid).toBe(false);
+		expect(parseMapRangeInput("1e39", "float").valid).toBe(false);
+		expect(parseMapRangeInput("0.5", "rating")).toEqual({
+			valid: true,
+			value: 0.5,
+		});
+		expect(parseMapRangeInput("120", "duration")).toEqual({
+			valid: true,
+			value: 120,
+		});
+		expect(parseMapRangeInput("", "number")).toEqual({
+			valid: true,
+			value: undefined,
+		});
+		expect(
+			normalizeMapsSearch({ bpmMax: "1e39", npsMin: "1e39" }),
+		).toMatchObject({ bpmMax: undefined, npsMin: undefined });
+	});
+});
 
 describe("normalizeMapsSearch", () => {
 	it("Accepted validated catalog filters", () => {
