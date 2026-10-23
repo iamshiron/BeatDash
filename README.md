@@ -85,6 +85,12 @@ The ASP.NET Core server hosts both the API and the built dashboard. See the deve
 
 ## For Developers
 
+### Administrative backups
+
+Server-side application backup and restore is available **only through the admin CLI/API**, not the web app.
+See [the backup and recovery runbook](docs/BACKUPS.md) for maintenance setup, scopes, restore confirmation,
+security, compatibility requirements, and interrupted-restore recovery.
+
 ### Structure
 
 ```

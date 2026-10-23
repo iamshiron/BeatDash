@@ -4,6 +4,12 @@ using Spectre.Console.Cli;
 var app = new CommandApp();
 app.Configure(config => {
     config.SetApplicationName("beatdash");
+    config.AddBranch("backup", backup => {
+        backup.SetDescription("Admin-only server backup and restore through the BeatDash API");
+        backup.AddCommand<BackupExportCommand>("export").WithDescription("Export Database, Storage, or Both to an archive");
+        backup.AddCommand<BackupRestoreCommand>("restore").WithDescription("Replace selected server state from a backup archive");
+        backup.AddCommand<BackupRecoverCommand>("recover").WithDescription("Recover the state before an interrupted restore");
+    });
 
     config.AddBranch("beatmap", beatmap => {
         beatmap.SetDescription("Beat Saber map parsing / debugging commands");

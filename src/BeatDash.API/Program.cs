@@ -13,6 +13,8 @@ using Shiron.BeatDash.API.Configuration;
 using Shiron.BeatDash.API.Endpoints;
 using Shiron.BeatDash.API.Seeders;
 using Shiron.BeatDash.API.Services;
+using Shiron.BeatDash.API.Services.Backup;
+using Shiron.BeatDash.API.Services.Impl;
 using Shiron.BeatDash.API.Services.Motion;
 using Shiron.BeatDash.Analysis;
 using Shiron.BeatDash.API.Services.BeatmapAnalysis;
@@ -32,6 +34,15 @@ var builder = WebApplication.CreateBuilder(new WebApplicationOptions {
 var jwtSecret = builder.Configuration.GetSection("Jwt")["SecretKey"] ?? throw new InvalidOperationException("JWT secret key not configured");
 var jwtIssuer = builder.Configuration.GetSection("Jwt")["Issuer"] ?? throw new InvalidOperationException("JWT issuer not configured");
 var jwtAudience = builder.Configuration.GetSection("Jwt")["Audience"] ?? throw new InvalidOperationException("JWT audience not configured");
+var backupOptions = builder.Configuration.GetSection("Backup").Get<BackupOptions>() ?? new BackupOptions();
+builder.Services.Configure<BackupOptions>(builder.Configuration.GetSection("Backup"));
+var backupDirectory = Path.GetFullPath(backupOptions.WorkDirectory);
+var webDirectory = Path.GetFullPath(builder.Environment.WebRootPath!);
+if (backupOptions.MaxArchiveBytes <= 0 || backupDirectory == webDirectory
+    || backupDirectory.StartsWith(webDirectory + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+    throw new InvalidOperationException("Backup workspace must be private and the archive size limit must be positive.");
+if (!backupOptions.MaintenanceMode && File.Exists(Path.Combine(backupOptions.WorkDirectory, "recovery.zip")))
+    throw new InvalidOperationException("An interrupted restore requires backup maintenance mode and 'backup recover'.");
 
 builder.Services.AddOpenApi();
 builder.Services.AddIdentity<User, IdentityRole<Guid>>(c => {
@@ -73,6 +84,14 @@ builder.Services.AddAuthentication(o => {
     o.DefaultScheme = IdentityConstants.ApplicationScheme;
     o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, o => {
+    o.Events = new JwtBearerEvents {
+        OnTokenValidated = context => {
+            if (context.Principal?.FindFirst("purpose")?.Value == "beatdash-backup"
+                && (!backupOptions.MaintenanceMode || !context.Request.Path.StartsWithSegments("/api/admin/backups")))
+                context.Fail("Backup tokens are restricted to maintenance administration.");
+            return Task.CompletedTask;
+        }
+    };
     o.TokenValidationParameters = new TokenValidationParameters {
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
@@ -92,7 +111,15 @@ builder.Services.AddAuthorization(options => {
 
     defaultAuthorizationPolicyBuilder = defaultAuthorizationPolicyBuilder.RequireAuthenticatedUser();
     options.DefaultPolicy = defaultAuthorizationPolicyBuilder.Build();
+    options.AddPolicy("BackupAdmin", policy => policy
+        .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+        .RequireAuthenticatedUser().AddRequirements(new BackupAdminRequirement()));
 });
+builder.Services.AddScoped<IAuthorizationHandler, BackupAdminHandler>();
+builder.Services.AddSingleton<BackupWorkspace>();
+builder.Services.AddScoped<BackupDatabase>();
+builder.Services.AddScoped<BackupService>();
+builder.Services.AddSingleton<IBackupStorage, BackupStorage>();
 
 builder.Services.AddMemoryCache();
 
@@ -107,14 +134,14 @@ builder.Services.AddScoped<IPlaySessionService, PlaySessionService>();
 builder.Services.AddScoped<IProfileStatsService, ProfileStatsService>();
 builder.Services.AddScoped<Shiron.BeatDash.API.Services.Health.IHealthService, Shiron.BeatDash.API.Services.Health.HealthService>();
 builder.Services.AddScoped<IWeaknessAggregationService, WeaknessAggregationService>();
-builder.Services.AddHostedService<WeaknessBackfillService>();
+if (!backupOptions.MaintenanceMode) builder.Services.AddHostedService<WeaknessBackfillService>();
 builder.Services.AddScoped<IPracticeRecommendationService, PracticeRecommendationService>();
-builder.Services.AddHostedService<MotionSummaryBackfillService>();
+if (!backupOptions.MaintenanceMode) builder.Services.AddHostedService<MotionSummaryBackfillService>();
 builder.Services.AddSingleton<IStorageService, MinioStorageService>();
 builder.Services.AddScoped<IMapAudioService, MapAudioService>();
 builder.Services.AddScoped<IPinService, PinService>();
 builder.Services.AddScoped<IBeatmapPersistenceService, BeatmapPersistenceService>();
-builder.Services.AddHostedService<UdpSocketService>();
+if (!backupOptions.MaintenanceMode) builder.Services.AddHostedService<UdpSocketService>();
 
 // BeatSaver fetch pipeline
 builder.Services.AddSingleton(FeatureExtractor.CreateDefault());
@@ -166,7 +193,7 @@ builder.Services.AddQuartz(q => {
             .WithSimpleSchedule(s => s.WithInterval(TimeSpan.FromMinutes(minutes)).RepeatForever()));
     }
 });
-builder.Services.AddQuartzHostedService(o => o.WaitForJobsToComplete = true);
+if (!backupOptions.MaintenanceMode) builder.Services.AddQuartzHostedService(o => o.WaitForJobsToComplete = true);
 
 // MinIO
 builder.Services.AddSingleton<IMinioClient>(sp => {
@@ -195,6 +222,19 @@ builder.Services.AddSignalR();
 builder.Services.AddScoped<IRealtimeBroadcaster, RealtimeBroadcaster>();
 
 var app = builder.Build();
+app.Use(async (context, next) => {
+    var backupRequest = context.Request.Path.StartsWithSegments("/api/admin/backups");
+    if (backupOptions.MaintenanceMode && !backupRequest && context.Request.Path != "/api/health") {
+        context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+        await context.Response.WriteAsJsonAsync(new { Error = "BeatDash is in backup maintenance mode." });
+        return;
+    }
+    if (backupRequest && !backupOptions.MaintenanceMode) {
+        context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+        return;
+    }
+    await next(context);
+});
 app.UseDefaultFiles();
 app.UseStaticFiles();
 app.UseAuthentication();
@@ -231,6 +271,7 @@ api.MapMapEndpoints();
 api.MapMapLikeEndpoints();
 api.MapMapListEndpoints();
 api.MapAdminMetricsEndpoints();
+api.MapBackupEndpoints();
 api.MapSessionEndpoints();
 api.MapProfileEndpoints();
 api.MapUserAssetEndpoints();
