@@ -20,7 +20,7 @@ import { AppShell } from "@/components/layout/AppShell";
  * Deliberately generic — it never surfaces the underlying error text so backend
  * details don't leak — and offers a retry that resets the error boundary.
  */
-export function RouteError({ reset }: { error: Error; reset: () => void }) {
+export function RouteError({ reset }: { error: unknown; reset: () => void }) {
 	return (
 		<AppShell>
 			<Empty className="mt-10">

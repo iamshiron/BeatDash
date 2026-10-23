@@ -9,61 +9,31 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as SessionsRouteImport } from './routes/sessions'
-import { Route as LiveRouteImport } from './routes/live'
-import { Route as HealthRouteImport } from './routes/health'
-import { Route as DevicesRouteImport } from './routes/devices'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AnalysisRouteImport } from './routes/analysis'
-import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as PlaysIndexRouteImport } from './routes/plays/index'
-import { Route as MapsIndexRouteImport } from './routes/maps/index'
-import { Route as ListsIndexRouteImport } from './routes/lists/index'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AnalysisRouteImport } from './routes/analysis'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as DevicesRouteImport } from './routes/devices'
+import { Route as HealthRouteImport } from './routes/health'
+import { Route as LiveRouteImport } from './routes/live'
+import { Route as SessionsRouteImport } from './routes/sessions'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
-import { Route as UHandleRouteImport } from './routes/u/$handle'
-import { Route as PlaysLikedRouteImport } from './routes/plays/liked'
-import { Route as PlaysIdRouteImport } from './routes/plays/$id'
-import { Route as MapsIdRouteImport } from './routes/maps/$id'
-import { Route as ListsIdRouteImport } from './routes/lists/$id'
-import { Route as AuthRegisterRouteImport } from './routes/auth/register'
-import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AdminScoringRouteImport } from './routes/admin/scoring'
+import { Route as AuthLoginRouteImport } from './routes/auth/login'
+import { Route as AuthRegisterRouteImport } from './routes/auth/register'
+import { Route as ListsIndexRouteImport } from './routes/lists/index'
+import { Route as ListsIdRouteImport } from './routes/lists/$id'
+import { Route as MapsIndexRouteImport } from './routes/maps/index'
+import { Route as MapsIdRouteImport } from './routes/maps/$id'
+import { Route as PlaysIndexRouteImport } from './routes/plays/index'
+import { Route as PlaysIdRouteImport } from './routes/plays/$id'
+import { Route as PlaysLikedRouteImport } from './routes/plays/liked'
+import { Route as UHandleRouteImport } from './routes/u/$handle'
 
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SessionsRoute = SessionsRouteImport.update({
-  id: '/sessions',
-  path: '/sessions',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LiveRoute = LiveRouteImport.update({
-  id: '/live',
-  path: '/live',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HealthRoute = HealthRouteImport.update({
-  id: '/health',
-  path: '/health',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DevicesRoute = DevicesRouteImport.update({
-  id: '/devices',
-  path: '/devices',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AnalysisRoute = AnalysisRouteImport.update({
-  id: '/analysis',
-  path: '/analysis',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -71,24 +41,39 @@ const AdminRoute = AdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AnalysisRoute = AnalysisRouteImport.update({
+  id: '/analysis',
+  path: '/analysis',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PlaysIndexRoute = PlaysIndexRouteImport.update({
-  id: '/plays/',
-  path: '/plays/',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MapsIndexRoute = MapsIndexRouteImport.update({
-  id: '/maps/',
-  path: '/maps/',
+const DevicesRoute = DevicesRouteImport.update({
+  id: '/devices',
+  path: '/devices',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ListsIndexRoute = ListsIndexRouteImport.update({
-  id: '/lists/',
-  path: '/lists/',
+const HealthRoute = HealthRouteImport.update({
+  id: '/health',
+  path: '/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LiveRoute = LiveRouteImport.update({
+  id: '/live',
+  path: '/live',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SessionsRoute = SessionsRouteImport.update({
+  id: '/sessions',
+  path: '/sessions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -96,24 +81,24 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
-const UHandleRoute = UHandleRouteImport.update({
-  id: '/u/$handle',
-  path: '/u/$handle',
-  getParentRoute: () => rootRouteImport,
+const AdminScoringRoute = AdminScoringRouteImport.update({
+  id: '/scoring',
+  path: '/scoring',
+  getParentRoute: () => AdminRoute,
 } as any)
-const PlaysLikedRoute = PlaysLikedRouteImport.update({
-  id: '/plays/liked',
-  path: '/plays/liked',
-  getParentRoute: () => rootRouteImport,
+const AuthLoginRoute = AuthLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AuthRoute,
 } as any)
-const PlaysIdRoute = PlaysIdRouteImport.update({
-  id: '/plays/$id',
-  path: '/plays/$id',
-  getParentRoute: () => rootRouteImport,
+const AuthRegisterRoute = AuthRegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => AuthRoute,
 } as any)
-const MapsIdRoute = MapsIdRouteImport.update({
-  id: '/maps/$id',
-  path: '/maps/$id',
+const ListsIndexRoute = ListsIndexRouteImport.update({
+  id: '/lists/',
+  path: '/lists/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ListsIdRoute = ListsIdRouteImport.update({
@@ -121,20 +106,35 @@ const ListsIdRoute = ListsIdRouteImport.update({
   path: '/lists/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthRegisterRoute = AuthRegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
-  getParentRoute: () => AuthRoute,
+const MapsIndexRoute = MapsIndexRouteImport.update({
+  id: '/maps/',
+  path: '/maps/',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthLoginRoute = AuthLoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => AuthRoute,
+const MapsIdRoute = MapsIdRouteImport.update({
+  id: '/maps/$id',
+  path: '/maps/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AdminScoringRoute = AdminScoringRouteImport.update({
-  id: '/scoring',
-  path: '/scoring',
-  getParentRoute: () => AdminRoute,
+const PlaysIndexRoute = PlaysIndexRouteImport.update({
+  id: '/plays/',
+  path: '/plays/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlaysIdRoute = PlaysIdRouteImport.update({
+  id: '/plays/$id',
+  path: '/plays/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlaysLikedRoute = PlaysLikedRouteImport.update({
+  id: '/plays/liked',
+  path: '/plays/liked',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UHandleRoute = UHandleRouteImport.update({
+  id: '/u/$handle',
+  path: '/u/$handle',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -299,53 +299,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sessions': {
-      id: '/sessions'
-      path: '/sessions'
-      fullPath: '/sessions'
-      preLoaderRoute: typeof SessionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/live': {
-      id: '/live'
-      path: '/live'
-      fullPath: '/live'
-      preLoaderRoute: typeof LiveRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/health': {
-      id: '/health'
-      path: '/health'
-      fullPath: '/health'
-      preLoaderRoute: typeof HealthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/devices': {
-      id: '/devices'
-      path: '/devices'
-      fullPath: '/devices'
-      preLoaderRoute: typeof DevicesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/analysis': {
-      id: '/analysis'
-      path: '/analysis'
-      fullPath: '/analysis'
-      preLoaderRoute: typeof AnalysisRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -355,32 +313,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/analysis': {
+      id: '/analysis'
+      path: '/analysis'
+      fullPath: '/analysis'
+      preLoaderRoute: typeof AnalysisRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/plays/': {
-      id: '/plays/'
-      path: '/plays'
-      fullPath: '/plays/'
-      preLoaderRoute: typeof PlaysIndexRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/maps/': {
-      id: '/maps/'
-      path: '/maps'
-      fullPath: '/maps/'
-      preLoaderRoute: typeof MapsIndexRouteImport
+    '/devices': {
+      id: '/devices'
+      path: '/devices'
+      fullPath: '/devices'
+      preLoaderRoute: typeof DevicesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/lists/': {
-      id: '/lists/'
-      path: '/lists'
-      fullPath: '/lists/'
-      preLoaderRoute: typeof ListsIndexRouteImport
+    '/health': {
+      id: '/health'
+      path: '/health'
+      fullPath: '/health'
+      preLoaderRoute: typeof HealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/live': {
+      id: '/live'
+      path: '/live'
+      fullPath: '/live'
+      preLoaderRoute: typeof LiveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sessions': {
+      id: '/sessions'
+      path: '/sessions'
+      fullPath: '/sessions'
+      preLoaderRoute: typeof SessionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -390,32 +369,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/u/$handle': {
-      id: '/u/$handle'
-      path: '/u/$handle'
-      fullPath: '/u/$handle'
-      preLoaderRoute: typeof UHandleRouteImport
-      parentRoute: typeof rootRouteImport
+    '/admin/scoring': {
+      id: '/admin/scoring'
+      path: '/scoring'
+      fullPath: '/admin/scoring'
+      preLoaderRoute: typeof AdminScoringRouteImport
+      parentRoute: typeof AdminRoute
     }
-    '/plays/liked': {
-      id: '/plays/liked'
-      path: '/plays/liked'
-      fullPath: '/plays/liked'
-      preLoaderRoute: typeof PlaysLikedRouteImport
-      parentRoute: typeof rootRouteImport
+    '/auth/login': {
+      id: '/auth/login'
+      path: '/login'
+      fullPath: '/auth/login'
+      preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof AuthRoute
     }
-    '/plays/$id': {
-      id: '/plays/$id'
-      path: '/plays/$id'
-      fullPath: '/plays/$id'
-      preLoaderRoute: typeof PlaysIdRouteImport
-      parentRoute: typeof rootRouteImport
+    '/auth/register': {
+      id: '/auth/register'
+      path: '/register'
+      fullPath: '/auth/register'
+      preLoaderRoute: typeof AuthRegisterRouteImport
+      parentRoute: typeof AuthRoute
     }
-    '/maps/$id': {
-      id: '/maps/$id'
-      path: '/maps/$id'
-      fullPath: '/maps/$id'
-      preLoaderRoute: typeof MapsIdRouteImport
+    '/lists/': {
+      id: '/lists/'
+      path: '/lists'
+      fullPath: '/lists/'
+      preLoaderRoute: typeof ListsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lists/$id': {
@@ -425,26 +404,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ListsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/auth/register': {
-      id: '/auth/register'
-      path: '/register'
-      fullPath: '/auth/register'
-      preLoaderRoute: typeof AuthRegisterRouteImport
-      parentRoute: typeof AuthRoute
+    '/maps/': {
+      id: '/maps/'
+      path: '/maps'
+      fullPath: '/maps/'
+      preLoaderRoute: typeof MapsIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/auth/login': {
-      id: '/auth/login'
-      path: '/login'
-      fullPath: '/auth/login'
-      preLoaderRoute: typeof AuthLoginRouteImport
-      parentRoute: typeof AuthRoute
+    '/maps/$id': {
+      id: '/maps/$id'
+      path: '/maps/$id'
+      fullPath: '/maps/$id'
+      preLoaderRoute: typeof MapsIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/admin/scoring': {
-      id: '/admin/scoring'
-      path: '/scoring'
-      fullPath: '/admin/scoring'
-      preLoaderRoute: typeof AdminScoringRouteImport
-      parentRoute: typeof AdminRoute
+    '/plays/': {
+      id: '/plays/'
+      path: '/plays'
+      fullPath: '/plays/'
+      preLoaderRoute: typeof PlaysIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plays/$id': {
+      id: '/plays/$id'
+      path: '/plays/$id'
+      fullPath: '/plays/$id'
+      preLoaderRoute: typeof PlaysIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plays/liked': {
+      id: '/plays/liked'
+      path: '/plays/liked'
+      fullPath: '/plays/liked'
+      preLoaderRoute: typeof PlaysLikedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/u/$handle': {
+      id: '/u/$handle'
+      path: '/u/$handle'
+      fullPath: '/u/$handle'
+      preLoaderRoute: typeof UHandleRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }

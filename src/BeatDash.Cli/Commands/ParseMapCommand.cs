@@ -30,7 +30,8 @@ public sealed class ParseMapCommand : Command<ParseMapCommand.Settings> {
         public bool Metrics { get; init; }
     }
 
-    protected override int Execute(CommandContext context, Settings settings, CancellationToken cancellation) {
+    /// <inheritdoc/>
+    public override int Execute(CommandContext context, Settings settings, CancellationToken cancellation) {
         if (!System.IO.Directory.Exists(settings.Directory)) {
             AnsiConsole.MarkupLineInterpolated($"[red]Directory not found:[/] {settings.Directory}");
             return 1;

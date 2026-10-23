@@ -18,7 +18,8 @@ public sealed class IndexMapsCommand : Command<IndexMapsCommand.Settings> {
         public string Root { get; init; } = "";
     }
 
-    protected override int Execute(CommandContext context, Settings settings, CancellationToken cancellation) {
+    /// <inheritdoc/>
+    public override int Execute(CommandContext context, Settings settings, CancellationToken cancellation) {
         if (!Directory.Exists(settings.Root)) {
             Console.Error.WriteLine($"Directory not found: {settings.Root}");
             return 1;

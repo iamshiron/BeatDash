@@ -42,7 +42,8 @@ public sealed class PushMapsCommand : AsyncCommand<PushMapsCommand.Settings> {
 
     private static readonly string[] CoverExtensions = [".png", ".jpg", ".jpeg"];
 
-    protected override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken ct) {
+    /// <inheritdoc/>
+    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken ct) {
         if (!Directory.Exists(settings.Root)) {
             AnsiConsole.MarkupLineInterpolated($"[red]Directory not found:[/] {settings.Root}");
             return 1;
