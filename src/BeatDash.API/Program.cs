@@ -139,7 +139,7 @@ builder.Services.AddScoped<IPracticeRecommendationService, PracticeRecommendatio
 if (!backupOptions.MaintenanceMode) builder.Services.AddHostedService<MotionSummaryBackfillService>();
 builder.Services.AddSingleton<IStorageService, MinioStorageService>();
 builder.Services.AddScoped<IMapAudioService, MapAudioService>();
-builder.Services.AddScoped<IPinService, PinService>();
+builder.Services.AddSingleton<IPinService, PinService>();
 builder.Services.AddScoped<IBeatmapPersistenceService, BeatmapPersistenceService>();
 if (!backupOptions.MaintenanceMode) builder.Services.AddHostedService<UdpSocketService>();
 
