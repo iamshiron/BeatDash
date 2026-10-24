@@ -108,6 +108,8 @@ src/
   BeatDash.Mod/          # Beat Saber mod (BSIPA plugin, Zenject, Harmony) - net472
 external/
   lib/                   # Shared .NET library [submodule]
+tools/
+  screenshots/           # README screenshot fixture and capture tool (Playwright)
 docker/                  # Docker Compose configs for local infrastructure
 ```
 
@@ -251,6 +253,7 @@ RustFS uses the existing S3 client and bucket layout: assets allow anonymous dow
 | `pnpm lint`                  | Lint all projects                                  |
 | `pnpm format`                | Format all projects                                |
 | `pnpm migrate`               | Apply EF Core database migrations                  |
+| `pnpm screenshots`           | Regenerate the README screenshots ([details](tools/screenshots/README.md)) |
 | `pnpm nx <target> <project>` | Run a specific target on a specific Nx project     |
 
 **.NET:**

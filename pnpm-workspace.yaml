@@ -2,6 +2,7 @@ packages:
   - 'apps/*'
   - 'packages/*'
   - 'packages/ui/demo'
+  - 'tools/*'
 allowBuilds:
   '@swc/core': false
   esbuild: false

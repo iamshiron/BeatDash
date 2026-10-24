@@ -1,0 +1,36 @@
+# Disposable infrastructure for the screenshot fixture. Everything lives on tmpfs and is
+# reseeded from ./fixture on every run, so it never touches the development stack.
+name: beatdash-screenshots
+services:
+  db:
+    image: docker.io/library/postgres:17
+    environment:
+      POSTGRES_USER: screenshots
+      POSTGRES_PASSWORD: screenshots
+      POSTGRES_DB: postgres
+    ports:
+      - "${SCREENSHOTS_POSTGRES_PORT:-55432}:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U screenshots -d postgres"]
+      interval: 1s
+      timeout: 5s
+      retries: 30
+
+  storage:
+    image: docker.io/rustfs/rustfs:latest
+    environment:
+      RUSTFS_ACCESS_KEY: screenshots
+      RUSTFS_SECRET_KEY: screenshots
+      RUSTFS_VOLUMES: /data
+      RUSTFS_ADDRESS: 0.0.0.0:9000
+    ports:
+      - "${SCREENSHOTS_STORAGE_PORT:-59000}:9000"
+    tmpfs:
+      - /data:mode=1777
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:9000/health"]
+      interval: 1s
+      timeout: 5s
+      retries: 60

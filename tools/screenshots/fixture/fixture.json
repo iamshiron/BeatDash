@@ -1,0 +1,8 @@
+{
+    "migration": "20260720131949_AddSensorSampleClientId",
+    "referenceTime": "2026-07-26T14:49:59.472Z",
+    "login": {
+        "email": "demo@beatdash.local",
+        "password": "screenshots"
+    }
+}
