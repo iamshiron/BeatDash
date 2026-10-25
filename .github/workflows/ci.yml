@@ -82,6 +82,24 @@ jobs:
           path: artifacts/server/
           if-no-files-found: error
 
+      # Self-contained single-file executables; the dashboard built by the server publish is reused and embedded.
+      - name: Publish desktop app
+        run: |
+          for rid in linux-x64 win-x64; do
+            dotnet publish src/BeatDash.Desktop/Shiron.BeatDash.Desktop.csproj -c Release -r "$rid" \
+              -p:SkipWebBuild=true -o "artifacts/desktop-$rid"
+            test "$(ls "artifacts/desktop-$rid" | wc -l)" -eq 1
+          done
+
+      - name: Upload desktop app
+        uses: actions/upload-artifact@v4
+        with:
+          name: beatdash-desktop
+          path: |
+            artifacts/desktop-linux-x64/BeatDash
+            artifacts/desktop-win-x64/BeatDash.exe
+          if-no-files-found: error
+
       - name: Generate mod assembly metadata and BSIPA manifest
         run: >-
           dotnet msbuild src/BeatDash.Mod/BeatDash.Mod.csproj -restore
@@ -102,6 +120,7 @@ jobs:
             src/BeatDash.Data/Shiron.BeatDash.Data.csproj \
             src/BeatDash.DB/Shiron.BeatDash.DB.csproj \
             src/BeatDash.DB.Sqlite/Shiron.BeatDash.DB.Sqlite.csproj \
+            src/BeatDash.Desktop/Shiron.BeatDash.Desktop.csproj \
             src/BeatDash.Cli/Shiron.BeatDash.Cli.csproj ; do
             echo "::group::format $proj"
             dotnet format "$proj" --verify-no-changes --exclude src/BeatDash.DB/Migrations src/BeatDash.DB.Sqlite/Migrations

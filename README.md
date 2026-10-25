@@ -107,6 +107,35 @@ The ASP.NET Core server hosts both the API and the built dashboard. See the deve
     ```
 3.  Open the dashboard in your browser, register, and follow the pairing flow above
 
+### Desktop app
+
+For a single PC, the desktop app is one executable (`BeatDash.exe` on Windows, `BeatDash` on Linux) with
+the server and dashboard inside. There is no account, registration or login: it is single-user, and the app
+signs its window in automatically. Start it, then pair the mod from **Devices**; the mod's default address
+(`127.0.0.1:1811`) already matches.
+
+-   **Windows** uses the Microsoft Edge WebView2 runtime (preinstalled on Windows 11; install it on Windows 10).
+-   **Linux** needs GTK 3, WebKitGTK 4.1 and libsoup 3, e.g. `sudo apt install libgtk-3-0 libwebkit2gtk-4.1-0 libsoup-3.0-0`.
+
+All data lives in `%LOCALAPPDATA%\BeatDash` (Windows) or `~/.local/share/BeatDash` (Linux): the SQLite
+database, map and avatar storage, the web view profile and the secret that keeps paired devices signed in.
+Back up that directory while the app is closed. `BEATDASH_DESKTOP_DATA_DIRECTORY` moves it, e.g. for a
+portable install. Only one instance can use a data directory at a time.
+
+The server listens on loopback only. An optional `settings.json` in the data directory overrides server
+settings in the server's configuration format, e.g. to accept the Honami Sensor Proxy from a phone on the LAN:
+
+```json
+{
+    "Urls": "http://0.0.0.0:1811",
+    "UdpSocket": { "Host": "0.0.0.0" },
+    "AllowedHosts": "*"
+}
+```
+
+Build it with `dotnet publish src/BeatDash.Desktop -c Release -r win-x64` (or `-r linux-x64`); the output
+directory contains only the executable.
+
 ---
 
 ## For Developers
@@ -219,7 +248,9 @@ packages/
 src/
   BeatDash.API/          # ASP.NET Core API (Minimal APIs, EF Core, SignalR, WebSocket/UDP)
   BeatDash.Data/         # Data layer - DTOs, socket + realtime message contracts
-  BeatDash.DB/           # EF Core DbContext, schema, and migrations
+  BeatDash.DB/           # EF Core DbContext, schema, and PostgreSQL migrations
+  BeatDash.DB.Sqlite/    # SQLite migrations
+  BeatDash.Desktop/      # Single-file desktop app (Avalonia + native web view, in-process server)
   BeatDash.Analysis/     # Difficulty and performance metric extraction
   BeatDash.Beatmaps/     # Beatmap parsing
   BeatDash.Cli/          # CLI tool (beatmap calibration, maintenance)
