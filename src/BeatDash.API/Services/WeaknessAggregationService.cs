@@ -136,8 +136,9 @@ public sealed class WeaknessAggregationService(
             .ToListAsync(ct);
 
     /// <summary>
-    /// Additive Postgres upsert keyed on the unique aggregate index. Concurrent folds
-    /// for the same user serialize on the conflicting row and sum correctly.
+    /// Additive upsert keyed on the unique aggregate index; PostgreSQL and SQLite share this
+    /// ON CONFLICT syntax. Concurrent folds for the same user serialize on the conflicting
+    /// row and sum correctly.
     /// </summary>
     private static async Task UpsertAsync(
         BeatDashDbContext db, Guid userId, string characteristic, NoteDelta d, CancellationToken ct) {

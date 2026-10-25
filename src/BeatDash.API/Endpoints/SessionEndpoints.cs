@@ -28,10 +28,10 @@ public static class SessionEndpoints {
 
                 if (!string.IsNullOrWhiteSpace(queryParams.Search)) {
                     var pattern = $"%{queryParams.Search.Trim()}%";
-                    query = query.Where(s =>
-                        EF.Functions.ILike(s.BeatmapDifficulty.Beatmap.SongName, pattern) ||
-                        EF.Functions.ILike(s.BeatmapDifficulty.Beatmap.SongAuthor, pattern) ||
-                        EF.Functions.ILike(s.BeatmapDifficulty.Beatmap.Mapper, pattern));
+                    query = query.WhereAnyLikeIgnoreCase(db.Database, pattern,
+                        s => s.BeatmapDifficulty.Beatmap.SongName,
+                        s => s.BeatmapDifficulty.Beatmap.SongAuthor,
+                        s => s.BeatmapDifficulty.Beatmap.Mapper);
                 }
 
                 if (queryParams.Difficulty.HasValue) {

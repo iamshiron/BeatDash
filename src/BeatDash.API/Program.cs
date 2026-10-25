@@ -37,6 +37,7 @@ var jwtIssuer = builder.Configuration.GetSection("Jwt")["Issuer"] ?? throw new I
 var jwtAudience = builder.Configuration.GetSection("Jwt")["Audience"] ?? throw new InvalidOperationException("JWT audience not configured");
 var backupOptions = builder.Configuration.GetSection("Backup").Get<BackupOptions>() ?? new BackupOptions();
 var storageOptions = builder.Configuration.GetSection("Storage").Get<StorageOptions>() ?? new StorageOptions();
+var databaseOptions = builder.Configuration.GetSection("Database").Get<DatabaseOptions>() ?? new DatabaseOptions();
 var hspOptions = builder.Configuration.GetSection("Hsp").Get<HspOptions>() ?? new HspOptions();
 _ = hspOptions.GetPublicIngestUri();
 builder.Services.Configure<BackupOptions>(builder.Configuration.GetSection("Backup"));
@@ -70,7 +71,7 @@ builder.Services.AddIdentity<User, IdentityRole<Guid>>(c => {
 var connectionString = builder.Configuration.GetConnectionString("Default")
     ?? throw new InvalidOperationException("Database connection string not configured");
 
-builder.Services.AddDbContextFactory<BeatDashDbContext>(options => options.UseNpgsql(connectionString));
+builder.Services.AddDbContextFactory<BeatDashDbContext>(options => options.UseBeatDashDatabase(databaseOptions.Provider, connectionString));
 
 builder.Services.Configure<StorageOptions>(builder.Configuration.GetSection("Storage"));
 builder.Services.PostConfigure<StorageOptions>(options => {
@@ -244,9 +245,7 @@ app.UseWebSockets(new WebSocketOptions {
 });
 
 using (var scope = app.Services.CreateScope()) {
-    if (builder.Configuration.GetValue<bool>("Database:ApplyMigrationsOnStartup")) {
-        await scope.ServiceProvider.GetRequiredService<BeatDashDbContext>().Database.MigrateAsync();
-    }
+    await scope.ServiceProvider.GetRequiredService<BeatDashDbContext>().Database.InitializeAsync(databaseOptions.ApplyMigrationsOnStartup);
     await scope.SeedAdminUser(
         app.Configuration.GetSection("AdminUser")["Email"] ?? throw new InvalidOperationException("Admin user email not configured"),
         app.Configuration.GetSection("AdminUser")["Password"] ?? throw new InvalidOperationException("Admin user password not configured"),

@@ -90,8 +90,9 @@ jobs:
           -p:OutputAssemblyName=obj/Release/net472/BeatDash.Mod
 
       # dotnet format is the .NET lint/style gate. Run it per project so the
-      # unbuildable mod is never loaded, and skip the EF Core migrations, which
-      # are generated code that does not follow the editorconfig whitespace rules.
+      # unbuildable mod is never loaded, and skip the EF Core migrations
+      # (PostgreSQL and SQLite), which are generated code that does not follow the
+      # editorconfig whitespace rules.
       - name: Format check
         run: |
           for proj in \
@@ -100,9 +101,10 @@ jobs:
             src/BeatDash.Beatmaps/Shiron.BeatDash.Beatmaps.csproj \
             src/BeatDash.Data/Shiron.BeatDash.Data.csproj \
             src/BeatDash.DB/Shiron.BeatDash.DB.csproj \
+            src/BeatDash.DB.Sqlite/Shiron.BeatDash.DB.Sqlite.csproj \
             src/BeatDash.Cli/Shiron.BeatDash.Cli.csproj ; do
             echo "::group::format $proj"
-            dotnet format "$proj" --verify-no-changes --exclude src/BeatDash.DB/Migrations
+            dotnet format "$proj" --verify-no-changes --exclude src/BeatDash.DB/Migrations src/BeatDash.DB.Sqlite/Migrations
             echo "::endgroup::"
           done
 

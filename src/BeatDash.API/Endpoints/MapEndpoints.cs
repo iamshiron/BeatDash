@@ -36,11 +36,8 @@ public static class MapEndpoints {
                 // --- Text search ---
                 if (!string.IsNullOrWhiteSpace(q.Search)) {
                     var pattern = $"%{q.Search.Trim()}%";
-                    query = query.Where(b =>
-                        EF.Functions.ILike(b.SongName, pattern) ||
-                        EF.Functions.ILike(b.SongAuthor, pattern) ||
-                        EF.Functions.ILike(b.Mapper, pattern) ||
-                        (b.SongSubName != null && EF.Functions.ILike(b.SongSubName, pattern)));
+                    query = query.WhereAnyLikeIgnoreCase(db.Database, pattern,
+                        b => b.SongName, b => b.SongAuthor, b => b.Mapper, b => b.SongSubName);
                 }
 
                 // --- Per-difficulty filters: the map must have ONE difficulty matching all of them ---

@@ -35,6 +35,7 @@
         <ProjectReference Include="..\BeatDash.Beatmaps\Shiron.BeatDash.Beatmaps.csproj"/>
         <ProjectReference Include="..\BeatDash.Data\Shiron.BeatDash.Data.csproj"/>
         <ProjectReference Include="..\BeatDash.DB\Shiron.BeatDash.DB.csproj"/>
+        <ProjectReference Include="..\BeatDash.DB.Sqlite\Shiron.BeatDash.DB.Sqlite.csproj"/>
     </ItemGroup>
 
     <Target Name="RestoreWebClient"

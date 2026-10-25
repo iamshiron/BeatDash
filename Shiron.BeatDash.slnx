@@ -6,6 +6,7 @@
         <Project Path="src/BeatDash.Cli/Shiron.BeatDash.Cli.csproj" />
         <Project Path="src/BeatDash.Data/Shiron.BeatDash.Data.csproj" />
         <Project Path="src/BeatDash.DB/Shiron.BeatDash.DB.csproj" />
+        <Project Path="src/BeatDash.DB.Sqlite/Shiron.BeatDash.DB.Sqlite.csproj" />
         <Project Path="src/BeatDash.Mod/BeatDash.Mod.csproj" />
     </Folder>
 

@@ -35,6 +35,16 @@ public class BeatDashDbContext(DbContextOptions<BeatDashDbContext> options) : Id
 
     public DbSet<HealthProxyClient> HealthProxyClients => Set<HealthProxyClient>();
 
+    /// <summary>PostgreSQL stores JSON documents as <c>jsonb</c>; SQLite keeps the provider's default text column.</summary>
+    private string? JsonColumnType => Database.IsNpgsql() ? "jsonb" : null;
+
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder) {
+        base.ConfigureConventions(configurationBuilder);
+        // SQLite has no timestamp type and reads every DateTime back as Unspecified; all stored
+        // timestamps are UTC (as PostgreSQL's timestamptz enforces), so restore that kind.
+        if (Database.IsSqlite()) configurationBuilder.Properties<DateTime>().HaveConversion<UtcDateTimeConverter>();
+    }
+
     protected override void OnModelCreating(ModelBuilder builder) {
         base.OnModelCreating(builder);
 
@@ -106,8 +116,8 @@ public class BeatDashDbContext(DbContextOptions<BeatDashDbContext> options) : Id
         builder.Entity<BeatmapDifficultyAnalysis>(c => {
             c.HasKey(x => x.Id);
             c.HasIndex(x => x.BeatmapDifficultyId).IsUnique();
-            c.Property(x => x.Features).HasColumnType("jsonb");
-            c.Property(x => x.Characteristics).HasColumnType("jsonb");
+            c.Property(x => x.Features).HasColumnType(JsonColumnType);
+            c.Property(x => x.Characteristics).HasColumnType(JsonColumnType);
             c.HasOne(x => x.BeatmapDifficulty)
                 .WithOne(x => x.Analysis)
                 .HasForeignKey<BeatmapDifficultyAnalysis>(x => x.BeatmapDifficultyId)
@@ -227,7 +237,7 @@ public class BeatDashDbContext(DbContextOptions<BeatDashDbContext> options) : Id
         builder.Entity<PlaySessionMotionSummary>(c => {
             c.HasKey(x => x.Id);
             c.HasIndex(x => x.PlaySessionId).IsUnique();
-            c.Property(x => x.FatigueCurve).HasColumnType("jsonb");
+            c.Property(x => x.FatigueCurve).HasColumnType(JsonColumnType);
             c.HasOne(x => x.PlaySession)
                 .WithOne()
                 .HasForeignKey<PlaySessionMotionSummary>(x => x.PlaySessionId)
