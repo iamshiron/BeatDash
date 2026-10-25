@@ -48,6 +48,9 @@ public class BeatDashDbContext(DbContextOptions<BeatDashDbContext> options) : Id
     protected override void OnModelCreating(ModelBuilder builder) {
         base.OnModelCreating(builder);
 
+        if (Database.IsSqlite())
+            builder.HasDbFunction(typeof(SqliteDbFunctions).GetMethod(nameof(SqliteDbFunctions.JulianDay))!).HasName("julianday").IsBuiltIn();
+
         builder.Entity<User>(c => {
             c.HasMany(x => x.Devices)
                 .WithOne(x => x.User)

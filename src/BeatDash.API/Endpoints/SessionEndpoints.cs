@@ -100,6 +100,8 @@ public static class SessionEndpoints {
                     query = query.Where(s => s.EndedAt != null);
                 }
 
+                // SQLite stores timestamps as text and can't subtract them; julianday() orders by the same elapsed time.
+                var sqlite = db.Database.IsSqlite();
                 query = (queryParams.SortBy, queryParams.SortDir) switch {
                     (SessionSortBy.StartedAt, SortDirection.Asc) => query.OrderBy(s => s.StartedAt),
                     (SessionSortBy.StartedAt, _) => query.OrderByDescending(s => s.StartedAt),
@@ -109,6 +111,10 @@ public static class SessionEndpoints {
                     (SessionSortBy.Accuracy, _) => query.OrderByDescending(s => s.Results!.Accuracy),
                     (SessionSortBy.MaxCombo, SortDirection.Asc) => query.OrderBy(s => s.Results!.MaxCombo),
                     (SessionSortBy.MaxCombo, _) => query.OrderByDescending(s => s.Results!.MaxCombo),
+                    (SessionSortBy.Duration, SortDirection.Asc) when sqlite => query.OrderBy(s =>
+                        SqliteDbFunctions.JulianDay(s.EndedAt!.Value) - SqliteDbFunctions.JulianDay(s.StartedAt)),
+                    (SessionSortBy.Duration, _) when sqlite => query.OrderByDescending(s =>
+                        SqliteDbFunctions.JulianDay(s.EndedAt!.Value) - SqliteDbFunctions.JulianDay(s.StartedAt)),
                     (SessionSortBy.Duration, SortDirection.Asc) => query.OrderBy(s => s.EndedAt!.Value - s.StartedAt),
                     (SessionSortBy.Duration, _) => query.OrderByDescending(s => s.EndedAt!.Value - s.StartedAt),
                     _ => query.OrderByDescending(s => s.StartedAt),
