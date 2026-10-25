@@ -37,6 +37,7 @@ const router = createRouter({
 			isLoading: true,
 			isAuthenticated: false,
 			isAdmin: false,
+			isDesktop: false,
 		},
 		queryClient,
 	} satisfies RouterContext,

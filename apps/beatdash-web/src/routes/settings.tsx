@@ -97,6 +97,7 @@ export const Route = createFileRoute("/settings")({
 });
 
 function SettingsPage() {
+	const { isDesktop } = useAuth();
 	useDocumentTitle("Settings");
 	return (
 		<AppShell>
@@ -105,13 +106,15 @@ function SettingsPage() {
 					Settings
 				</h1>
 				<p className="mt-1 text-sm text-muted-foreground">
-					Manage your account and preferences.
+					{isDesktop
+						? "Manage your profile and preferences."
+						: "Manage your account and preferences."}
 				</p>
 			</div>
 			<div className="flex flex-col gap-4">
 				<AccountCard />
 				<HealthCard />
-				<PasswordCard />
+				{!isDesktop && <PasswordCard />}
 				<AppearanceCard />
 			</div>
 		</AppShell>
@@ -119,7 +122,7 @@ function SettingsPage() {
 }
 
 function AccountCard() {
-	const { user } = useAuth();
+	const { user, isDesktop } = useAuth();
 	const queryClient = useQueryClient();
 	const [displayName, setDisplayName] = useState("");
 	const [handle, setHandle] = useState("");
@@ -256,16 +259,18 @@ function AccountCard() {
 								readOnly
 							/>
 						</Field>
-						<Field>
-							<FieldLabel htmlFor="email">Email</FieldLabel>
-							<Input
-								id="email"
-								type="email"
-								value={user?.email ?? ""}
-								disabled
-								readOnly
-							/>
-						</Field>
+						{!isDesktop && (
+							<Field>
+								<FieldLabel htmlFor="email">Email</FieldLabel>
+								<Input
+									id="email"
+									type="email"
+									value={user?.email ?? ""}
+									disabled
+									readOnly
+								/>
+							</Field>
+						)}
 
 						<Separator />
 

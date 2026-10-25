@@ -10,4 +10,5 @@ export interface StatusDto {
   message: string;
   version: string;
   signupEnabled: boolean;
+  desktop: boolean;
 }

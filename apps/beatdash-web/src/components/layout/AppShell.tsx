@@ -29,7 +29,7 @@ export function AppShell({
 	wide?: boolean;
 }) {
 	const maxWidth = wide ? "max-w-6xl" : "max-w-5xl";
-	const { isAuthenticated, user } = useAuth();
+	const { isAuthenticated, isDesktop, user } = useAuth();
 	const { track } = usePlayer();
 	const { data: status } = useGetApiHealth({
 		query: { staleTime: 60_000 },
@@ -76,9 +76,11 @@ export function AppShell({
 								<MobileNav className="md:hidden" />
 							</>
 						) : (
-							<Button variant="ghost" size="sm" asChild>
-								<Link to="/auth/login">Sign In</Link>
-							</Button>
+							!isDesktop && (
+								<Button variant="ghost" size="sm" asChild>
+									<Link to="/auth/login">Sign In</Link>
+								</Button>
+							)
 						)}
 					</div>
 				</div>

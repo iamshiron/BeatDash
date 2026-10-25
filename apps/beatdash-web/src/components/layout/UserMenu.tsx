@@ -20,7 +20,7 @@ import { getGetMeQueryKey, useAuth } from "@/contexts/auth";
 import { getInitials } from "@/lib/user";
 
 export function UserMenu() {
-	const { user, isAdmin } = useAuth();
+	const { user, isAdmin, isDesktop } = useAuth();
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 
@@ -79,13 +79,17 @@ export function UserMenu() {
 				<DropdownMenuItem asChild>
 					<Link to="/settings">Settings</Link>
 				</DropdownMenuItem>
-				<DropdownMenuSeparator />
-				<DropdownMenuItem
-					variant="destructive"
-					onClick={() => logoutMutation.mutate()}
-				>
-					Sign out
-				</DropdownMenuItem>
+				{!isDesktop && (
+					<>
+						<DropdownMenuSeparator />
+						<DropdownMenuItem
+							variant="destructive"
+							onClick={() => logoutMutation.mutate()}
+						>
+							Sign out
+						</DropdownMenuItem>
+					</>
+				)}
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);

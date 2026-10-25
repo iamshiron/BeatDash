@@ -8,7 +8,8 @@ import { PageTransition } from "@/components/common/PageTransition";
 
 export const Route = createFileRoute("/auth")({
 	beforeLoad: ({ context }) => {
-		if (context.auth.isAuthenticated) {
+		// The desktop app has no accounts, so there is nothing to sign in to.
+		if (context.auth.isAuthenticated || context.auth.isDesktop) {
 			throw redirect({ to: "/", replace: true });
 		}
 	},

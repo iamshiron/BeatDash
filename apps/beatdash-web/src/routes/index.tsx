@@ -11,7 +11,7 @@ export const Route = createFileRoute("/")({
 });
 
 function LandingPage() {
-	const { isAuthenticated } = useAuth();
+	const { isAuthenticated, isDesktop } = useAuth();
 	const { data: status } = useGetApiHealth();
 	useDocumentTitle(isAuthenticated ? "Dashboard" : null);
 
@@ -35,16 +35,22 @@ function LandingPage() {
 						into your play habits.
 					</p>
 				</div>
-				<div className="flex gap-3">
-					{status?.data.signupEnabled === true && (
-						<Button asChild size="lg">
-							<Link to="/auth/register">Get Started</Link>
+				{isDesktop ? (
+					<p className="max-w-md text-sm text-muted-foreground">
+						The desktop session has ended. Restart BeatDash to continue.
+					</p>
+				) : (
+					<div className="flex gap-3">
+						{status?.data.signupEnabled === true && (
+							<Button asChild size="lg">
+								<Link to="/auth/register">Get Started</Link>
+							</Button>
+						)}
+						<Button asChild size="lg" variant="outline">
+							<Link to="/auth/login">Sign In</Link>
 						</Button>
-					)}
-					<Button asChild size="lg" variant="outline">
-						<Link to="/auth/login">Sign In</Link>
-					</Button>
-				</div>
+					</div>
+				)}
 			</div>
 		</AppShell>
 	);
