@@ -17,11 +17,14 @@ public static class IdentityEndpoints {
     public static void MapIdentityEndpoints(this IEndpointRouteBuilder endpoints) {
         var group = endpoints.MapGroup("/auth").WithTags("Auth");
 
-        group.MapPost("/register", Register)
-            .WithName("Register")
-            .WithDescription("Register a new user account")
-            .Produces(200)
-            .ProducesValidationProblem();
+        var registration = endpoints.ServiceProvider.GetRequiredService<IOptions<RegistrationOptions>>().Value;
+        if (!registration.DisableSignup) {
+            group.MapPost("/register", Register)
+                .WithName("Register")
+                .WithDescription("Register a new user account")
+                .Produces(200)
+                .ProducesValidationProblem();
+        }
 
         group.MapPost("/login", Login)
             .WithName("Login")

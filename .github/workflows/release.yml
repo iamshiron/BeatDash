@@ -1,0 +1,119 @@
+name: GitHub releases
+
+on:
+  push:
+    tags: ['beatdash/v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet tool restore
+      - id: version
+        shell: bash
+        run: |
+          EXPECTED="${GITHUB_REF_NAME#beatdash/v}"
+          VERSION=$(dotnet tool run dotnet-gitversion /config GitVersion.yml /showvariable SemVer)
+          test "$VERSION" = "$EXPECTED"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      - run: python3 tools/versioning/test_versions.py
+      - run: python3 -B tools/release/test_package.py
+
+  server:
+    needs: version
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            rid: linux-x64
+          - os: windows-2025
+            rid: win-x64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Publish server and admin CLI (runtime required, no SDK required)
+        shell: bash
+        run: |
+          dotnet publish src/BeatDash.API/Shiron.BeatDash.API.csproj -c Release -r "${{ matrix.rid }}" --self-contained false -o artifacts/server
+          dotnet publish src/BeatDash.Cli/Shiron.BeatDash.Cli.csproj -c Release -r "${{ matrix.rid }}" --self-contained false -o artifacts/cli
+      - name: Test server and published web assets
+        shell: bash
+        env:
+          BEATDASH_TEST_WEB_ROOT: ${{ github.workspace }}/artifacts/server/wwwroot
+        run: dotnet test tests/BeatDash.API.Tests/Shiron.BeatDash.API.Tests.csproj -c Release -p:SkipWebBuild=true --verbosity minimal
+      - name: Package downloadable ZIP and checksum
+        env:
+          RELEASE_VERSION: ${{ needs.version.outputs.version }}
+          RELEASE_RID: ${{ matrix.rid }}
+        shell: bash
+        run: python tools/release/package.py server --source artifacts/server --cli artifacts/cli --output "artifacts/release/BeatDash-server-${RELEASE_VERSION}-${RELEASE_RID}.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-server-${{ matrix.rid }}
+          path: artifacts/release/*
+          if-no-files-found: error
+
+  publish:
+    needs: [version, server]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          path: release-assets
+          merge-multiple: true
+      - name: Verify release checksums
+        working-directory: release-assets
+        run: sha256sum --check *.sha256
+      - name: Publish a GitHub Release with binary assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_VERSION: ${{ needs.version.outputs.version }}
+        shell: bash
+        run: |
+          test -f "release-assets/BeatDash-server-${RELEASE_VERSION}-linux-x64.zip"
+          test -f "release-assets/BeatDash-server-${RELEASE_VERSION}-win-x64.zip"
+          NOTES='Download the Windows or Linux server ZIP below (not the source-code archive). Each ZIP includes the server, web dashboard, admin CLI, commented appsettings.example.json and README. Install the .NET 10 ASP.NET Core Runtime; no SDK or Node is required. PostgreSQL 17 and RustFS must be provisioned separately. Extract, copy the sample to appsettings.json, replace credentials, and run the server. Public signup is disabled in the sample configuration. Automated mod releases are deferred; see the repository README for local mod build instructions.'
+          FLAGS=(--latest=false)
+          if [[ "$RELEASE_VERSION" == *-* ]]; then FLAGS+=(--prerelease); fi
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" --verify-tag --draft --title "BeatDash server $RELEASE_VERSION" --notes "$NOTES" "${FLAGS[@]}"
+          fi
+          gh release upload "$RELEASE_TAG" release-assets/* --clobber
+          gh release edit "$RELEASE_TAG" --draft=false "${FLAGS[@]}"

@@ -14,6 +14,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { getGetMeQueryKey, useRegister } from "@/api/auth/auth";
+import { useGetApiHealth } from "@/api/health/health";
 import type { RegisterDto } from "@/api/model";
 
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
@@ -24,6 +25,32 @@ export const Route = createFileRoute("/auth/register")({
 
 function RegisterPage() {
 	useDocumentTitle("Sign up");
+	const { data: status, isPending } = useGetApiHealth();
+	if (isPending || status?.data.signupEnabled !== true) {
+		return (
+			<Card className="w-full">
+				<CardHeader>
+					<CardTitle>
+						{isPending ? "Checking registration…" : "Registration unavailable"}
+					</CardTitle>
+					<CardDescription>
+						{isPending
+							? "Loading server settings."
+							: "Public account creation is unavailable on this server. Contact its administrator for access."}
+					</CardDescription>
+				</CardHeader>
+				<CardFooter>
+					<Link to="/auth/login" className="text-primary hover:underline">
+						Sign in
+					</Link>
+				</CardFooter>
+			</Card>
+		);
+	}
+	return <RegistrationForm />;
+}
+
+function RegistrationForm() {
 	const [username, setUsername] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");

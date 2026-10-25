@@ -64,3 +64,7 @@ maps.json
 
 # Local docs symlink
 /doc
+
+# Local server secrets and Python tooling caches
+/src/BeatDash.API/appsettings.json
+__pycache__/

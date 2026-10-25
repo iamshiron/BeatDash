@@ -1,5 +1,6 @@
 import { Button } from "@shiron/ui/components/ui/button";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useGetApiHealth } from "@/api/health/health";
 import { Dashboard } from "@/components/dashboard/Dashboard";
 import { AppShell } from "@/components/layout/AppShell";
 import { useAuth } from "@/contexts/auth";
@@ -11,6 +12,7 @@ export const Route = createFileRoute("/")({
 
 function LandingPage() {
 	const { isAuthenticated } = useAuth();
+	const { data: status } = useGetApiHealth();
 	useDocumentTitle(isAuthenticated ? "Dashboard" : null);
 
 	if (isAuthenticated) {
@@ -34,9 +36,11 @@ function LandingPage() {
 					</p>
 				</div>
 				<div className="flex gap-3">
-					<Button asChild size="lg">
-						<Link to="/auth/register">Get Started</Link>
-					</Button>
+					{status?.data.signupEnabled === true && (
+						<Button asChild size="lg">
+							<Link to="/auth/register">Get Started</Link>
+						</Button>
+					)}
 					<Button asChild size="lg" variant="outline">
 						<Link to="/auth/login">Sign In</Link>
 					</Button>

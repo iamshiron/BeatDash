@@ -14,7 +14,7 @@
         <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);MSB3277</MSBuildWarningsAsMessages>
     </PropertyGroup>
 
-    <PropertyGroup Condition="'$(OS)' == 'Unix'">
+    <PropertyGroup Condition="'$(OS)' == 'Unix' and '$(BeatSaberDir)' == ''">
         <BeatSaberDir>/home/shiron/.local/share/BSManager/BSInstances/1.40.8</BeatSaberDir>
     </PropertyGroup>
 

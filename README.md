@@ -60,6 +60,31 @@ The dashboard (shown above) opens on an overview of your account: total plays, p
 
 ## Pairing & Setup
 
+### Downloadable releases
+
+Download binaries from [GitHub Releases](https://github.com/iamshiron/BeatDash/releases)
+(not the automatically generated source-code archives):
+
+- **Mod:** automated downloads are deferred. Follow [Building the mod locally](#building-the-mod-locally).
+- **Server:** `BeatDash-server-<version>-win-x64.zip` or
+  `BeatDash-server-<version>-linux-x64.zip`. Each is a single ZIP containing the server,
+  bundled dashboard, admin CLI, commented `appsettings.example.json`, and startup/backup
+  instructions. Install the **.NET 10 ASP.NET Core Runtime** for your OS; the full SDK,
+  Node.js and pnpm are not required. Provision PostgreSQL 17 and RustFS separately.
+
+Extract the full server ZIP, copy `appsettings.example.json` to `appsettings.json`,
+replace its credentials and JWT secret, then run `dotnet Shiron.BeatDash.API.dll`.
+Open **http://localhost:1811** and log in with the configured administrator account.
+The sample enables database migrations on startup and **disables public signup**.
+Read the included comments before binding the server to your network.
+
+`Registration:DisableSignup=true` (or `Registration__DisableSignup=true`) removes the
+entire `/api/auth/register` backend route: direct requests return 404 and cannot create
+users. Login and administrator seeding remain available. Restart after changing it.
+The dashboard also hides signup and blocks its registration form, but the backend
+restriction is authoritative. JSON is loaded beside the server binaries; environment
+variables and command-line configuration override it. Existing `.env` settings work too.
+
 The mod pairs with your account once, then stays connected:
 
 ```
@@ -74,7 +99,7 @@ The mod authenticates over a WebSocket connection to the API. Access tokens expi
 
 The ASP.NET Core server hosts both the API and the built dashboard. See the developer setup below to run it with `dotnet`; Docker or Podman is only needed for infrastructure.
 
-1.  Download the latest BeatDash mod release and place it in your Beat Saber `Plugins` folder
+1.  [Build and install the mod locally](#building-the-mod-locally).
 2.  Complete the developer setup below, then start the backend and dashboard:
     ```sh
     dotnet run --project src/BeatDash.API
@@ -91,7 +116,7 @@ GitVersion 6.8.2 generates assembly version attributes and a per-assembly
 `GitVersionInformation` class during `dotnet build`/`publish`; no tracked source
 files or package manifests are rewritten.
 
-| Release | Config | Release tag |
+| Component | Config | Version tag |
 |---|---|---|
 | Backend, CLI and web app | `GitVersion.yml` | `beatdash/v1.2.3` |
 | Beat Saber mod | `GitVersion.Mod.yml` | `beatdash-mod/v1.2.3` |
@@ -124,6 +149,56 @@ The public status endpoint `GET /api/health` returns `message` and `version`.
 The web app reads that version at runtime rather than maintaining a separate
 frontend build version. The mod still needs a local Beat Saber installation to
 build and package, as described below.
+
+### Publishing GitHub releases
+
+`.github/workflows/release.yml` publishes actual GitHub Releases on pushes of
+`beatdash/v<version>` (server). The tag version must
+match GitVersion. Stable tags create normal releases; prerelease tags create prereleases.
+Releases do not change GitHub's global `latest` pointer. No Docker image is built or pushed.
+
+Windows x64 and Linux x64 server releases build on standard GitHub-hosted runners.
+Automated mod releases are deferred; no self-hosted runner or `mod-release` environment
+is needed. The mod retains its independent GitVersion configuration for local builds.
+
+The workflow validates package contents, builds/tests, creates a draft release, uploads
+the ZIP(s) and SHA-256 checksum files, then publishes it. Missing assets or failed jobs
+prevent publication. Rerunning a failed workflow can finish the same draft. Check your
+repository's Actions settings permit the release job's `contents: write` permission.
+
+Local packaging uses the same script as CI:
+
+```sh
+python3 tools/release/package.py server --source artifacts/server --cli artifacts/cli --output artifacts/BeatDash-server.zip
+python3 tools/release/package.py mod --source src/BeatDash.Mod/bin/Release/net472 --output artifacts/BeatDash-mod.zip
+python3 -B tools/release/test_package.py
+```
+
+### Building the mod locally
+
+1. Install **Git**, the **.NET 10 SDK**, and a licensed **Beat Saber 1.40.8** installation.
+2. Using your mod manager, install **BSIPA, SiraUtil, BSML, SongCore, SongDetailsCache,
+   BeatSaverSharp and websocket-sharp**, including their dependencies.
+3. Open PowerShell and run (replace `$game` with your game directory):
+
+   ```powershell
+   git clone --recurse-submodules https://github.com/iamshiron/BeatDash.git
+   cd BeatDash
+   $game = "C:\Program Files (x86)\Steam\steamapps\common\Beat Saber"
+   dotnet build src/BeatDash.Mod/BeatDash.Mod.csproj -c Release "-p:BeatSaberDir=$game" -p:DisableCopyToGame=true -p:DisableZipRelease=true
+   ```
+
+4. Close Beat Saber, then install the two built DLLs:
+
+   ```powershell
+   Copy-Item src/BeatDash.Mod/bin/Release/net472/Shiron.BeatDash.Mod.dll "$game/Plugins/"
+   Copy-Item src/BeatDash.Mod/bin/Release/net472/Shiron.BeatDash.Data.dll "$game/Libs/"
+   ```
+
+No Node.js, pnpm, Visual Studio or running server is needed to build the mod. The
+build restores its NuGet dependencies automatically and does not modify the game directory.
+On Linux, use the same `dotnet build` command with your game path and copy the same DLLs.
+Start the game and pair with your server through the mod settings.
 
 ### Administrative backups
 

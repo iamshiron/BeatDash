@@ -20,6 +20,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <None Include="../../tools/release/appsettings.example.json" Link="Data/appsettings.example.json" CopyToOutputDirectory="PreserveNewest" />
         <ProjectReference Include="../../src/BeatDash.API/Shiron.BeatDash.API.csproj" />
         <ProjectReference Include="../../src/BeatDash.Cli/Shiron.BeatDash.Cli.csproj" />
     </ItemGroup>

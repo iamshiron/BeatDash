@@ -51,9 +51,11 @@ public class TokenRefreshHandler : DelegatingHandler {
     }
 
     private async Task<TokenPairDto> PerformTokenRefreshAsync() {
+        var accessToken = _config.AccessToken ?? throw new InvalidOperationException("Pair the device before refreshing its access token.");
+        var refreshToken = _config.RefreshToken ?? throw new InvalidOperationException("Pair the device before refreshing its refresh token.");
         var content = new StringContent(JsonConvert.SerializeObject(new RefreshTokenRequestDto {
-            AccessToken = _config.AccessToken,
-            RefreshToken = _config.RefreshToken,
+            AccessToken = accessToken,
+            RefreshToken = refreshToken,
             ClientId = Guid.Parse(_config.ClientId)
         }), Encoding.UTF8, "application/json");
 

@@ -14,6 +14,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { getGetMeQueryKey, useLogin } from "@/api/auth/auth";
+import { useGetApiHealth } from "@/api/health/health";
 import type { LoginDto } from "@/api/model";
 
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
@@ -28,6 +29,7 @@ function LoginPage() {
 	const [password, setPassword] = useState("");
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
+	const { data: status } = useGetApiHealth();
 
 	const loginMutation = useLogin({
 		mutation: {
@@ -96,12 +98,14 @@ function LoginPage() {
 				>
 					{isPending ? "Signing in…" : "Sign In"}
 				</Button>
-				<p className="text-xs text-muted-foreground">
-					Don't have an account?{" "}
-					<Link to="/auth/register" className="text-primary hover:underline">
-						Sign up
-					</Link>
-				</p>
+				{status?.data.signupEnabled === true && (
+					<p className="text-xs text-muted-foreground">
+						Don't have an account?{" "}
+						<Link to="/auth/register" className="text-primary hover:underline">
+							Sign up
+						</Link>
+					</p>
+				)}
 			</CardFooter>
 		</Card>
 	);

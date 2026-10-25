@@ -33,7 +33,7 @@
         <DisableZipRelease>true</DisableZipRelease>
     </PropertyGroup>
 
-    <Target Name="CopyToPluginsLinux" AfterTargets="Build" Condition="'$(OS)' == 'Unix'">
+    <Target Name="CopyToPluginsLinux" AfterTargets="Build" Condition="'$(OS)' == 'Unix' and '$(DisableCopyToGame)' != 'true' and '$(ContinuousIntegrationBuild)' != 'true'">
         <Message Text="[Linux] Copying mod to Beat Saber Plugins directory..." Importance="high"/>
         <MakeDir Directories="$(BeatSaberDir)/Plugins"/>
         <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(BeatSaberDir)/Plugins"/>

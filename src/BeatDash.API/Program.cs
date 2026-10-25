@@ -30,6 +30,7 @@ using Shiron.BeatDash.DB.Schema;
 Env.TraversePath().Load();
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions {
     Args = args,
+    ContentRootPath = AppContext.BaseDirectory,
     WebRootPath = Path.Combine(AppContext.BaseDirectory, "wwwroot")
 });
 var jwtSecret = builder.Configuration.GetSection("Jwt")["SecretKey"] ?? throw new InvalidOperationException("JWT secret key not configured");
@@ -40,6 +41,7 @@ var hspOptions = builder.Configuration.GetSection("Hsp").Get<HspOptions>() ?? ne
 _ = hspOptions.GetPublicIngestUri();
 builder.Services.Configure<BackupOptions>(builder.Configuration.GetSection("Backup"));
 builder.Services.Configure<HspOptions>(builder.Configuration.GetSection("Hsp"));
+builder.Services.Configure<RegistrationOptions>(builder.Configuration.GetSection("Registration"));
 var backupDirectory = Path.GetFullPath(backupOptions.WorkDirectory);
 var webDirectory = Path.GetFullPath(builder.Environment.WebRootPath!);
 if (backupOptions.MaxArchiveBytes <= 0 || backupDirectory == webDirectory
@@ -66,11 +68,12 @@ var connectionString = builder.Configuration.GetConnectionString("Default")
 
 builder.Services.AddDbContextFactory<BeatDashDbContext>(options => options.UseNpgsql(connectionString));
 
-builder.Services.Configure<StorageOptions>(options => {
+builder.Services.Configure<StorageOptions>(builder.Configuration.GetSection("Storage"));
+builder.Services.PostConfigure<StorageOptions>(options => {
     options.Endpoint = builder.Configuration["RUSTFS_ENDPOINT"] ?? builder.Configuration["MINIO_ENDPOINT"] ?? options.Endpoint;
     options.AccessKey = builder.Configuration["RUSTFS_ACCESS_KEY"] ?? builder.Configuration["MINIO_ACCESS_KEY"] ?? options.AccessKey;
     options.SecretKey = builder.Configuration["RUSTFS_SECRET_KEY"] ?? builder.Configuration["MINIO_SECRET_KEY"] ?? options.SecretKey;
-    options.UseSsl = bool.TryParse(builder.Configuration["RUSTFS_USE_SSL"] ?? builder.Configuration["MINIO_USE_SSL"], out var ssl) && ssl;
+    if (bool.TryParse(builder.Configuration["RUSTFS_USE_SSL"] ?? builder.Configuration["MINIO_USE_SSL"], out var ssl)) options.UseSsl = ssl;
     options.BucketAssets = builder.Configuration["RUSTFS_BUCKET_ASSETS"] ?? builder.Configuration["MINIO_BUCKET_ASSETS"] ?? options.BucketAssets;
     options.BucketUserData = builder.Configuration["RUSTFS_BUCKET_USER_DATA"] ?? builder.Configuration["MINIO_BUCKET_USER_DATA"] ?? options.BucketUserData;
 });
@@ -248,6 +251,9 @@ app.UseWebSockets(new WebSocketOptions {
 });
 
 using (var scope = app.Services.CreateScope()) {
+    if (builder.Configuration.GetValue<bool>("Database:ApplyMigrationsOnStartup")) {
+        await scope.ServiceProvider.GetRequiredService<BeatDashDbContext>().Database.MigrateAsync();
+    }
     await scope.SeedAdminUser(
         app.Configuration.GetSection("AdminUser")["Email"] ?? throw new InvalidOperationException("Admin user email not configured"),
         app.Configuration.GetSection("AdminUser")["Password"] ?? throw new InvalidOperationException("Admin user password not configured"),

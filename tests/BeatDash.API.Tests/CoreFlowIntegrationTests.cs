@@ -24,6 +24,25 @@ namespace Shiron.BeatDash.API.Tests;
 
 public sealed class CoreFlowIntegrationTests {
     [CoreFlowIntegrationFact]
+    public async Task Registration_Disabled_RejectsDirectRequestsAndKeepsSeededAdminLogin() {
+        await using var fixture = await Fixture.CreateAsync(disableSignup: true, applyMigrations: true);
+        using var client = fixture.CreateClient();
+        var usersBefore = await fixture.Db.Users.CountAsync();
+        using var registration = await client.PostAsJsonAsync("/api/auth/register", Account.Create().RegisterRequest);
+        Assert.Equal(HttpStatusCode.NotFound, registration.StatusCode);
+        Assert.Equal(usersBefore, await fixture.Db.Users.CountAsync());
+
+        var status = await client.GetFromJsonAsync<StatusDto>("/api/health");
+        Assert.NotNull(status);
+        Assert.False(status.SignupEnabled);
+        using var login = await client.PostAsJsonAsync("/api/auth/login", new LoginDto {
+            Email = "admin@example.test", Password = "Core-test-Password1!"
+        });
+        login.EnsureSuccessStatusCode();
+        Assert.Contains("Admin", (await GetUserAsync(client)).Roles);
+    }
+
+    [CoreFlowIntegrationFact]
     public async Task AccountCookie_RegisterLoginAndLogout_ControlsAuthenticatedSession() {
         await using var fixture = await Fixture.CreateAsync();
         using var client = fixture.CreateClient();
@@ -303,14 +322,14 @@ public sealed class CoreFlowIntegrationTests {
         public StorageOptions StorageOptions { get; }
         public Uri Address { get; private set; } = null!;
 
-        public static async Task<Fixture> CreateAsync() {
+        public static async Task<Fixture> CreateAsync(bool disableSignup = false, bool applyMigrations = false) {
             var fixture = new Fixture();
             await using var admin = new NpgsqlConnection(fixture._adminConnection);
             await admin.OpenAsync();
             await using var command = new NpgsqlCommand($"CREATE DATABASE \"{fixture._databaseName}\"", admin);
             await command.ExecuteNonQueryAsync();
-            await fixture.Db.Database.EnsureCreatedAsync();
-            await fixture.StartApiAsync();
+            if (!applyMigrations) await fixture.Db.Database.EnsureCreatedAsync();
+            await fixture.StartApiAsync(disableSignup, applyMigrations);
             return fixture;
         }
 
@@ -391,7 +410,7 @@ public sealed class CoreFlowIntegrationTests {
             throw new TimeoutException("The game WebSocket did not persist the completed play.");
         }
 
-        private async Task StartApiAsync() {
+        private async Task StartApiAsync(bool disableSignup, bool applyMigrations) {
             Directory.CreateDirectory(_directory);
             var start = new ProcessStartInfo("dotnet") {
                 WorkingDirectory = _directory, RedirectStandardOutput = true, RedirectStandardError = true
@@ -406,6 +425,8 @@ public sealed class CoreFlowIntegrationTests {
             start.Environment["AdminUser__Email"] = "admin@example.test";
             start.Environment["AdminUser__Password"] = "Core-test-Password1!";
             start.Environment["AdminUser__Role"] = "Admin";
+            start.Environment["Registration__DisableSignup"] = disableSignup.ToString();
+            start.Environment["Database__ApplyMigrationsOnStartup"] = applyMigrations.ToString();
             start.Environment["Backup__MaintenanceMode"] = "false";
             start.Environment["Backup__WorkDirectory"] = Path.Combine(_directory, "server-work");
             start.Environment["BeatSaver__FetchOnStartup"] = "false";
