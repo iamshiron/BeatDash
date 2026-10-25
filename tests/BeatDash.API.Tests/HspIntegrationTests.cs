@@ -4,7 +4,6 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Net.Sockets;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 using Shiron.BeatDash.API.Endpoints;
 using Shiron.BeatDash.DB;
 using Shiron.BeatDash.DB.Schema;
@@ -17,9 +16,11 @@ public sealed class HspIntegrationCollection { }
 
 [Collection("Hsp integration")]
 public sealed class HspIntegrationTests {
-    [HspIntegrationFact]
-    public async Task Ingest_ActiveAndBoundedSessions_EnforcesTokenTrackingAndDedupe() {
-        await using var fixture = await Fixture.CreateAsync();
+    [Theory]
+    [PostgresRustFsBackend]
+    [SqliteFileSystemBackend]
+    public async Task Ingest_ActiveAndBoundedSessions_EnforcesTokenTrackingAndDedupe(TestBackend backend) {
+        await using var fixture = await Fixture.CreateAsync(backend);
         var now = DateTime.UtcNow;
         var activeStart = now.AddMinutes(-2);
         var orphanStart = now.AddMinutes(-30);
@@ -78,32 +79,20 @@ public sealed class HspIntegrationTests {
             ?? throw new InvalidOperationException("HSP ingest response was empty.");
     }
 
-    private sealed class HspIntegrationFactAttribute : FactAttribute {
-        public HspIntegrationFactAttribute() {
-            if (Environment.GetEnvironmentVariable("BEATDASH_TEST_POSTGRES") is null)
-                Skip = "Set BEATDASH_TEST_POSTGRES to disposable PostgreSQL infrastructure.";
-        }
-    }
-
     private sealed class Fixture : IAsyncDisposable {
         private const string JwtSecret = "hsp-integration-test-secret-at-least-32-characters";
-        private readonly string _adminConnection = Environment.GetEnvironmentVariable("BEATDASH_TEST_POSTGRES")!;
-        private readonly string _databaseName = "hsp_test_" + Guid.NewGuid().ToString("N");
+        private readonly TestInfrastructure _infrastructure;
         private readonly string _directory = Path.Combine(Path.GetTempPath(), "beatdash-hsp-tests", Guid.NewGuid().ToString("N"));
         private Process? _server;
         public BeatDashDbContext Db { get; }
 
-        private Fixture() {
-            var connection = new NpgsqlConnectionStringBuilder(_adminConnection) { Database = _databaseName };
-            Db = new BeatDashDbContext(new DbContextOptionsBuilder<BeatDashDbContext>().UseNpgsql(connection.ConnectionString).Options);
+        private Fixture(TestInfrastructure infrastructure) {
+            _infrastructure = infrastructure;
+            Db = infrastructure.CreateDbContext();
         }
 
-        public static async Task<Fixture> CreateAsync() {
-            var fixture = new Fixture();
-            await using var admin = new NpgsqlConnection(fixture._adminConnection);
-            await admin.OpenAsync();
-            await using var command = new NpgsqlCommand($"CREATE DATABASE \"{fixture._databaseName}\"", admin);
-            await command.ExecuteNonQueryAsync();
+        public static async Task<Fixture> CreateAsync(TestBackend backend) {
+            var fixture = new Fixture(await TestInfrastructure.CreateAsync(backend));
             await fixture.Db.Database.MigrateAsync();
             return fixture;
         }
@@ -136,7 +125,7 @@ public sealed class HspIntegrationTests {
             start.ArgumentList.Add(typeof(HspEndpoints).Assembly.Location);
             start.Environment["ASPNETCORE_URLS"] = "http://127.0.0.1:0";
             start.Environment["ASPNETCORE_ENVIRONMENT"] = "Production";
-            start.Environment["ConnectionStrings__Default"] = Db.Database.GetConnectionString();
+            _infrastructure.ConfigureServer(start);
             start.Environment["Jwt__SecretKey"] = JwtSecret;
             start.Environment["Jwt__Issuer"] = "hsp-test";
             start.Environment["Jwt__Audience"] = "hsp-test";
@@ -178,10 +167,7 @@ public sealed class HspIntegrationTests {
                 _server.Dispose();
             }
             await Db.DisposeAsync();
-            await using var admin = new NpgsqlConnection(_adminConnection);
-            await admin.OpenAsync();
-            await using var command = new NpgsqlCommand($"DROP DATABASE \"{_databaseName}\" WITH (FORCE)", admin);
-            await command.ExecuteNonQueryAsync();
+            await _infrastructure.DisposeAsync();
             if (Directory.Exists(_directory)) Directory.Delete(_directory, true);
         }
     }

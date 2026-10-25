@@ -8,9 +8,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using Minio;
-using Minio.DataModel.Args;
-using Npgsql;
 using Shiron.BeatDash.API;
 using Shiron.BeatDash.API.Configuration;
 using Shiron.BeatDash.API.Endpoints;
@@ -18,14 +15,17 @@ using Shiron.BeatDash.Data;
 using Shiron.BeatDash.Data.Socket;
 using Shiron.BeatDash.DB;
 using Shiron.BeatDash.DB.Schema;
+using Shiron.BeatDash.DB.Schema.BeatSaver;
 using Xunit;
 
 namespace Shiron.BeatDash.API.Tests;
 
 public sealed class CoreFlowIntegrationTests {
-    [CoreFlowIntegrationFact]
-    public async Task Registration_Disabled_RejectsDirectRequestsAndKeepsSeededAdminLogin() {
-        await using var fixture = await Fixture.CreateAsync(disableSignup: true, applyMigrations: true);
+    [Theory]
+    [PostgresRustFsBackend]
+    [SqliteFileSystemBackend]
+    public async Task Registration_Disabled_RejectsDirectRequestsAndKeepsSeededAdminLogin(TestBackend backend) {
+        await using var fixture = await Fixture.CreateAsync(backend, disableSignup: true, applyMigrations: true);
         using var client = fixture.CreateClient();
         var usersBefore = await fixture.Db.Users.CountAsync();
         using var registration = await client.PostAsJsonAsync("/api/auth/register", Account.Create().RegisterRequest);
@@ -42,9 +42,11 @@ public sealed class CoreFlowIntegrationTests {
         Assert.Contains("Admin", (await GetUserAsync(client)).Roles);
     }
 
-    [CoreFlowIntegrationFact]
-    public async Task AccountCookie_RegisterLoginAndLogout_ControlsAuthenticatedSession() {
-        await using var fixture = await Fixture.CreateAsync();
+    [Theory]
+    [PostgresRustFsBackend]
+    [SqliteFileSystemBackend]
+    public async Task AccountCookie_RegisterLoginAndLogout_ControlsAuthenticatedSession(TestBackend backend) {
+        await using var fixture = await Fixture.CreateAsync(backend);
         using var client = fixture.CreateClient();
         var account = Account.Create();
 
@@ -65,9 +67,11 @@ public sealed class CoreFlowIntegrationTests {
         Assert.Equal(HttpStatusCode.Found, afterLogout.StatusCode);
     }
 
-    [CoreFlowIntegrationFact]
-    public async Task DevicePinPairing_RefreshRotationAndUserBoundaries_WorkEndToEnd() {
-        await using var fixture = await Fixture.CreateAsync();
+    [Theory]
+    [PostgresRustFsBackend]
+    [SqliteFileSystemBackend]
+    public async Task DevicePinPairing_RefreshRotationAndUserBoundaries_WorkEndToEnd(TestBackend backend) {
+        await using var fixture = await Fixture.CreateAsync(backend);
         using var first = fixture.CreateClient();
         using var second = fixture.CreateClient();
         var owner = await RegisterAndLoginAsync(first);
@@ -111,9 +115,11 @@ public sealed class CoreFlowIntegrationTests {
         Assert.NotEqual(Guid.Empty, owner.ID);
     }
 
-    [CoreFlowIntegrationFact]
-    public async Task GameWebSocket_MapPlayIsPersistedOnlyForAuthenticatedOwner() {
-        await using var fixture = await Fixture.CreateAsync();
+    [Theory]
+    [PostgresRustFsBackend]
+    [SqliteFileSystemBackend]
+    public async Task GameWebSocket_MapPlayIsPersistedOnlyForAuthenticatedOwner(TestBackend backend) {
+        await using var fixture = await Fixture.CreateAsync(backend);
         using var ownerClient = fixture.CreateClient(out var ownerCookies);
         using var otherClient = fixture.CreateClient(out var otherCookies);
         var owner = await RegisterAndLoginAsync(ownerClient);
@@ -180,9 +186,11 @@ public sealed class CoreFlowIntegrationTests {
         Assert.Equal(0, document.RootElement.GetProperty("totalCount").GetInt32());
     }
 
-    [CoreFlowIntegrationFact]
-    public async Task PublicMapCover_IsDeliveredAnonymouslyWhileMapDataRemainsProtected() {
-        await using var fixture = await Fixture.CreateAsync();
+    [Theory]
+    [PostgresRustFsBackend]
+    [SqliteFileSystemBackend]
+    public async Task PublicMapCover_IsDeliveredAnonymouslyWhileMapDataRemainsProtected(TestBackend backend) {
+        await using var fixture = await Fixture.CreateAsync(backend);
         using var client = fixture.CreateClient();
         var cover = RandomNumberGenerator.GetBytes(128);
         const string key = "covers/core-flow.png";
@@ -204,9 +212,11 @@ public sealed class CoreFlowIntegrationTests {
         Assert.Equal(HttpStatusCode.Found, lists.StatusCode);
     }
 
-    [CoreFlowIntegrationFact]
-    public async Task MapCatalog_LargePageAndDurationFilters_DoNotOverflow() {
-        await using var fixture = await Fixture.CreateAsync();
+    [Theory]
+    [PostgresRustFsBackend]
+    [SqliteFileSystemBackend]
+    public async Task MapCatalog_LargePageAndDurationFilters_DoNotOverflow(TestBackend backend) {
+        await using var fixture = await Fixture.CreateAsync(backend);
         using var client = fixture.CreateClient();
         await RegisterAndLoginAsync(client);
         await fixture.AddMapAsync("custom_level_catalog_bounds");
@@ -226,6 +236,76 @@ public sealed class CoreFlowIntegrationTests {
             "/api/maps?MaxDurationSeconds=2147483647");
         Assert.NotNull(maximum);
         Assert.Single(maximum.Items);
+    }
+
+    [Theory]
+    [PostgresRustFsBackend]
+    [SqliteFileSystemBackend]
+    public async Task AccountEndpoints_PopulatedHistory_AllRespondWithoutServerErrors(TestBackend backend) {
+        await using var fixture = await Fixture.CreateAsync(backend);
+        using var client = fixture.CreateClient();
+        var user = await RegisterAndLoginAsync(client);
+        var (mapId, sessionId) = await fixture.SeedPlayHistoryAsync(user.ID);
+        var handle = "sweep_" + Guid.NewGuid().ToString("N")[..8];
+
+        await AssertSuccessAsync(await client.PutAsJsonAsync("/api/auth/me", new UpdateProfileDto {
+            DisplayName = "Sweep", Handle = handle, ProfileStatsPublic = true, ProfileActivityPublic = true,
+            ProfileSkillPublic = true, ProfileHistoryPublic = true, ProfileListsPublic = true, ProfileLikedPublic = true,
+            HealthTrackingEnabled = true, HeightCm = 180, WeightKg = 75, BirthYear = 1995, Sex = "male"
+        }));
+        using (var avatar = new MultipartFormDataContent()) {
+            var image = new ByteArrayContent([137, 80, 78, 71]);
+            image.Headers.ContentType = new MediaTypeHeaderValue("image/png");
+            avatar.Add(image, "file", "avatar.png");
+            await AssertSuccessAsync(await client.PutAsync("/api/auth/me/avatar", avatar));
+        }
+        await AssertSuccessAsync(await client.PutAsync($"/api/maps/{mapId}/like", null));
+        Guid listId;
+        using (var created = await client.PostAsJsonAsync("/api/lists", new CreateMapListDto("Sweep list", "All of it"))) {
+            created.EnsureSuccessStatusCode();
+            using var list = JsonDocument.Parse(await created.Content.ReadAsStringAsync());
+            listId = list.RootElement.GetProperty("id").GetGuid();
+        }
+        await AssertSuccessAsync(await client.PutAsync($"/api/lists/{listId}/maps/{mapId}", null));
+        await AssertSuccessAsync(await client.PatchAsJsonAsync($"/api/lists/{listId}", new UpdateMapListDto("Sweep list 2", null)));
+
+        var from = Uri.EscapeDataString(DateTime.UtcNow.AddDays(-30).ToString("O"));
+        var to = Uri.EscapeDataString(DateTime.UtcNow.ToString("O"));
+        string[] urls = [
+            "/api/auth/me", "/api/device/", "/api/hsp/clients", "/api/server/", "/api/lists", $"/api/lists/{listId}",
+            $"/api/lists?mapId={mapId}", $"/api/maps/{mapId}", $"/api/profiles/{handle}", $"/api/users/{user.ID}/avatar",
+            "/api/maps?Search=sweep", "/api/maps?Search=REMIX", "/api/maps?Tag=tech&Ranked=true&Automapper=false&Liked=true&Played=true",
+            "/api/maps?Ranked=false&Liked=false&Played=false",
+            "/api/maps?Characteristic=Standard&Difficulty=Expert&MinNps=1&MaxNps=10&MinDifficulty=1&MaxDifficulty=10&MinPp=1&MaxPp=500",
+            "/api/maps?MinBpm=60&MaxBpm=200&MinDurationSeconds=60&MaxDurationSeconds=600&FetchStatus=Pending",
+            .. Enum.GetNames<MapSortBy>().SelectMany(sort => new[] { $"/api/maps?SortBy={sort}&SortDir=Asc", $"/api/maps?SortBy={sort}&SortDir=Desc" }),
+            "/api/sessions?Search=sweep&IncludeFailed=true&IncludeQuit=true&IncludeIncomplete=true&IncludeAuto=true",
+            $"/api/sessions?Difficulty=Expert&From={from}&To={to}&BeatmapId={mapId}&MinAccuracy=0.1&MaxAccuracy=1&MinScore=1&MaxScore=200000&Rank=A&MinBpm=60&MaxBpm=200",
+            .. Enum.GetNames<SessionSortBy>().SelectMany(sort => new[] { $"/api/sessions?SortBy={sort}&SortDir=Asc", $"/api/sessions?SortBy={sort}&SortDir=Desc" }),
+            $"/api/sessions/{sessionId}", $"/api/sessions/{sessionId}/timeline", $"/api/sessions/{sessionId}/notes",
+            $"/api/sessions/{sessionId}/motion", $"/api/sessions/{sessionId}/motion-summary", $"/api/sessions/{sessionId}/recap",
+            $"/api/sessions/{sessionId}/top", $"/api/sessions/{sessionId}/workout",
+            "/api/sessions/stats", "/api/sessions/skill", "/api/sessions/latest-summary", "/api/sessions/sittings/overview",
+            .. Enum.GetNames<SittingSortBy>().Select(sort => $"/api/sessions/sittings?sortBy={sort}"),
+            "/api/sessions/recommendations", "/api/sessions/skill/progression?weeks=12", "/api/sessions/weakness",
+            "/api/sessions/weakness?characteristic=Standard", "/api/sessions/trends",
+            $"/api/sessions/pb?mapId={mapId}&difficulty=Expert&characteristic=Standard",
+            "/api/health/overview", $"/api/health/heartrate?from={from}&to={to}"
+        ];
+        foreach (var url in urls) await AssertSuccessAsync(await client.GetAsync(url));
+
+        await AssertSuccessAsync(await client.DeleteAsync($"/api/lists/{listId}/maps/{mapId}"));
+        await AssertSuccessAsync(await client.DeleteAsync($"/api/lists/{listId}"));
+        await AssertSuccessAsync(await client.DeleteAsync($"/api/maps/{mapId}/like"));
+        Assert.Null(fixture.ServerFailures);
+    }
+
+    private static async Task AssertSuccessAsync(HttpResponseMessage response) {
+        using (response) {
+            Assert.True(response.IsSuccessStatusCode,
+                $"{response.RequestMessage!.Method} {response.RequestMessage.RequestUri!.PathAndQuery} returned "
+                + $"{(int) response.StatusCode}: {await response.Content.ReadAsStringAsync()}");
+        }
     }
 
     private static async Task<UserInfoDto> RegisterAndLoginAsync(HttpClient client) {
@@ -291,43 +371,25 @@ public sealed class CoreFlowIntegrationTests {
         }
     }
 
-    private sealed class CoreFlowIntegrationFactAttribute : FactAttribute {
-        public CoreFlowIntegrationFactAttribute() {
-            if (Environment.GetEnvironmentVariable("BEATDASH_TEST_POSTGRES") is null
-                || Environment.GetEnvironmentVariable("BEATDASH_TEST_RUSTFS") is null)
-                Skip = "Set BEATDASH_TEST_POSTGRES and BEATDASH_TEST_RUSTFS to disposable test infrastructure.";
-        }
-    }
-
     private sealed class Fixture : IAsyncDisposable {
         private const string JwtSecret = "core-flow-integration-test-secret-at-least-32-characters";
-        private readonly string _adminConnection = Environment.GetEnvironmentVariable("BEATDASH_TEST_POSTGRES")!;
-        private readonly string _databaseName = "core_flow_test_" + Guid.NewGuid().ToString("N");
+        private readonly TestInfrastructure _infrastructure;
         private readonly string _directory = Path.Combine(Path.GetTempPath(), "beatdash-core-flow-tests", Guid.NewGuid().ToString("N"));
         private readonly int _udpPort = GetAvailableUdpPort();
-        private readonly IMinioClient _minio;
+        private readonly StringBuilder _log = new();
         private Process? _server;
 
-        private Fixture() {
-            var connection = new NpgsqlConnectionStringBuilder(_adminConnection) { Database = _databaseName };
-            Db = new BeatDashDbContext(new DbContextOptionsBuilder<BeatDashDbContext>().UseNpgsql(connection.ConnectionString).Options);
-            StorageOptions = new StorageOptions {
-                BucketAssets = "assets-" + Guid.NewGuid().ToString("N"), BucketUserData = "users-" + Guid.NewGuid().ToString("N")
-            };
-            _minio = new MinioClient().WithEndpoint(Environment.GetEnvironmentVariable("BEATDASH_TEST_RUSTFS"))
-                .WithCredentials("backup-test", "backup-test-secret").Build();
+        private Fixture(TestInfrastructure infrastructure) {
+            _infrastructure = infrastructure;
+            Db = infrastructure.CreateDbContext();
         }
 
         public BeatDashDbContext Db { get; }
-        public StorageOptions StorageOptions { get; }
+        public StorageOptions StorageOptions => _infrastructure.StorageOptions;
         public Uri Address { get; private set; } = null!;
 
-        public static async Task<Fixture> CreateAsync(bool disableSignup = false, bool applyMigrations = false) {
-            var fixture = new Fixture();
-            await using var admin = new NpgsqlConnection(fixture._adminConnection);
-            await admin.OpenAsync();
-            await using var command = new NpgsqlCommand($"CREATE DATABASE \"{fixture._databaseName}\"", admin);
-            await command.ExecuteNonQueryAsync();
+        public static async Task<Fixture> CreateAsync(TestBackend backend, bool disableSignup = false, bool applyMigrations = false) {
+            var fixture = new Fixture(await TestInfrastructure.CreateAsync(backend));
             if (!applyMigrations) await fixture.Db.Database.EnsureCreatedAsync();
             await fixture.StartApiAsync(disableSignup, applyMigrations);
             return fixture;
@@ -356,17 +418,85 @@ public sealed class CoreFlowIntegrationTests {
             return map.Id;
         }
 
-        public async Task UploadAssetAsync(string key, byte[] content) {
-            if (!await _minio.BucketExistsAsync(new BucketExistsArgs().WithBucket(StorageOptions.BucketAssets)))
-                await _minio.MakeBucketAsync(new MakeBucketArgs().WithBucket(StorageOptions.BucketAssets));
-            await using var stream = new MemoryStream(content);
-            await _minio.PutObjectAsync(new PutObjectArgs()
-                .WithBucket(StorageOptions.BucketAssets)
-                .WithObject(key)
-                .WithStreamData(stream)
-                .WithObjectSize(content.Length)
-                .WithContentType("image/png"));
+        /// <summary>Everything the server logged from the first error-level entry on, or null if it logged none.</summary>
+        public string? ServerFailures {
+            get {
+                lock (_log) {
+                    var log = _log.ToString();
+                    var index = log.IndexOf("fail: ", StringComparison.Ordinal);
+                    return index < 0 ? null : log[index..];
+                }
+            }
         }
+
+        /// <summary>Seeds an analyzed BeatSaver map and a play history with notes, motion and heart rate.</summary>
+        public async Task<(Guid MapId, Guid SessionId)> SeedPlayHistoryAsync(Guid userId) {
+            var difficulty = new BeatmapDifficulty {
+                DifficultyRank = BeatmapDifficultyRank.Expert, DifficultyName = "Expert", NotesPerSecond = 4.2f,
+                CuttableObjectCount = 500, BombCount = 2, ObstacleCount = 1, LaneCount = 4,
+                CharacteristicSerializedName = "Standard", CharacteristicColorCount = 2,
+                CharacteristicRequires360Movement = false, CharacteristicContainsRotationEvents = false,
+                Analysis = new BeatmapDifficultyAnalysis {
+                    Status = BeatmapAnalysisStatus.Success, FeatureStatus = FeatureExtractionStatus.Success,
+                    MetricStatus = MetricStatus.Success, AnalyzerVersion = 1, NoteCount = 500, Bpm = 120, Njs = 18,
+                    DifficultyRating = 6.5, Pp = 210, Features = "{\"nps\":4.2}",
+                    Characteristics = "{\"stream\":0.5,\"tech\":0.3,\"speed\":0.2,\"jumps\":0.1,\"gimmick\":0}"
+                }
+            };
+            var map = new Beatmap {
+                LevelId = "custom_level_sweep", SongName = "Sweep Song", SongSubName = "Remix", SongAuthor = "Tests",
+                Mapper = "Mapper", Bpm = 120, DurationMs = 120_000, Difficulties = [difficulty],
+                BeatSaverMap = new BeatSaverMap {
+                    BeatSaverId = "sweep", Name = "Sweep Song",
+                    Automapper = false, Ranked = true, Qualified = false, BlRanked = false, BlQualified = false,
+                    Uploaded = DateTime.UtcNow.AddDays(-30), Tags = ["tech", "dance"],
+                    Metadata = new BeatSaverMetadata {
+                        Bpm = 120, Duration = 120, SongName = "Sweep Song", SongAuthorName = "Tests", LevelAuthorName = "Mapper"
+                    },
+                    Stats = new BeatSaverStats { Plays = 10, Downloads = 20, Upvotes = 5, Downvotes = 1, Score = 0.8f }
+                }
+            };
+            Db.Beatmaps.Add(map);
+            var now = DateTime.UtcNow;
+            var sessions = new[] { (Days: 1, Reason: PlaySessionEndReason.Finished, Score: 100_000),
+                    (Days: 8, Reason: PlaySessionEndReason.Finished, Score: 90_000),
+                    (Days: 2, Reason: PlaySessionEndReason.Failed, Score: 10_000) }
+                .Select((p, i) => new PlaySession {
+                    CorrelationId = i + 1, UserId = userId, BeatmapDifficulty = difficulty,
+                    StartedAt = now.AddDays(-p.Days), EndedAt = now.AddDays(-p.Days).AddMinutes(2 + i), EndReason = p.Reason,
+                    Results = new PlaySessionResults {
+                        Score = p.Score, MultipliedScore = p.Score, MaxPossibleScore = 130_000, Accuracy = p.Score / 130_000f,
+                        Rank = "A", FullCombo = false, MaxCombo = 100 + i, GoodCuts = 400, BadCuts = 5, Misses = 3,
+                        FinalEnergy = 0.5f, EndSongTimeMs = 119_000
+                    }
+                }).ToArray();
+            for (var i = 0; i < 12; i++) {
+                sessions[0].NoteItems.Add(new PlaySessionNoteItem {
+                    CorrelationId = 1, PlaySessionId = Guid.Empty, SongTimeMs = 1_000 * i, ColorType = (ColorType) (i % 2),
+                    NoteType = NoteType.Normal, ScoringType = NoteScoringType.Normal, CutDirection = (CutDirection) (i % 9),
+                    LineIndex = i % 4, NoteLineLayer = i % 3, Result = i % 5 == 0 ? 2 : 0, MaxScore = 115,
+                    BeforeCutScore = 70, CenterDistanceScore = 12, AfterCutScore = 28, PreCutSwing = 1, PostCutSwing = 1,
+                    CutPointDistance = 0.1f, SaberSpeed = 30
+                });
+            }
+            sessions[0].MotionFrameItems.Add(new PlaySessionItemMotionFrame {
+                CorrelationId = 1, PlaySessionId = Guid.Empty, SongTimeMs = 0, FrameCount = 1, Data = new byte[21 * sizeof(float)]
+            });
+            Db.PlaySessions.AddRange(sessions);
+            Db.PlaySessionMotionSummaries.Add(new PlaySessionMotionSummary {
+                PlaySession = sessions[0], FrameCount = 100, SampleRateHz = 30, LeftSaberTravel = 120, RightSaberTravel = 130,
+                HeadTravel = 10, AvgLeftSaberSpeed = 2, AvgRightSaberSpeed = 2.2, LeftReachRange = 1, RightReachRange = 1, HeadRange = 0.3,
+                FatigueCurve = "[{\"tMs\":0,\"leftSpeed\":2.5,\"rightSpeed\":2.6},{\"tMs\":60000,\"leftSpeed\":2.1,\"rightSpeed\":2.2}]"
+            });
+            Db.SensorSamples.AddRange(Enumerable.Range(0, 5).Select(i => new SensorSample {
+                UserId = userId, Metric = "heart_rate", Value = 120 + i, RecordedAt = sessions[0].StartedAt.AddSeconds(20 * i)
+            }));
+            await Db.SaveChangesAsync();
+            return (map.Id, sessions[0].Id);
+        }
+
+        public Task UploadAssetAsync(string key, byte[] content) =>
+            _infrastructure.Storage.UploadAsync(StorageOptions.BucketAssets, key, "image/png", content, default);
 
         public async Task<ClientWebSocket> ConnectGameSocketAsync(string accessToken, Guid clientId) {
             var socket = new ClientWebSocket();
@@ -400,8 +530,7 @@ public sealed class CoreFlowIntegrationTests {
         public async Task<PlaySession> WaitForPlayAsync(Guid userId, int correlationId) {
             var timeout = DateTime.UtcNow.AddSeconds(10);
             while (DateTime.UtcNow < timeout) {
-                await using var db = new BeatDashDbContext(new DbContextOptionsBuilder<BeatDashDbContext>()
-                    .UseNpgsql(Db.Database.GetConnectionString()).Options);
+                await using var db = _infrastructure.CreateDbContext();
                 var session = await db.PlaySessions.Include(p => p.Results)
                     .SingleOrDefaultAsync(p => p.UserId == userId && p.CorrelationId == correlationId);
                 if (session?.EndedAt is not null) return session;
@@ -418,7 +547,7 @@ public sealed class CoreFlowIntegrationTests {
             start.ArgumentList.Add(typeof(IdentityEndpoints).Assembly.Location);
             start.Environment["ASPNETCORE_URLS"] = "http://127.0.0.1:0";
             start.Environment["ASPNETCORE_ENVIRONMENT"] = "Production";
-            start.Environment["ConnectionStrings__Default"] = Db.Database.GetConnectionString();
+            _infrastructure.ConfigureServer(start);
             start.Environment["Jwt__SecretKey"] = JwtSecret;
             start.Environment["Jwt__Issuer"] = "core-flow-test";
             start.Environment["Jwt__Audience"] = "core-flow-test";
@@ -434,20 +563,19 @@ public sealed class CoreFlowIntegrationTests {
             start.Environment["BeatSaver__FetchOnNewMap"] = "false";
             start.Environment["UdpSocket__Host"] = "127.0.0.1";
             start.Environment["UdpSocket__Port"] = _udpPort.ToString();
-            start.Environment["RUSTFS_ENDPOINT"] = Environment.GetEnvironmentVariable("BEATDASH_TEST_RUSTFS");
-            start.Environment["RUSTFS_ACCESS_KEY"] = "backup-test";
-            start.Environment["RUSTFS_SECRET_KEY"] = "backup-test-secret";
-            start.Environment["RUSTFS_BUCKET_ASSETS"] = StorageOptions.BucketAssets;
-            start.Environment["RUSTFS_BUCKET_USER_DATA"] = StorageOptions.BucketUserData;
             var ready = new TaskCompletionSource<Uri>(TaskCreationOptions.RunContinuationsAsynchronously);
             _server = new Process { StartInfo = start, EnableRaisingEvents = true };
             var errors = new StringBuilder();
             _server.OutputDataReceived += (_, args) => {
                 const string prefix = "Now listening on: ";
+                lock (_log) _log.AppendLine(args.Data);
                 if (args.Data is { } line && line.IndexOf(prefix, StringComparison.Ordinal) is var index && index >= 0)
                     ready.TrySetResult(new Uri(line[(index + prefix.Length)..].Trim()));
             };
-            _server.ErrorDataReceived += (_, args) => { lock (errors) errors.AppendLine(args.Data); };
+            _server.ErrorDataReceived += (_, args) => {
+                lock (errors) errors.AppendLine(args.Data);
+                lock (_log) _log.AppendLine(args.Data);
+            };
             _server.Exited += (_, _) => { lock (errors) ready.TrySetException(new InvalidOperationException(errors.ToString())); };
             _server.Start();
             _server.BeginOutputReadLine();
@@ -462,17 +590,7 @@ public sealed class CoreFlowIntegrationTests {
                 _server.Dispose();
             }
             await Db.DisposeAsync();
-            await using var admin = new NpgsqlConnection(_adminConnection);
-            await admin.OpenAsync();
-            await using var command = new NpgsqlCommand($"DROP DATABASE \"{_databaseName}\" WITH (FORCE)", admin);
-            await command.ExecuteNonQueryAsync();
-            foreach (var bucket in new[] { StorageOptions.BucketAssets, StorageOptions.BucketUserData }) {
-                if (!await _minio.BucketExistsAsync(new BucketExistsArgs().WithBucket(bucket))) continue;
-                await foreach (var item in _minio.ListObjectsEnumAsync(new ListObjectsArgs().WithBucket(bucket).WithRecursive(true)))
-                    await _minio.RemoveObjectAsync(new RemoveObjectArgs().WithBucket(bucket).WithObject(item.Key));
-                await _minio.RemoveBucketAsync(new RemoveBucketArgs().WithBucket(bucket));
-            }
-            _minio.Dispose();
+            await _infrastructure.DisposeAsync();
             if (Directory.Exists(_directory)) Directory.Delete(_directory, true);
         }
     }

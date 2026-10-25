@@ -9,8 +9,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using Minio;
-using Minio.DataModel.Args;
 using Npgsql;
 using Shiron.BeatDash.API.Configuration;
 using Shiron.BeatDash.API.Services;
@@ -24,9 +22,11 @@ using Xunit;
 namespace Shiron.BeatDash.API.Tests;
 
 public sealed class BackupIntegrationTests {
-    [BackupIntegrationFact]
-    public async Task Storage_RustFs_PreservesObjectBytesMetadataAndMissingObjectBehavior() {
-        await using var fixture = await Fixture.CreateAsync();
+    [Theory]
+    [PostgresRustFsBackend]
+    [SqliteFileSystemBackend]
+    public async Task Storage_PreservesObjectBytesMetadataAndMissingObjectBehavior(TestBackend backend) {
+        await using var fixture = await Fixture.CreateAsync(backend);
         var bucket = fixture.StorageOptions.BucketAssets;
         const string key = "covers/nested/a space + ü.png";
         Assert.Null(await fixture.Storage.DownloadAsync(bucket, key, default));
@@ -51,9 +51,11 @@ public sealed class BackupIntegrationTests {
         Assert.Null(await fixture.Storage.DownloadAsync(bucket, key, default));
     }
 
-    [BackupIntegrationFact]
-    public async Task ApiAndCli_BackupRoundTrip_EnforceAdminAuthenticationAndRevocation() {
-        await using var fixture = await Fixture.CreateAsync();
+    [Theory]
+    [PostgresRustFsBackend]
+    [SqliteFileSystemBackend]
+    public async Task ApiAndCli_BackupRoundTrip_EnforceAdminAuthenticationAndRevocation(TestBackend backend) {
+        await using var fixture = await Fixture.CreateAsync(backend);
         var ordinary = new User {
             DisplayName = "Ordinary", UserName = "ordinary", NormalizedUserName = "ORDINARY",
             Email = "ordinary@example.test", NormalizedEmail = "ORDINARY@EXAMPLE.TEST", SecurityStamp = Guid.NewGuid().ToString()
@@ -89,9 +91,10 @@ public sealed class BackupIntegrationTests {
         Assert.Equal(HttpStatusCode.Forbidden, revoked.StatusCode);
     }
 
-    [BackupIntegrationFact]
-    public async Task Restore_Both_ExactlyRoundTripsEveryTableSequenceAndStorageObject() {
-        await using var fixture = await Fixture.CreateAsync();
+    [Theory]
+    [PostgresRustFsBackend]
+    public async Task Restore_Both_ExactlyRoundTripsEveryTableSequenceAndStorageObject(TestBackend backend) {
+        await using var fixture = await Fixture.CreateAsync(backend);
         var database = new PostgresBackupDatabase(fixture.Db);
         foreach (var table in database.Tables) {
             var columns = string.Join(", ", table.Columns.Select(c => BackupDatabase.Quote(c.Name)));
@@ -126,9 +129,11 @@ public sealed class BackupIntegrationTests {
         }
     }
 
-    [BackupIntegrationFact]
-    public async Task Restore_DatabaseScope_DoesNotModifyStorage() {
-        await using var fixture = await Fixture.CreateAsync();
+    [Theory]
+    [PostgresRustFsBackend]
+    [SqliteFileSystemBackend]
+    public async Task Restore_DatabaseScope_DoesNotModifyStorage(TestBackend backend) {
+        await using var fixture = await Fixture.CreateAsync(backend);
         var original = await fixture.Service.ExportAsync(BackupScope.Both, default);
         await fixture.Storage.UploadAsync(fixture.StorageOptions.BucketAssets, "later", "text/plain", [7], default);
         await using var input = File.OpenRead(original);
@@ -136,9 +141,11 @@ public sealed class BackupIntegrationTests {
         Assert.Equal(new byte[] { 7 }, await fixture.Storage.DownloadAsync(fixture.StorageOptions.BucketAssets, "later", default));
     }
 
-    [BackupIntegrationFact]
-    public async Task Restore_InvalidDatabasePayload_RollsBackDatabaseAndRetainsRecoverableStorageSnapshot() {
-        await using var fixture = await Fixture.CreateAsync();
+    [Theory]
+    [PostgresRustFsBackend]
+    [SqliteFileSystemBackend]
+    public async Task Restore_InvalidDatabasePayload_RollsBackDatabaseAndRetainsRecoverableStorageSnapshot(TestBackend backend) {
+        await using var fixture = await Fixture.CreateAsync(backend);
         var user = new User { DisplayName = "Before" };
         fixture.Db.Users.Add(user);
         await fixture.Db.SaveChangesAsync();
@@ -190,58 +197,33 @@ public sealed class BackupIntegrationTests {
         _ => throw new InvalidOperationException($"Add integration fixture data for {storeType}.")
     };
 
-    private static async Task ExecuteAsync(BeatDashDbContext db, string sql) {
-        await db.Database.OpenConnectionAsync();
-        await using var command = new NpgsqlCommand(sql, (NpgsqlConnection) db.Database.GetDbConnection());
-        await command.ExecuteNonQueryAsync();
-    }
-
-    private sealed class BackupIntegrationFactAttribute : FactAttribute {
-        public BackupIntegrationFactAttribute() {
-            if (Environment.GetEnvironmentVariable("BEATDASH_TEST_POSTGRES") is null
-                || Environment.GetEnvironmentVariable("BEATDASH_TEST_RUSTFS") is null)
-                Skip = "Set BEATDASH_TEST_POSTGRES and BEATDASH_TEST_RUSTFS to disposable test infrastructure.";
-        }
-    }
+    private static Task ExecuteAsync(BeatDashDbContext db, string sql) => TestInfrastructure.ExecuteSqlAsync(db, sql);
 
     private sealed class Fixture : IAsyncDisposable {
         public const string Email = "admin@example.test";
         public const string Password = "Backup-test-Password1!";
         public const string JwtSecret = "backup-integration-test-secret-at-least-32-characters";
-        private readonly string _adminConnection = Environment.GetEnvironmentVariable("BEATDASH_TEST_POSTGRES")!;
-        private readonly string _databaseName = "backup_test_" + Guid.NewGuid().ToString("N");
+        private readonly TestInfrastructure _infrastructure;
         private readonly string _directory = Path.Combine(Path.GetTempPath(), "beatdash-backup-tests", Guid.NewGuid().ToString("N"));
-        private readonly IMinioClient _minio;
         private readonly BackupWorkspace _workspace;
         private Process? _server;
         public BeatDashDbContext Db { get; }
-        public StorageOptions StorageOptions { get; }
-        public IStorageService Storage { get; }
-        public MinioBackupStorage BackupStorage { get; }
+        public StorageOptions StorageOptions => _infrastructure.StorageOptions;
+        public IStorageService Storage => _infrastructure.Storage;
+        public IBackupStorage BackupStorage => _infrastructure.BackupStorage;
         public BackupService Service { get; }
 
-        private Fixture() {
-            var connection = new NpgsqlConnectionStringBuilder(_adminConnection) { Database = _databaseName };
-            Db = new BeatDashDbContext(new DbContextOptionsBuilder<BeatDashDbContext>().UseNpgsql(connection.ConnectionString).Options);
-            StorageOptions = new StorageOptions {
-                BucketAssets = "assets-" + Guid.NewGuid().ToString("N"), BucketUserData = "users-" + Guid.NewGuid().ToString("N")
-            };
-            _minio = new MinioClient().WithEndpoint(Environment.GetEnvironmentVariable("BEATDASH_TEST_RUSTFS"))
-                .WithCredentials("backup-test", "backup-test-secret").Build();
-            Storage = new MinioStorageService(_minio, NullLogger<MinioStorageService>.Instance);
+        private Fixture(TestInfrastructure infrastructure) {
+            _infrastructure = infrastructure;
+            Db = infrastructure.CreateDbContext();
             var backupOptions = Options.Create(new BackupOptions { MaintenanceMode = true, WorkDirectory = _directory });
             _workspace = new BackupWorkspace(backupOptions);
-            BackupStorage = new MinioBackupStorage(_minio, Storage, Options.Create(StorageOptions));
-            Service = new BackupService(new PostgresBackupDatabase(Db), BackupStorage,
+            Service = new BackupService(infrastructure.CreateBackupDatabase(Db), BackupStorage,
                 _workspace, backupOptions, NullLogger<BackupService>.Instance);
         }
 
-        public static async Task<Fixture> CreateAsync() {
-            var fixture = new Fixture();
-            await using var admin = new NpgsqlConnection(fixture._adminConnection);
-            await admin.OpenAsync();
-            await using var command = new NpgsqlCommand($"CREATE DATABASE {BackupDatabase.Quote(fixture._databaseName)}", admin);
-            await command.ExecuteNonQueryAsync();
+        public static async Task<Fixture> CreateAsync(TestBackend backend) {
+            var fixture = new Fixture(await TestInfrastructure.CreateAsync(backend));
             await fixture.Db.Database.EnsureCreatedAsync();
             return fixture;
         }
@@ -254,7 +236,7 @@ public sealed class BackupIntegrationTests {
             start.ArgumentList.Add(typeof(BackupService).Assembly.Location);
             start.Environment["ASPNETCORE_URLS"] = "http://127.0.0.1:0";
             start.Environment["ASPNETCORE_ENVIRONMENT"] = "Production";
-            start.Environment["ConnectionStrings__Default"] = Db.Database.GetConnectionString();
+            _infrastructure.ConfigureServer(start);
             start.Environment["Jwt__SecretKey"] = JwtSecret;
             start.Environment["Jwt__Issuer"] = "backup-test";
             start.Environment["Jwt__Audience"] = "backup-test";
@@ -263,11 +245,6 @@ public sealed class BackupIntegrationTests {
             start.Environment["AdminUser__Role"] = "Admin";
             start.Environment["Backup__MaintenanceMode"] = "true";
             start.Environment["Backup__WorkDirectory"] = Path.Combine(_directory, "server-work");
-            start.Environment["RUSTFS_ENDPOINT"] = Environment.GetEnvironmentVariable("BEATDASH_TEST_RUSTFS");
-            start.Environment["RUSTFS_ACCESS_KEY"] = "backup-test";
-            start.Environment["RUSTFS_SECRET_KEY"] = "backup-test-secret";
-            start.Environment["RUSTFS_BUCKET_ASSETS"] = StorageOptions.BucketAssets;
-            start.Environment["RUSTFS_BUCKET_USER_DATA"] = StorageOptions.BucketUserData;
             var ready = new TaskCompletionSource<Uri>(TaskCreationOptions.RunContinuationsAsynchronously);
             _server = new Process { StartInfo = start, EnableRaisingEvents = true };
             var errors = new System.Text.StringBuilder();
@@ -309,17 +286,7 @@ public sealed class BackupIntegrationTests {
                 _server.Dispose();
             }
             await Db.DisposeAsync();
-            await using var admin = new NpgsqlConnection(_adminConnection);
-            await admin.OpenAsync();
-            await using var command = new NpgsqlCommand($"DROP DATABASE {BackupDatabase.Quote(_databaseName)} WITH (FORCE)", admin);
-            await command.ExecuteNonQueryAsync();
-            foreach (var bucket in new[] { StorageOptions.BucketAssets, StorageOptions.BucketUserData }) {
-                if (!await _minio.BucketExistsAsync(new BucketExistsArgs().WithBucket(bucket))) continue;
-                await foreach (var item in _minio.ListObjectsEnumAsync(new ListObjectsArgs().WithBucket(bucket).WithRecursive(true)))
-                    await _minio.RemoveObjectAsync(new RemoveObjectArgs().WithBucket(bucket).WithObject(item.Key));
-                await _minio.RemoveBucketAsync(new RemoveBucketArgs().WithBucket(bucket));
-            }
-            _minio.Dispose();
+            await _infrastructure.DisposeAsync();
             _workspace.Dispose();
             if (Directory.Exists(_directory)) Directory.Delete(_directory, true);
         }

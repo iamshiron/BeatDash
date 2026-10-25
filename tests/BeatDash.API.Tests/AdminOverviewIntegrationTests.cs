@@ -4,7 +4,6 @@ using System.Net.Http.Json;
 using System.Net.Sockets;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 using Shiron.BeatDash.API.Endpoints;
 using Shiron.BeatDash.DB;
 using Shiron.BeatDash.DB.Schema;
@@ -13,9 +12,11 @@ using Xunit;
 namespace Shiron.BeatDash.API.Tests;
 
 public sealed class AdminOverviewIntegrationTests {
-    [AdminOverviewIntegrationFact]
-    public async Task Overview_AnonymousNonAdminAndAdmin_EnforcesAuthorizationAndReturnsAggregates() {
-        await using var fixture = await Fixture.CreateAsync();
+    [Theory]
+    [PostgresRustFsBackend]
+    [SqliteFileSystemBackend]
+    public async Task Overview_AnonymousNonAdminAndAdmin_EnforcesAuthorizationAndReturnsAggregates(TestBackend backend) {
+        await using var fixture = await Fixture.CreateAsync(backend);
         await fixture.SeedOperationalDataAsync();
         var address = await fixture.StartApiAsync();
 
@@ -55,37 +56,24 @@ public sealed class AdminOverviewIntegrationTests {
         response.EnsureSuccessStatusCode();
     }
 
-    private sealed class AdminOverviewIntegrationFactAttribute : FactAttribute {
-        public AdminOverviewIntegrationFactAttribute() {
-            if (Environment.GetEnvironmentVariable("BEATDASH_TEST_POSTGRES") is null
-                || Environment.GetEnvironmentVariable("BEATDASH_TEST_RUSTFS") is null)
-                Skip = "Set BEATDASH_TEST_POSTGRES and BEATDASH_TEST_RUSTFS to disposable test infrastructure.";
-        }
-    }
-
     private sealed class Fixture : IAsyncDisposable {
         public const string AdminEmail = "admin@example.test";
         public const string OrdinaryEmail = "ordinary@example.test";
         public const string Password = "Admin-overview-test-Password1!";
         private const string JwtSecret = "admin-overview-integration-test-secret-at-least-32-characters";
-        private readonly string _adminConnection = Environment.GetEnvironmentVariable("BEATDASH_TEST_POSTGRES")!;
-        private readonly string _databaseName = "admin_overview_test_" + Guid.NewGuid().ToString("N");
+        private readonly TestInfrastructure _infrastructure;
         private readonly string _directory = Path.Combine(Path.GetTempPath(), "beatdash-admin-overview-tests", Guid.NewGuid().ToString("N"));
         private Process? _server;
 
         public BeatDashDbContext Db { get; }
 
-        private Fixture() {
-            var connection = new NpgsqlConnectionStringBuilder(_adminConnection) { Database = _databaseName };
-            Db = new BeatDashDbContext(new DbContextOptionsBuilder<BeatDashDbContext>().UseNpgsql(connection.ConnectionString).Options);
+        private Fixture(TestInfrastructure infrastructure) {
+            _infrastructure = infrastructure;
+            Db = infrastructure.CreateDbContext();
         }
 
-        public static async Task<Fixture> CreateAsync() {
-            var fixture = new Fixture();
-            await using var admin = new NpgsqlConnection(fixture._adminConnection);
-            await admin.OpenAsync();
-            await using var command = new NpgsqlCommand($"CREATE DATABASE \"{fixture._databaseName}\"", admin);
-            await command.ExecuteNonQueryAsync();
+        public static async Task<Fixture> CreateAsync(TestBackend backend) {
+            var fixture = new Fixture(await TestInfrastructure.CreateAsync(backend));
             await fixture.Db.Database.EnsureCreatedAsync();
             return fixture;
         }
@@ -152,7 +140,7 @@ public sealed class AdminOverviewIntegrationTests {
             start.ArgumentList.Add(typeof(AdminOverviewResponse).Assembly.Location);
             start.Environment["ASPNETCORE_URLS"] = "http://127.0.0.1:0";
             start.Environment["ASPNETCORE_ENVIRONMENT"] = "Production";
-            start.Environment["ConnectionStrings__Default"] = Db.Database.GetConnectionString();
+            _infrastructure.ConfigureServer(start);
             start.Environment["Jwt__SecretKey"] = JwtSecret;
             start.Environment["Jwt__Issuer"] = "admin-overview-test";
             start.Environment["Jwt__Audience"] = "admin-overview-test";
@@ -165,9 +153,6 @@ public sealed class AdminOverviewIntegrationTests {
             start.Environment["BeatSaver__ScheduledFetchEnabled"] = "false";
             start.Environment["UdpSocket__Host"] = "127.0.0.1";
             start.Environment["UdpSocket__Port"] = GetAvailableUdpPort().ToString();
-            start.Environment["RUSTFS_ENDPOINT"] = Environment.GetEnvironmentVariable("BEATDASH_TEST_RUSTFS");
-            start.Environment["RUSTFS_ACCESS_KEY"] = "backup-test";
-            start.Environment["RUSTFS_SECRET_KEY"] = "backup-test-secret";
             var ready = new TaskCompletionSource<Uri>(TaskCreationOptions.RunContinuationsAsynchronously);
             _server = new Process { StartInfo = start, EnableRaisingEvents = true };
             var errors = new System.Text.StringBuilder();
@@ -201,10 +186,7 @@ public sealed class AdminOverviewIntegrationTests {
                 _server.Dispose();
             }
             await Db.DisposeAsync();
-            await using var admin = new NpgsqlConnection(_adminConnection);
-            await admin.OpenAsync();
-            await using var command = new NpgsqlCommand($"DROP DATABASE \"{_databaseName}\" WITH (FORCE)", admin);
-            await command.ExecuteNonQueryAsync();
+            await _infrastructure.DisposeAsync();
             if (Directory.Exists(_directory)) Directory.Delete(_directory, true);
         }
     }
