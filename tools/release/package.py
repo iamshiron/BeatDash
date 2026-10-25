@@ -10,11 +10,18 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[2]
 TEMP_DIRECTORY = "/tmp/opencode" if Path("/tmp/opencode").is_dir() else None
+LEGAL_FILES = ("LICENSE", "NOTICE.md")
 
 
 def require_file(path):
     if not path.is_file():
         raise FileNotFoundError(f"Required release asset is missing: {path}")
+
+
+def copy_legal_files(stage):
+    for name in LEGAL_FILES:
+        require_file(ROOT / name)
+        shutil.copyfile(ROOT / name, stage / name)
 
 
 def archive(source, output):
@@ -44,6 +51,7 @@ def package_server(source, cli, output):
         shutil.copyfile(ROOT / "tools/release/appsettings.example.json", stage / "appsettings.example.json")
         shutil.copyfile(ROOT / "tools/release/SERVER-README.md", stage / "README.md")
         shutil.copyfile(ROOT / "docs/BACKUPS.md", stage / "BACKUPS.md")
+        copy_legal_files(stage)
         archive(stage, output)
 
 
@@ -57,6 +65,7 @@ def package_mod(source, output):
             target.parent.mkdir(exist_ok=True)
             shutil.copyfile(source / name, target)
         shutil.copyfile(ROOT / "tools/release/MOD-README.md", stage / "README.md")
+        copy_legal_files(stage)
         archive(stage, output)
 
 

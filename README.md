@@ -385,3 +385,12 @@ dotnet build Shiron.BeatDash.slnx
 dotnet test Shiron.BeatDash.slnx
 dotnet run --project src/BeatDash.API
 ```
+
+---
+
+## License
+
+BeatDash is licensed under the [GNU Affero General Public License v3.0 or later](LICENSE).
+See [NOTICE.md](NOTICE.md) for the copyright notice and an additional permission that allows
+the mod to be combined with Beat Saber and the Unity runtime. Submodules and third-party
+dependencies keep their own licenses.

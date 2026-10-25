@@ -32,7 +32,8 @@ class PackageTests(unittest.TestCase):
         self.write("Newtonsoft.Json.dll")
         package_mod(self.source, self.output)
         with zipfile.ZipFile(self.output) as zipped:
-            self.assertEqual({"Plugins/Shiron.BeatDash.Mod.dll", "Libs/Shiron.BeatDash.Data.dll", "README.md"}, set(zipped.namelist()))
+            self.assertEqual({"Plugins/Shiron.BeatDash.Mod.dll", "Libs/Shiron.BeatDash.Data.dll", "README.md",
+                              "LICENSE", "NOTICE.md"}, set(zipped.namelist()))
         digest = hashlib.sha256(self.output.read_bytes()).hexdigest()
         self.assertEqual(f"{digest}  release.zip\n", self.output.with_suffix(".zip.sha256").read_text())
 
@@ -59,11 +60,13 @@ class PackageTests(unittest.TestCase):
         package_server(self.source, self.cli, self.output)
         with zipfile.ZipFile(self.output) as zipped:
             for name in ("Shiron.BeatDash.API.dll", "wwwroot/index.html", "wwwroot/assets/app.css",
-                         "cli/beatdash.dll", "appsettings.example.json", "README.md", "BACKUPS.md"):
+                         "cli/beatdash.dll", "appsettings.example.json", "README.md", "BACKUPS.md",
+                         "LICENSE", "NOTICE.md"):
                 self.assertIn(name, zipped.namelist())
             self.assertIn(b"//", zipped.read("appsettings.example.json"))
             self.assertIn(b'"DisableSignup": true', zipped.read("appsettings.example.json"))
             self.assertNotIn("Shiron.BeatDash.API.pdb", zipped.namelist())
+            self.assertIn(b"GNU AFFERO GENERAL PUBLIC LICENSE", zipped.read("LICENSE"))
 
     def test_local_credentials_are_never_released(self):
         self.prepare_server()

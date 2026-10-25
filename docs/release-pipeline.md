@@ -190,6 +190,7 @@ Confirm all of these:
   `<VERSION>` contains `-`
 - Assets `BeatDash-server-<VERSION>-linux-x64.zip`, `BeatDash-server-<VERSION>-win-x64.zip`
   and their `.sha256` files are attached
+- Each ZIP contains `LICENSE` and `NOTICE.md` at its root (`package.py` fails without them)
 - The release isn't a draft
 
 Then give the user the release URL, each workflow's conclusion, and any failures.
