@@ -1,6 +1,6 @@
 # BeatDash
 
-Beat Saber profile and analytics dashboard. A Beat Saber mod streams gameplay data to a web dashboard (React) backed by an ASP.NET Core API and PostgreSQL.
+Beat Saber profile and analytics dashboard. A Beat Saber mod streams gameplay data to a web dashboard (React) backed by an ASP.NET Core API and PostgreSQL. Single-machine installs can run embedded on SQLite and plain file storage instead.
 
 <p align="center">
   <img src="assets/hero-dashboard.png" alt="BeatDash dashboard" width="900">
@@ -70,7 +70,8 @@ Download binaries from [GitHub Releases](https://github.com/iamshiron/BeatDash/r
   `BeatDash-server-<version>-linux-x64.zip`. Each is a single ZIP containing the server,
   bundled dashboard, admin CLI, commented `appsettings.example.json`, and startup/backup
   instructions. Install the **.NET 10 ASP.NET Core Runtime** for your OS; the full SDK,
-  Node.js and pnpm are not required. Provision PostgreSQL 17 and RustFS separately.
+  Node.js and pnpm are not required. Provision PostgreSQL 17 and RustFS separately, or use
+  the [embedded mode](#embedded-mode-sqlite--file-system) without either.
 
 Extract the full server ZIP, copy `appsettings.example.json` to `appsettings.json`,
 replace its credentials and JWT secret, then run `dotnet Shiron.BeatDash.API.dll`.
@@ -234,7 +235,7 @@ docker/                  # Docker Compose configs for local infrastructure
 
 **Frontend:** React 19, Vite, TypeScript, TanStack Router/Query, Tailwind CSS v4, shadcn/ui, Orval, Biome
 
-**Backend:** .NET 10, ASP.NET Core Minimal APIs, EF Core, PostgreSQL (Npgsql), RustFS (S3-compatible), SignalR, JWT Bearer auth
+**Backend:** .NET 10, ASP.NET Core Minimal APIs, EF Core, PostgreSQL (Npgsql) or SQLite, RustFS (S3-compatible) or the file system, SignalR, JWT Bearer auth
 
 **Mod:** BSIPA plugin framework, Zenject DI, Harmony patching, WebSocket client
 
@@ -243,7 +244,7 @@ docker/                  # Docker Compose configs for local infrastructure
 -   **Beat Saber mod → API:** TCP WebSocket (`/api/client/game`) for reliable/persisted data, plus UDP datagrams for frequent live updates (falls back to TCP)
 -   **Web client → API:** REST (Orval-generated client) + SignalR (`/api/client/web`) for real-time updates
 -   **Auth:** ASP.NET Core Identity + JWT. Access tokens (15 min) + refresh tokens (30 days), per-device
--   **Storage:** PostgreSQL for relational data, RustFS for cover images
+-   **Storage:** PostgreSQL for relational data, RustFS for map archives, covers and user uploads. SQLite and plain directories are the embedded alternatives
 
 ### Protocol
 
@@ -365,6 +366,36 @@ its dashboard files through the backend's HTTP hosting configuration. Publishing
 have changed. `SkipWebBuild=true` bypasses frontend restore/build for API-only work.
 
 RustFS uses the existing S3 client and bucket layout: assets allow anonymous downloads, while user data remains private. The MinIO .NET SDK and `mc` provisioning client are retained as S3-compatible clients, not storage servers. `RUSTFS_*` settings take precedence over the legacy `MINIO_*` equivalents. Existing backup import/export remains unchanged; RustFS uses a separate `rustfs_data` volume and does not reuse MinIO's on-disk data.
+
+### Embedded mode (SQLite + file system)
+
+PostgreSQL and RustFS are the recommended, first-class backends. For a single machine (e.g. a desktop install)
+both can be replaced independently, without any external service:
+
+```sh
+Database__Provider=Sqlite
+ConnectionStrings__Default="Data Source=./data/beatdash.db"
+Database__ApplyMigrationsOnStartup=true
+Storage__Provider=FileSystem
+Storage__RootDirectory=./data/storage
+```
+
+-   **SQLite** keeps all data in one file and runs in write-ahead-logging mode. Its migrations live in
+    `src/BeatDash.DB.Sqlite`; PostgreSQL migrations stay in `src/BeatDash.DB`. Text search ignores case for ASCII
+    letters only (PostgreSQL's `ILIKE` covers all of Unicode).
+-   **File system storage** stores each object at `<RootDirectory>/<bucket>/<key>`, with media types in
+    `<RootDirectory>/.metadata`. Keep the directory private and outside `wwwroot`.
+-   Backups work the same way in every mode, but archives are bound to their database engine: a PostgreSQL
+    archive cannot be restored into SQLite and vice versa. Storage-only archives restore into either storage provider.
+
+Model changes need a migration for **both** engines:
+
+```sh
+dotnet ef migrations add <Name> --project src/BeatDash.DB --startup-project src/BeatDash.API
+dotnet ef migrations add <Name> --project src/BeatDash.DB.Sqlite --startup-project src/BeatDash.DB.Sqlite
+```
+
+`BeatDashDbContextTests` fails while either migration snapshot is out of date.
 
 ### Common Commands
 

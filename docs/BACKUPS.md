@@ -29,6 +29,8 @@ dotnet run --project src/BeatDash.Cli -- backup restore ./backup.zip \
 - **Restore replaces, not merges.** Missing objects are deleted. Partial scopes leave the other component untouched
   and may break cross-component references. Restore asks for confirmation; unattended use requires `--yes`.
 - Database restore requires a pre-provisioned **matching application schema and PostgreSQL major version**.
+  Archives record their database engine: PostgreSQL archives (binary `COPY`) and SQLite archives (typed row streams)
+  only restore into the same engine. Storage objects restore into RustFS and file-system storage alike.
   Know an administrator's credentials **from the backup**, because restoring Identity replaces target accounts.
 - Every request rechecks current admin membership and security stamp. Ordinary accounts, cookies, and device tokens
   cannot access backups. For two-factor-enabled accounts, set `BEATDASH_ADMIN_TWO_FACTOR_CODE` to a current authenticator code.
@@ -57,3 +59,4 @@ Run `dotnet test tests/BeatDash.API.Tests --configuration Release -p:SkipWebBuil
 Optional integration tests require **disposable** infrastructure: `BEATDASH_TEST_POSTGRES` (connection string with
 CREATE DATABASE permission) and `BEATDASH_TEST_RUSTFS` (`host:port`, credentials `backup-test` / `backup-test-secret`).
 They verify every table/sequence, storage bytes/media types, scope isolation, authorization, and CLI/API round trips.
+The same scenarios always run against SQLite and file-system storage in a temporary directory; they need no infrastructure.

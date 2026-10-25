@@ -9,5 +9,5 @@ public sealed class StorageOptions {
     public string BucketAssets { get; set; } = "beatdash-assets";
     public string BucketUserData { get; set; } = "beatdash-user-data";
     /// <summary>Root directory of the <see cref="StorageProvider.FileSystem"/> provider; relative paths resolve against the working directory.</summary>
-    public string RootDirectory { get; set; } = "./storage";
+    public string RootDirectory { get; set; } = "./data/storage";
 }

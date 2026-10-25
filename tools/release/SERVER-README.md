@@ -11,6 +11,11 @@
 4. Create RustFS buckets `beatdash-assets` (anonymous GetObject allowed) and
    `beatdash-user-data` (private). Configure durable volumes for BOTH services.
    Match the names, credentials and endpoints in the sample configuration.
+
+   Single machine without database/storage servers: skip steps 3 and 4 and set
+   `Database:Provider` to `Sqlite` (connection string `Data Source=./data/beatdash.db`)
+   and `Storage:Provider` to `FileSystem`. Both directories must be persistent,
+   private and outside `wwwroot`. PostgreSQL and RustFS remain recommended for servers.
 5. Copy `appsettings.example.json` to **`appsettings.json`** beside the server DLL.
    Read its comments and replace ALL `CHANGE_ME` values, the admin email/password,
    and the JWT secret. The file contains secrets: restrict file permissions and
@@ -57,7 +62,8 @@ Windows). It talks to the running server for backups; the server's configuration
 does not need to be copied into the CLI directory. Follow `BACKUPS.md` for backup
 and recovery, including maintenance mode requirements.
 
-Keep your `appsettings.json`, database, RustFS volumes and private backup workspace
+Keep your `appsettings.json`, database (or SQLite file), RustFS volumes (or storage
+directory) and private backup workspace
 when replacing binaries. Extract new releases into a new directory, copy your
 configuration, stop the old instance, back up, then start the new one. Do not
 overwrite a live installation or expose the backup workspace through the web root.

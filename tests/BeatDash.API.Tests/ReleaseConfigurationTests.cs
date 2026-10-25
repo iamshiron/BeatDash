@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Shiron.BeatDash.API.Configuration;
+using Shiron.BeatDash.DB;
 using SkiaSharp;
 using Xunit;
 
@@ -27,9 +28,12 @@ public sealed class ReleaseConfigurationTests {
         Assert.NotEmpty(configuration.GetConnectionString("Default")!);
         Assert.NotEmpty(configuration["Jwt:SecretKey"]!);
         Assert.NotEmpty(configuration["AdminUser:Password"]!);
-        Assert.True(configuration.GetValue<bool>("Database:ApplyMigrationsOnStartup"));
+        var database = configuration.GetSection("Database").Get<DatabaseOptions>()!;
+        Assert.True(database.ApplyMigrationsOnStartup);
+        Assert.Equal(DatabaseProvider.Postgres, database.Provider);
         Assert.False(configuration.GetSection("Registration").Get<RegistrationOptions>()!.DisableSignup);
         var storage = configuration.GetSection("Storage").Get<StorageOptions>()!;
+        Assert.Equal(StorageProvider.RustFs, storage.Provider);
         Assert.Equal("localhost:9000", storage.Endpoint);
         Assert.True(storage.UseSsl);
     }
