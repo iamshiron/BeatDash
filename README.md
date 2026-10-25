@@ -131,8 +131,9 @@ stream.
 
 Conventional commits select the next version: `feat:` increments minor,
 `fix:`/`perf:` increment patch, and `type!:`/`type(scope)!:` increment major.
-Feature branches use their branch name as the prerelease label; `rel/*` uses
-`rc`. Continuous Delivery builds remain prereleases until tagged. Tags are
+Feature branches use their branch name as the prerelease label; release branches
+are named `rel/<semver>` and use its label (`rel/0.1.0-alpha` builds `alpha`).
+Continuous Delivery builds remain prereleases until tagged. Tags are
 independent, even when both releases point at the same commit.
 
 Use a full clone with tags (`git fetch --unshallow --tags` for a shallow clone).

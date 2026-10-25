@@ -18,11 +18,19 @@ branches:
     increment: Inherit
     source-branches: [main, release]
   release:
-    regex: '^rel[/_-](?<BranchName>.+)'
-    label: rc
+    regex: '^rel[/_-]v?\d+\.\d+\.\d+(-(?<Label>[0-9A-Za-z-]+)(\.[0-9A-Za-z.-]+)?)?$'
+    label: '{Label}'
     increment: Inherit
     is-release-branch: true
     source-branches: [main]
+  # actions/checkout of a tag push is versioned as branch tags/<tag>
+  tag:
+    regex: '^tags[/]v\d+\.\d+\.\d+(-(?<Label>[0-9A-Za-z-]+)(\.[0-9A-Za-z.-]+)?)?$'
+    label: '{Label}'
+    increment: Inherit
+    source-branches: [main, release]
+    prevent-increment:
+      when-current-commit-tagged: true
 
 ignore:
   paths:

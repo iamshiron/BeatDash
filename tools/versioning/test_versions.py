@@ -53,15 +53,29 @@ class VersioningTests(unittest.TestCase):
         )
 
     def version(self, mod=False):
+        return self.gitversion(self.repo, mod, {}, ["/nonormalize"])
+
+    def tag_build_version(self, tag, mod=False):
+        """Version a fresh clone checked out at `tag`, as GitHub Actions does on a tag push."""
+        checkout = tempfile.TemporaryDirectory(prefix="beatdash-checkout-", dir=self.repo.parent)
+        self.addCleanup(checkout.cleanup)
+        subprocess.run(["git", "clone", "-q", str(self.repo), checkout.name],
+                       check=True, capture_output=True, text=True)
+        subprocess.run(["git", "checkout", "-q", "--detach", tag], cwd=checkout.name,
+                       check=True, capture_output=True, text=True)
+        env = {"GITHUB_ACTIONS": "true", "GITHUB_REF": f"refs/tags/{tag}", "GITHUB_REF_NAME": tag}
+        return self.gitversion(Path(checkout.name), mod, env, [])
+
+    def gitversion(self, repo, mod, ci_env, arguments):
         config = self.repo / ("GitVersion.Mod.yml" if mod else "GitVersion.yml")
         env = {
             key: value for key, value in os.environ.items()
             if not key.startswith(("GITHUB_", "GIT_", "BUILD_")) and key != "CI"
         }
         result = subprocess.run(
-            ["dotnet", "tool", "run", "dotnet-gitversion", str(self.repo),
-             "/config", str(config), "/nofetch", "/nonormalize", "/output", "json"],
-            cwd=ROOT, env=env, check=True, capture_output=True, text=True,
+            ["dotnet", "tool", "run", "dotnet-gitversion", str(repo),
+             "/config", str(config), "/nofetch", *arguments, "/output", "json"],
+            cwd=ROOT, env={**env, **ci_env}, check=True, capture_output=True, text=True,
         )
         return json.loads(result.stdout)
 
@@ -117,10 +131,25 @@ class VersioningTests(unittest.TestCase):
         self.assertEqual("versioning", self.version()["PreReleaseLabel"])
         self.assertEqual("versioning", self.version(mod=True)["PreReleaseLabel"])
         self.git("checkout", "main")
-        self.git("checkout", "-b", "rel/next")
+        self.git("checkout", "-b", "rel/1.3.0-rc")
         self.commit("fix: Fixed contract", "src/BeatDash.Data/Contract.cs")
         self.assertEqual("rc", self.version()["PreReleaseLabel"])
         self.assertEqual("rc", self.version(mod=True)["PreReleaseLabel"])
+
+    def test_ci_tag_checkout_uses_tag_version(self):
+        self.git("checkout", "-b", "rel/1.3.0-alpha")
+        self.commit("feat: Added contract", "src/BeatDash.Data/Contract.cs")
+        self.git("tag", "-a", "v1.3.0-alpha", "-m", "Release")
+        self.git("tag", "-a", "beatdash-mod/v4.6.0-alpha.2", "-m", "Release")
+        self.assertEqual("1.3.0-alpha", self.version()["SemVer"])
+        self.assertEqual("1.3.0-alpha", self.tag_build_version("v1.3.0-alpha")["SemVer"])
+        self.assertEqual("4.6.0-alpha.2",
+                         self.tag_build_version("beatdash-mod/v4.6.0-alpha.2", mod=True)["SemVer"])
+        self.git("tag", "v1.3.0")
+        self.assertEqual("1.3.0", self.tag_build_version("v1.3.0")["SemVer"])
+        self.commit("fix: Fixed backend", "src/BeatDash.API/Program.cs")
+        self.git("tag", "-a", "v1.3.1-rc.2", "-m", "Release")
+        self.assertEqual("1.3.1-rc.2", self.tag_build_version("v1.3.1-rc.2")["SemVer"])
 
 
 if __name__ == "__main__":

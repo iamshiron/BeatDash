@@ -34,7 +34,9 @@ Pushing the `rel/<VERSION>` branch triggers no workflow. Only the tag starts a r
 - `VERSION` **must be strict SemVer**: `MAJOR.MINOR.PATCH[-label]`, for example `0.1.0-alpha`,
   `0.2.0`, `1.0.0-rc.1`. GitVersion parses tags strictly, so `0.1-alpha` or `1.0` are
   ignored as version sources and fail the `version` job.
-- Release branch: `rel/<VERSION>` (for example `rel/0.1.0-alpha`).
+- Release branch: `rel/<VERSION>` (for example `rel/0.1.0-alpha`). GitVersion takes the
+  branch's prerelease label from this name (`alpha`). A tag only counts as the version source
+  when its label matches, so the branch name and the tag **must use the same `<VERSION>`**.
 - Tag: `v<VERSION>` (for example `v0.1.0-alpha`). Use an **annotated** tag.
 - Never reuse a version that already has a tag or a GitHub Release.
 
@@ -66,13 +68,16 @@ Run what the release workflow runs, so failures surface before anything is pushe
 dotnet tool restore
 python3 tools/versioning/test_versions.py
 python3 -B tools/release/test_package.py
-dotnet build --configuration Release
+dotnet build src/BeatDash.API/Shiron.BeatDash.API.csproj -c Release
+dotnet build src/BeatDash.Cli/Shiron.BeatDash.Cli.csproj -c Release
 dotnet test tests/BeatDash.API.Tests/Shiron.BeatDash.API.Tests.csproj -c Release --verbosity minimal
 pnpm --filter @shiron/beatdash-web typecheck
 pnpm --filter @shiron/beatdash-web exec biome ci src
 ```
 
-Do not continue on failures. Fix them on `main` (or report them) first.
+Do not continue on failures. Fix them on `main` (or report them) first. Don't build the whole
+solution: `src/BeatDash.Mod` needs a local Beat Saber install and isn't part of the server release.
+Integration tests are skipped without Docker. Say so when you report results.
 
 ## Release steps
 
@@ -92,13 +97,25 @@ git tag -a v<VERSION> -m "BeatDash server <VERSION>"
 
 ### 3. Verify the computed version
 
+CI checks out the tag detached, and GitVersion versions it as the branch `tags/v<VERSION>`
+(see the `tag` branch in `GitVersion.yml`). Reproduce that in a **throwaway clone**:
+
 ```sh
-dotnet tool run dotnet-gitversion /config GitVersion.yml /showvariable SemVer
+rm -rf /tmp/beatdash-release-check
+git clone -q --branch v<VERSION> . /tmp/beatdash-release-check
+GITHUB_ACTIONS=true GITHUB_REF=refs/tags/v<VERSION> GITHUB_REF_NAME=v<VERSION> \
+  dotnet tool run dotnet-gitversion /tmp/beatdash-release-check /config GitVersion.yml /nofetch /showvariable SemVer
+rm -rf /tmp/beatdash-release-check
 ```
 
 This must print exactly `<VERSION>`. If it doesn't, the `version` job fails in CI. Delete
 the local tag (`git tag -d v<VERSION>`), switch back to `main`, delete the local branch
 (`git branch -D rel/<VERSION>`) and report the mismatch.
+
+> **Never** run GitVersion with the `GITHUB_*` variables against the real checkout. In CI mode
+> GitVersion "normalizes" the repository: it resets local branches to their `origin/*`
+> counterparts (dropping unpushed commits on `main`) and creates `tags/*` branches. Only run it
+> against the throwaway clone. Outside CI, always pass `/nonormalize`.
 
 ### 4. Switch back to main
 
@@ -146,7 +163,7 @@ log excerpt. Common causes:
 
 | Failing step | Likely cause |
 |---|---|
-| `version` → `test "$VERSION" = "$EXPECTED"` | Tag isn't strict SemVer, or the tag isn't on the commit you expected |
+| `version` → `test "$VERSION" = "$EXPECTED"` | Tag isn't strict SemVer, isn't on the expected commit, or `GitVersion.yml` was changed without updating `tools/versioning/test_versions.py` |
 | `server` → Publish / Test | Build or test regression; reproduce locally with the commands above |
 | `server` → Package | `package.py` found a missing asset or local config (`appsettings.json`, `.env`) |
 | `publish` → gh release | Repository Actions settings deny `contents: write` |
