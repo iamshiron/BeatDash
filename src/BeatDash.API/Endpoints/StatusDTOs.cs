@@ -4,4 +4,5 @@ namespace Shiron.BeatDash.API.Endpoints;
 /// <param name="Message">The server's availability message.</param>
 /// <param name="Version">The backend/web release's semantic version.</param>
 /// <param name="SignupEnabled">Whether this server allows public account registration.</param>
-public sealed record StatusDto(string Message, string Version, bool SignupEnabled);
+/// <param name="Desktop">Whether this is a single-user desktop installation without accounts.</param>
+public sealed record StatusDto(string Message, string Version, bool SignupEnabled, bool Desktop);

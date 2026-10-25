@@ -8,8 +8,10 @@ public static class StatusEndpoints {
     /// <summary>Maps the public status endpoint.</summary>
     public static void MapStatusEndpoints(this IEndpointRouteBuilder endpoints) {
         var registration = endpoints.ServiceProvider.GetRequiredService<IOptions<RegistrationOptions>>().Value;
-        endpoints.MapGet("/health", () => GetStatus(registration.DisableSignup)).WithTags("Health");
+        var desktop = endpoints.ServiceProvider.GetRequiredService<IOptions<DesktopOptions>>().Value.Enabled;
+        endpoints.MapGet("/health", () => GetStatus(registration.DisableSignup, desktop)).WithTags("Health");
     }
 
-    internal static StatusDto GetStatus(bool disableSignup = false) => new("OK", GitVersionInformation.SemVer, !disableSignup);
+    internal static StatusDto GetStatus(bool disableSignup = false, bool desktop = false) =>
+        new("OK", GitVersionInformation.SemVer, !disableSignup && !desktop, desktop);
 }

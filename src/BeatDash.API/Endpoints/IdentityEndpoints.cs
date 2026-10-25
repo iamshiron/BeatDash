@@ -17,8 +17,10 @@ public static class IdentityEndpoints {
     public static void MapIdentityEndpoints(this IEndpointRouteBuilder endpoints) {
         var group = endpoints.MapGroup("/auth").WithTags("Auth");
 
+        // Desktop mode has a single local user and no credentials, so none of the account routes exist.
+        var desktop = endpoints.ServiceProvider.GetRequiredService<IOptions<DesktopOptions>>().Value.Enabled;
         var registration = endpoints.ServiceProvider.GetRequiredService<IOptions<RegistrationOptions>>().Value;
-        if (!registration.DisableSignup) {
+        if (!registration.DisableSignup && !desktop) {
             group.MapPost("/register", Register)
                 .WithName("Register")
                 .WithDescription("Register a new user account")
@@ -26,17 +28,26 @@ public static class IdentityEndpoints {
                 .ProducesValidationProblem();
         }
 
-        group.MapPost("/login", Login)
-            .WithName("Login")
-            .WithDescription("Log in with credentials")
-            .Produces(200)
-            .Produces(401);
+        if (!desktop) {
+            group.MapPost("/login", Login)
+                .WithName("Login")
+                .WithDescription("Log in with credentials")
+                .Produces(200)
+                .Produces(401);
 
-        group.MapPost("/logout", Logout)
-            .WithName("Logout")
-            .WithDescription("Log out the current session")
-            .RequireAuthorization()
-            .Produces(200);
+            group.MapPost("/logout", Logout)
+                .WithName("Logout")
+                .WithDescription("Log out the current session")
+                .RequireAuthorization()
+                .Produces(200);
+
+            group.MapPost("/change-password", ChangePassword)
+                .WithName("ChangePassword")
+                .WithDescription("Change the current user's password")
+                .RequireAuthorization()
+                .Produces(200)
+                .Produces(400);
+        }
 
         group.MapGet("/me", Me)
             .WithName("GetMe")
@@ -70,13 +81,6 @@ public static class IdentityEndpoints {
             .Produces<UserInfoDto>()
             .Produces(400)
             .Produces(401);
-
-        group.MapPost("/change-password", ChangePassword)
-            .WithName("ChangePassword")
-            .WithDescription("Change the current user's password")
-            .RequireAuthorization()
-            .Produces(200)
-            .Produces(400);
 
         group.MapPost("/refresh-token", RefreshToken)
             .WithName("RefreshToken")

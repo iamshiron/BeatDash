@@ -45,10 +45,16 @@ public static class BeatDashHost {
         var storageOptions = builder.Configuration.GetSection("Storage").Get<StorageOptions>() ?? new StorageOptions();
         var databaseOptions = builder.Configuration.GetSection("Database").Get<DatabaseOptions>() ?? new DatabaseOptions();
         var hspOptions = builder.Configuration.GetSection("Hsp").Get<HspOptions>() ?? new HspOptions();
+        var desktopOptions = builder.Configuration.GetSection("Desktop").Get<DesktopOptions>() ?? new DesktopOptions();
         _ = hspOptions.GetPublicIngestUri();
         builder.Services.Configure<BackupOptions>(builder.Configuration.GetSection("Backup"));
         builder.Services.Configure<HspOptions>(builder.Configuration.GetSection("Hsp"));
         builder.Services.Configure<RegistrationOptions>(builder.Configuration.GetSection("Registration"));
+        builder.Services.Configure<DesktopOptions>(builder.Configuration.GetSection("Desktop"));
+        if (desktopOptions.Enabled && desktopOptions.SessionToken.Length < DesktopOptions.MinimumSessionTokenLength)
+            throw new InvalidOperationException($"Desktop mode requires a session token of at least {DesktopOptions.MinimumSessionTokenLength} characters.");
+        if (desktopOptions.Enabled && backupOptions.MaintenanceMode)
+            throw new InvalidOperationException("Backup maintenance mode requires administrator logins, which desktop mode does not have.");
         var webDirectory = Path.GetFullPath(builder.Environment.WebRootPath!);
         bool IsPublic(string directory) {
             var path = Path.GetFullPath(directory);
@@ -71,7 +77,8 @@ public static class BeatDashHost {
                 c.Password.RequiredLength = 1;
             }
 
-            c.User.RequireUniqueEmail = true;
+            // The desktop user has no email; every server account needs a unique one.
+            c.User.RequireUniqueEmail = !desktopOptions.Enabled;
         }).AddEntityFrameworkStores<BeatDashDbContext>();
 
         var connectionString = builder.Configuration.GetConnectionString("Default")
@@ -269,7 +276,8 @@ public static class BeatDashHost {
         api.MapMapLikeEndpoints();
         api.MapMapListEndpoints();
         api.MapAdminMetricsEndpoints();
-        api.MapBackupEndpoints();
+        if (desktopOptions.Enabled) api.MapDesktopEndpoints();
+        else api.MapBackupEndpoints();
         api.MapSessionEndpoints();
         api.MapProfileEndpoints();
         api.MapUserAssetEndpoints();
@@ -285,6 +293,10 @@ public static class BeatDashHost {
         using var scope = app.Services.CreateScope();
         var databaseOptions = app.Configuration.GetSection("Database").Get<DatabaseOptions>() ?? new DatabaseOptions();
         await scope.ServiceProvider.GetRequiredService<BeatDashDbContext>().Database.InitializeAsync(databaseOptions.ApplyMigrationsOnStartup);
+        if (app.Configuration.GetValue<bool>("Desktop:Enabled")) {
+            await scope.SeedDesktopUser(app.Configuration["AdminUser:Role"] ?? "Admin");
+            return;
+        }
         await scope.SeedAdminUser(
             app.Configuration.GetSection("AdminUser")["Email"] ?? throw new InvalidOperationException("Admin user email not configured"),
             app.Configuration.GetSection("AdminUser")["Password"] ?? throw new InvalidOperationException("Admin user password not configured"),
