@@ -8,8 +8,8 @@ using Shiron.BeatDash.Data.Backup;
 
 namespace Shiron.BeatDash.API.Services.Impl;
 
-/// <summary>Backup access to the two configured application buckets.</summary>
-public sealed class BackupStorage(IMinioClient minio, IStorageService storage, IOptions<StorageOptions> options) : IBackupStorage {
+/// <summary>Backup access to the two configured RustFS application buckets.</summary>
+public sealed class MinioBackupStorage(IMinioClient minio, IStorageService storage, IOptions<StorageOptions> options) : IBackupStorage {
     private string Resolve(string bucket) => bucket switch {
         "assets" => options.Value.BucketAssets,
         "user-data" => options.Value.BucketUserData,

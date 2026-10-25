@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Shiron.BeatDash.API.Endpoints;
 using Shiron.BeatDash.API.Services;
+using Shiron.BeatDash.API.Services.Impl;
 using Shiron.BeatDash.API.Services.BeatSaver;
 using Shiron.BeatDash.DB;
 using Xunit;

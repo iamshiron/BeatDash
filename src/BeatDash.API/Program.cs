@@ -126,7 +126,7 @@ builder.Services.AddScoped<IAuthorizationHandler, BackupAdminHandler>();
 builder.Services.AddSingleton<BackupWorkspace>();
 builder.Services.AddScoped<BackupDatabase>();
 builder.Services.AddScoped<BackupService>();
-builder.Services.AddSingleton<IBackupStorage, BackupStorage>();
+builder.Services.AddSingleton<IBackupStorage, MinioBackupStorage>();
 
 builder.Services.AddMemoryCache();
 

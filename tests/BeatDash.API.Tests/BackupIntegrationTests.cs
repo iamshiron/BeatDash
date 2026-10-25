@@ -217,7 +217,7 @@ public sealed class BackupIntegrationTests {
         public BeatDashDbContext Db { get; }
         public StorageOptions StorageOptions { get; }
         public IStorageService Storage { get; }
-        public BackupStorage BackupStorage { get; }
+        public MinioBackupStorage BackupStorage { get; }
         public BackupService Service { get; }
 
         private Fixture() {
@@ -231,7 +231,7 @@ public sealed class BackupIntegrationTests {
             Storage = new MinioStorageService(_minio, NullLogger<MinioStorageService>.Instance);
             var backupOptions = Options.Create(new BackupOptions { MaintenanceMode = true, WorkDirectory = _directory });
             _workspace = new BackupWorkspace(backupOptions);
-            BackupStorage = new BackupStorage(_minio, Storage, Options.Create(StorageOptions));
+            BackupStorage = new MinioBackupStorage(_minio, Storage, Options.Create(StorageOptions));
             Service = new BackupService(new BackupDatabase(Db), BackupStorage,
                 _workspace, backupOptions, NullLogger<BackupService>.Instance);
         }
