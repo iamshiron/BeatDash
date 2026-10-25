@@ -102,7 +102,7 @@ CI checks out the tag detached, and GitVersion versions it as the branch `tags/v
 
 ```sh
 rm -rf /tmp/beatdash-release-check
-git clone -q --branch v<VERSION> . /tmp/beatdash-release-check
+git -c advice.detachedHead=false clone -q --branch v<VERSION> . /tmp/beatdash-release-check
 GITHUB_ACTIONS=true GITHUB_REF=refs/tags/v<VERSION> GITHUB_REF_NAME=v<VERSION> \
   dotnet tool run dotnet-gitversion /tmp/beatdash-release-check /config GitVersion.yml /nofetch /showvariable SemVer
 rm -rf /tmp/beatdash-release-check
