@@ -2,7 +2,7 @@ name: GitHub releases
 
 on:
   push:
-    tags: ['beatdash/v*']
+    tags: ['v*']
 
 permissions:
   contents: read
@@ -27,7 +27,7 @@ jobs:
       - id: version
         shell: bash
         run: |
-          EXPECTED="${GITHUB_REF_NAME#beatdash/v}"
+          EXPECTED="${GITHUB_REF_NAME#v}"
           VERSION=$(dotnet tool run dotnet-gitversion /config GitVersion.yml /showvariable SemVer)
           test "$VERSION" = "$EXPECTED"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"

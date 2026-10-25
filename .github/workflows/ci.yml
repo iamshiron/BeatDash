@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches: [main]
-    tags: ['beatdash/v*', 'beatdash-mod/v*']
+    tags: ['v*', 'beatdash-mod/v*']
   pull_request:
     branches: [main]
 

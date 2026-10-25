@@ -28,7 +28,7 @@ class VersioningTests(unittest.TestCase):
         for name in ("GitVersion.yml", "GitVersion.Mod.yml"):
             shutil.copyfile(ROOT / name, self.repo / name)
         self.commit("chore: Initial commit", "src/BeatDash.Data/Contract.cs")
-        self.git("tag", "beatdash/v1.2.3")
+        self.git("tag", "v1.2.3")
         self.git("tag", "beatdash-mod/v4.5.6")
 
     def git(self, *args):
@@ -107,7 +107,7 @@ class VersioningTests(unittest.TestCase):
         self.assertEqual("1.2.3", self.version()["SemVer"])
         self.assertEqual("9.0.0", self.version(mod=True)["SemVer"])
         self.commit("fix: Fixed backend", "src/BeatDash.API/Program.cs")
-        self.git("tag", "beatdash/v2.0.0")
+        self.git("tag", "v2.0.0")
         self.assertEqual("2.0.0", self.version()["SemVer"])
         self.assertEqual("9.0.0", self.version(mod=True)["SemVer"])
 

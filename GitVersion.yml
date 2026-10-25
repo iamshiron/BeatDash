@@ -1,6 +1,6 @@
 mode: ContinuousDelivery
 commit-message-incrementing: Enabled
-tag-prefix: '^beatdash/v'
+tag-prefix: '^v'
 
 major-version-bump-message: '^[a-z][a-z0-9-]*(\([^)]+\))?!:'
 minor-version-bump-message: '^feat(\([^)]+\))?:'

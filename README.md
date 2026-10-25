@@ -118,7 +118,7 @@ files or package manifests are rewritten.
 
 | Component | Config | Version tag |
 |---|---|---|
-| Backend, CLI and web app | `GitVersion.yml` | `beatdash/v1.2.3` |
+| Backend, CLI and web app | `GitVersion.yml` | `v1.2.3` |
 | Beat Saber mod | `GitVersion.Mod.yml` | `beatdash-mod/v1.2.3` |
 
 Mod-only commits are ignored by the backend stream. The mod stream considers
@@ -153,9 +153,10 @@ build and package, as described below.
 ### Publishing GitHub releases
 
 `.github/workflows/release.yml` publishes actual GitHub Releases on pushes of
-`beatdash/v<version>` (server). The tag version must
+`v<version>` (server). The tag version must
 match GitVersion. Stable tags create normal releases; prerelease tags create prereleases.
 Releases do not change GitHub's global `latest` pointer. No Docker image is built or pushed.
+The step-by-step release procedure is in [docs/release-pipeline.md](docs/release-pipeline.md).
 
 Windows x64 and Linux x64 server releases build on standard GitHub-hosted runners.
 Automated mod releases are deferred; no self-hosted runner or `mod-release` environment
