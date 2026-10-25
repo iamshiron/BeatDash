@@ -71,7 +71,7 @@ builder.Services.AddIdentity<User, IdentityRole<Guid>>(c => {
 var connectionString = builder.Configuration.GetConnectionString("Default")
     ?? throw new InvalidOperationException("Database connection string not configured");
 
-builder.Services.AddDbContextFactory<BeatDashDbContext>(options => options.UseBeatDashDatabase(databaseOptions.Provider, connectionString));
+builder.Services.AddDatabase(databaseOptions.Provider, connectionString);
 
 builder.Services.Configure<StorageOptions>(builder.Configuration.GetSection("Storage"));
 builder.Services.PostConfigure<StorageOptions>(options => {
@@ -129,7 +129,6 @@ builder.Services.AddAuthorization(options => {
 });
 builder.Services.AddScoped<IAuthorizationHandler, BackupAdminHandler>();
 builder.Services.AddSingleton<BackupWorkspace>();
-builder.Services.AddScoped<BackupDatabase>();
 builder.Services.AddScoped<BackupService>();
 
 builder.Services.AddMemoryCache();

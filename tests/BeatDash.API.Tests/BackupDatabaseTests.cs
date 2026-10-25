@@ -10,7 +10,7 @@ public sealed class BackupDatabaseTests {
     public void Tables_ApplicationModel_IncludesEveryTableInDependencyOrder() {
         using var db = new BeatDashDbContext(new DbContextOptionsBuilder<BeatDashDbContext>()
             .UseNpgsql("Host=unused;Database=unused").Options);
-        var backup = new BackupDatabase(db);
+        var backup = new PostgresBackupDatabase(db);
         var tables = backup.Tables;
         Assert.Equal(db.Model.GetRelationalModel().Tables.Count(), tables.Length);
         Assert.Contains(tables, t => t.Name == "Users");

@@ -46,7 +46,7 @@ public sealed class FileSystemBackupStorageTests : IDisposable {
         using var workspace = new BackupWorkspace(backupOptions);
         await using var db = new BeatDashDbContext(new DbContextOptionsBuilder<BeatDashDbContext>()
             .UseNpgsql("Host=unused;Database=unused").Options);
-        var service = new BackupService(new BackupDatabase(db), _backup, workspace, backupOptions, NullLogger<BackupService>.Instance);
+        var service = new BackupService(new PostgresBackupDatabase(db), _backup, workspace, backupOptions, NullLogger<BackupService>.Instance);
         var archive = await service.ExportAsync(BackupScope.Storage, default);
         await _storage.UploadAsync(_storageOptions.BucketAssets, "maps/a.zip", "text/plain", [9], default);
         await _storage.UploadAsync(_storageOptions.BucketAssets, "extra", "text/plain", [8], default);

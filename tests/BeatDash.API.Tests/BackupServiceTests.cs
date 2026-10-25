@@ -146,7 +146,7 @@ public sealed class BackupServiceTests {
             _workspace = new BackupWorkspace(Options);
             Service = CreateService(_workspace);
         }
-        public BackupService CreateService(BackupWorkspace workspace) => new(new BackupDatabase(_db), Storage,
+        public BackupService CreateService(BackupWorkspace workspace) => new(new PostgresBackupDatabase(_db), Storage,
             workspace, Options, NullLogger<BackupService>.Instance);
         public void Dispose() {
             _workspace.Dispose();

@@ -20,7 +20,7 @@ public static class BackupArchive {
         await using var stream = entry.Open();
         var manifest = await JsonSerializer.DeserializeAsync<BackupManifest>(stream, cancellationToken: ct)
             ?? throw new InvalidDataException("Invalid backup manifest.");
-        if (manifest.FormatVersion != FormatVersion || !Enum.IsDefined(manifest.Scope)
+        if (manifest.FormatVersion != FormatVersion || !Enum.IsDefined(manifest.Scope) || !Enum.IsDefined(manifest.DatabaseEngine)
             || manifest.Tables is null || manifest.Objects is null || manifest.Sequences is null)
             throw new InvalidDataException("Unsupported backup manifest.");
         if (manifest.Scope == BackupScope.Storage && (manifest.Tables.Length != 0 || manifest.Sequences.Length != 0)

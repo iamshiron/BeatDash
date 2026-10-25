@@ -99,15 +99,15 @@ public sealed class BackupService(BackupDatabase database, IBackupStorage storag
                 if (scope is BackupScope.Database or BackupScope.Both) {
                     schema = database.SchemaHash;
                     major = await database.GetMajorVersionAsync(ct);
-                    sequences = await database.ExportAsync(async (name, input, token) =>
-                        tables.Add(new BackupTableDTO(name, await AddAsync(output => input.CopyToAsync(output, token)))), ct);
+                    sequences = await database.ExportAsync(async (name, write) =>
+                        tables.Add(new BackupTableDTO(name, await AddAsync(write))), ct);
                 }
                 if (scope is BackupScope.Storage or BackupScope.Both) {
                     await foreach (var item in storage.ListAsync(ct))
                         objects.Add(item with { Payload = await AddAsync(output => storage.ReadAsync(item, output, ct)) });
                 }
                 var manifest = new BackupManifest(BackupArchive.FormatVersion, DateTimeOffset.UtcNow, scope,
-                    schema, major, tables.ToArray(), objects.ToArray(), sequences);
+                    schema, major, tables.ToArray(), objects.ToArray(), sequences, database.Engine);
                 await using var manifestStream = archive.CreateEntry(BackupArchive.ManifestEntry).Open();
                 await JsonSerializer.SerializeAsync(manifestStream, manifest, cancellationToken: ct);
             }
@@ -131,10 +131,12 @@ public sealed class BackupService(BackupDatabase database, IBackupStorage storag
     private async Task ValidateCompatibilityAsync(BackupManifest manifest, BackupScope scope, CancellationToken ct) {
         if ((manifest.Scope & scope) != scope) throw new InvalidDataException("Requested scope is not present in the archive.");
         if (scope is not (BackupScope.Database or BackupScope.Both)) return;
+        if (manifest.DatabaseEngine != database.Engine)
+            throw new InvalidDataException($"Backup contains a {manifest.DatabaseEngine} database, but this server uses {database.Engine}.");
         if (manifest.SchemaHash != database.SchemaHash || manifest.PostgresMajorVersion != await database.GetMajorVersionAsync(ct)
-            || !manifest.Tables.Select(t => t.Name).Order().SequenceEqual(database.Tables.Select(BackupDatabase.TableName).Order())
+            || !manifest.Tables.Select(t => t.Name).Order().SequenceEqual(database.Tables.Select(database.TableName).Order())
             || !manifest.Sequences.Select(s => s.Name).SequenceEqual((await database.GetSequencesAsync(ct)).Select(s => s.Name)))
-            throw new InvalidDataException("Backup requires the same application database schema and PostgreSQL major version.");
+            throw new InvalidDataException("Backup requires the same application database schema and database major version.");
     }
 
     private async Task ApplyAsync(ZipArchive archive, BackupManifest manifest, BackupScope scope, CancellationToken ct) {

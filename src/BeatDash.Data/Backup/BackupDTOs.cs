@@ -14,10 +14,13 @@ public sealed record BackupRestoreRequest(BackupScope Scope);
 public sealed record BackupErrorResponse(string Error);
 /// <summary>Result of restoring the selected archive components.</summary>
 public sealed record BackupRestoreResponse(BackupScope Scope, int Tables, int Objects);
-/// <summary>Versioned archive inventory. Payload paths are opaque archive entry identifiers.</summary>
+/// <summary>
+/// Versioned archive inventory. Payload paths are opaque archive entry identifiers.
+/// <see cref="PostgresMajorVersion"/> is 0 for engines whose payloads don't depend on the server version.
+/// </summary>
 public sealed record BackupManifest(int FormatVersion, DateTimeOffset CreatedAt, BackupScope Scope,
     string SchemaHash, int PostgresMajorVersion, BackupTableDTO[] Tables, BackupObjectDTO[] Objects,
-    BackupSequenceDTO[] Sequences);
+    BackupSequenceDTO[] Sequences, BackupDatabaseEngine DatabaseEngine = BackupDatabaseEngine.Postgres);
 /// <summary>A complete table payload with an integrity digest.</summary>
 public sealed record BackupTableDTO(string Name, BackupPayloadDTO Payload);
 /// <summary>An object in a logical application bucket, including its media type.</summary>

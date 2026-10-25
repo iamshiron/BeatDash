@@ -92,18 +92,18 @@ public sealed class BackupIntegrationTests {
     [BackupIntegrationFact]
     public async Task Restore_Both_ExactlyRoundTripsEveryTableSequenceAndStorageObject() {
         await using var fixture = await Fixture.CreateAsync();
-        var database = new BackupDatabase(fixture.Db);
+        var database = new PostgresBackupDatabase(fixture.Db);
         foreach (var table in database.Tables) {
             var columns = string.Join(", ", table.Columns.Select(c => BackupDatabase.Quote(c.Name)));
             var values = string.Join(", ", table.Columns.Select(c => Value(c.StoreType)));
-            await ExecuteAsync(fixture.Db, $"INSERT INTO {BackupDatabase.TableName(table)} ({columns}) VALUES ({values})");
+            await ExecuteAsync(fixture.Db, $"INSERT INTO {database.TableName(table)} ({columns}) VALUES ({values})");
         }
         foreach (var sequence in await database.GetSequencesAsync(default))
             await ExecuteAsync(fixture.Db, $"SELECT setval('{sequence.Name}', 40, false)");
         await fixture.Storage.UploadAsync(fixture.StorageOptions.BucketAssets, "maps/test.zip", "application/zip", [0, 255, 42], default);
         await fixture.Storage.UploadAsync(fixture.StorageOptions.BucketUserData, "avatars/test.png", "image/png", [1, 2, 3], default);
         var original = await fixture.Service.ExportAsync(BackupScope.Both, default);
-        await ExecuteAsync(fixture.Db, "TRUNCATE " + string.Join(", ", database.Tables.Select(BackupDatabase.TableName)));
+        await ExecuteAsync(fixture.Db, "TRUNCATE " + string.Join(", ", database.Tables.Select(database.TableName)));
         await fixture.Storage.UploadAsync(fixture.StorageOptions.BucketAssets, "maps/test.zip", "text/plain", [9], default);
         await fixture.Storage.UploadAsync(fixture.StorageOptions.BucketUserData, "extra", "text/plain", [8], default);
 
@@ -232,7 +232,7 @@ public sealed class BackupIntegrationTests {
             var backupOptions = Options.Create(new BackupOptions { MaintenanceMode = true, WorkDirectory = _directory });
             _workspace = new BackupWorkspace(backupOptions);
             BackupStorage = new MinioBackupStorage(_minio, Storage, Options.Create(StorageOptions));
-            Service = new BackupService(new BackupDatabase(Db), BackupStorage,
+            Service = new BackupService(new PostgresBackupDatabase(Db), BackupStorage,
                 _workspace, backupOptions, NullLogger<BackupService>.Instance);
         }
 
