@@ -11,6 +11,7 @@ using Quartz;
 using Scalar.AspNetCore;
 using Shiron.BeatDash.API.Configuration;
 using Shiron.BeatDash.API.Endpoints;
+using Shiron.BeatDash.API.Hosting;
 using Shiron.BeatDash.API.Seeders;
 using Shiron.BeatDash.API.Services;
 using Shiron.BeatDash.API.Services.Backup;
@@ -238,8 +239,7 @@ app.Use(async (context, next) => {
     }
     await next(context);
 });
-app.UseDefaultFiles();
-app.UseStaticFiles();
+app.UseWebClient();
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -266,7 +266,7 @@ if (builder.Environment.IsDevelopment()) {
 app.UseHttpsRedirection();
 
 var api = app.MapGroup("/api");
-api.MapGet("/health", () => new { Message = "OK" }).WithTags("Health");
+api.MapStatusEndpoints();
 api.MapIdentityEndpoints();
 api.MapDeviceEndpoints();
 api.MapClientEndpoints();
@@ -282,8 +282,5 @@ api.MapHealthEndpoints();
 api.MapHspEndpoints();
 api.MapServerInfoEndpoints();
 api.MapHub<RealtimeHub>("/client/web");
-
-app.MapFallback("/api/{**path}", () => Results.NotFound());
-app.MapFallbackToFile("index.html");
 
 app.Run();

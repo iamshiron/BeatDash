@@ -6,7 +6,7 @@
  */
 
 export * from './activityDayDto.ts';
-export * from './anonymousTypeOfstring.ts';
+export * from './statusDto.ts';
 export * from './authenticateDeviceDto.ts';
 export * from './beatmapDifficultyDto.ts';
 export * from './beatmapDifficultyRank.ts';

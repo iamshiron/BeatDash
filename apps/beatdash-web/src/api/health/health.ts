@@ -20,7 +20,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
-  AnonymousTypeOfstring,
+  StatusDto,
   GetHeartRateCurveParams,
   HealthOverviewDto,
   HeartRatePointDto,
@@ -47,7 +47,7 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
 };
 
 export type getApiHealthResponse200 = {
-  data: AnonymousTypeOfstring
+  data: StatusDto
   status: 200
 }
 
@@ -544,7 +544,6 @@ export function useGetHeartRateCurve<TData = Awaited<ReturnType<typeof getHeartR
 
   return withQueryKey(query, queryOptions.queryKey);
 }
-
 
 
 

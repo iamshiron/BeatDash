@@ -1,13 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- This file contains project properties used by the build. -->
 <Project>
+    <Import Project="../Directory.Build.props" />
     <!-- Plugin Metadata -->
     <PropertyGroup>
         <PluginId>Shiron.BeatDash.Mod</PluginId>
         <PluginName>Shiron.BeatDash.Mod</PluginName>
         <AssemblyName>Shiron.BeatDash.Mod</AssemblyName>
         <Authors>Shiron</Authors>
-        <Version>0.0.1</Version>
+        <GitVersion_CommandLineArguments>/config &quot;$(MSBuildThisFileDirectory)../../GitVersion.Mod.yml&quot;</GitVersion_CommandLineArguments>
         <GameVersion>1.40.8</GameVersion>
         <Description>Companion/Peer mod for the BeatDash project</Description>
         <!--<PluginIcon></PluginIcon>-->

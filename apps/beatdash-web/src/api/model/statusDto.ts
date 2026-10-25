@@ -5,7 +5,8 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export interface AnonymousTypeOfstring {
-  /** @nullable */
-  message: string | null;
+/** The server status and generated release version. */
+export interface StatusDto {
+  message: string;
+  version: string;
 }

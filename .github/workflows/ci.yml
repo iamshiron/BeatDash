@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches: [main]
+    tags: ['beatdash/v*', 'beatdash-mod/v*']
   pull_request:
     branches: [main]
 
@@ -11,19 +12,44 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  versioning:
+    name: Release version isolation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - run: dotnet tool restore
+      - run: python3 tools/versioning/test_versions.py
+
   backend:
-    name: Backend (build + format)
+    name: Backend and bundled dashboard (publish + smoke test)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
+          fetch-depth: 0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "10.0.x"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
 
       # The Beat Saber mod (src/BeatDash.Mod) targets net472 and references the
       # proprietary game assemblies via local hint paths, so it cannot be built
@@ -36,8 +62,31 @@ jobs:
 
       - name: Build (Release)
         run: |
-          dotnet build src/BeatDash.API/Shiron.BeatDash.API.csproj -c Release --no-restore -p:SkipWebBuild=true
+          dotnet publish src/BeatDash.API/Shiron.BeatDash.API.csproj -c Release --no-restore -o artifacts/server
           dotnet build src/BeatDash.Cli/Shiron.BeatDash.Cli.csproj -c Release --no-restore
+
+      - name: Smoke test the published dashboard
+        env:
+          BEATDASH_TEST_WEB_ROOT: ${{ github.workspace }}/artifacts/server/wwwroot
+        run: >-
+          dotnet test tests/BeatDash.API.Tests/Shiron.BeatDash.API.Tests.csproj
+          -c Release -p:SkipWebBuild=true
+          --filter FullyQualifiedName~WebClientHostingExtensionsTests
+          --verbosity minimal
+
+      - name: Upload bundled server
+        uses: actions/upload-artifact@v4
+        with:
+          name: beatdash-server
+          path: artifacts/server/
+          if-no-files-found: error
+
+      - name: Generate mod assembly metadata and BSIPA manifest
+        run: >-
+          dotnet msbuild src/BeatDash.Mod/BeatDash.Mod.csproj -restore
+          -t:GenerateGitVersionInformation,UpdateAssemblyInfo,BSMT_GenerateManifest
+          -p:Configuration=Release
+          -p:OutputAssemblyName=obj/Release/net472/BeatDash.Mod
 
       # dotnet format is the .NET lint/style gate. Run it per project so the
       # unbuildable mod is never loaded, and skip the EF Core migrations, which

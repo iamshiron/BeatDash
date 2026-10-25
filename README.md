@@ -85,6 +85,46 @@ The ASP.NET Core server hosts both the API and the built dashboard. See the deve
 
 ## For Developers
 
+### Release versions
+
+GitVersion 6.8.2 generates assembly version attributes and a per-assembly
+`GitVersionInformation` class during `dotnet build`/`publish`; no tracked source
+files or package manifests are rewritten.
+
+| Release | Config | Release tag |
+|---|---|---|
+| Backend, CLI and web app | `GitVersion.yml` | `beatdash/v1.2.3` |
+| Beat Saber mod | `GitVersion.Mod.yml` | `beatdash-mod/v1.2.3` |
+
+Mod-only commits are ignored by the backend stream. The mod stream considers
+`src/BeatDash.Mod`, shared contracts in `src/BeatDash.Data`, `external` libraries,
+their tests, and shared MSBuild/NuGet/CI configuration. Backend/web-only changes
+do not increment the mod. Shared or mixed commits affect both streams; add any
+new shared projects to the mod config's path allowlist. Shared assemblies are
+stamped with the backend stream; the mod assembly and BSIPA manifest use the mod
+stream.
+
+Conventional commits select the next version: `feat:` increments minor,
+`fix:`/`perf:` increment patch, and `type!:`/`type(scope)!:` increment major.
+Feature branches use their branch name as the prerelease label; `rel/*` uses
+`rc`. Continuous Delivery builds remain prereleases until tagged. Tags are
+independent, even when both releases point at the same commit.
+
+Use a full clone with tags (`git fetch --unshallow --tags` for a shallow clone).
+Builds do not fetch automatically. To inspect and test versions:
+
+```sh
+dotnet tool restore
+dotnet tool run dotnet-gitversion /config GitVersion.yml
+dotnet tool run dotnet-gitversion /config GitVersion.Mod.yml
+python3 tools/versioning/test_versions.py
+```
+
+The public status endpoint `GET /api/health` returns `message` and `version`.
+The web app reads that version at runtime rather than maintaining a separate
+frontend build version. The mod still needs a local Beat Saber installation to
+build and package, as described below.
+
 ### Administrative backups
 
 Server-side application backup and restore is available **only through the admin CLI/API**, not the web app.
@@ -229,7 +269,7 @@ Connections are grouped per user, so all of a user's open browser tabs receive t
     dotnet run --project src/BeatDash.API
     ```
 
-    Open **http://localhost:1811**. The API build runs the frontend production build and bundles its files into `wwwroot` beside the server. No Node process is needed at runtime. Client-side routes work on refresh, while unknown `/api` routes still return 404.
+    Open **http://localhost:1811**. The API build restores frontend dependencies with `pnpm install --frozen-lockfile`, runs the frontend production build, and bundles its files into `wwwroot` beside the server. No Node process is needed at runtime. Client-side routes work on refresh, while unknown `/api` routes still return 404.
 
     For frontend hot reload instead, run `dotnet run --project src/BeatDash.API -p:SkipWebBuild=true` and `pnpm --filter @shiron/beatdash-web dev` in separate terminals. Open **http://localhost:1911**; Vite proxies API and WebSocket requests to port 1811. `SkipWebBuild` reuses any existing dashboard build.
 
@@ -241,6 +281,11 @@ dotnet artifacts/server/Shiron.BeatDash.API.dll
 ```
 
 Deploy the **entire** `artifacts/server` directory, including `wwwroot`. Publishing builds the frontend automatically; the destination only needs the .NET 10 ASP.NET Core runtime and access to PostgreSQL and RustFS. Supply the settings from `.env.example` through environment variables (or a `.env` in the working directory). Replace the example credentials and JWT secret before deploying. Node.js and pnpm are build-time dependencies only.
+
+CI publishes this combined application as the `beatdash-server` artifact and smoke-tests
+its dashboard files through the backend's HTTP hosting configuration. Publishing with
+`--no-build` reuses the existing frontend build; use a normal publish when frontend sources
+have changed. `SkipWebBuild=true` bypasses frontend restore/build for API-only work.
 
 RustFS uses the existing S3 client and bucket layout: assets allow anonymous downloads, while user data remains private. The MinIO .NET SDK and `mc` provisioning client are retained as S3-compatible clients, not storage servers. `RUSTFS_*` settings take precedence over the legacy `MINIO_*` equivalents. Existing backup import/export remains unchanged; RustFS uses a separate `rustfs_data` volume and does not reuse MinIO's on-disk data.
 

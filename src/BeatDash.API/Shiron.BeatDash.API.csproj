@@ -6,6 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <WebClientRoot>$(MSBuildProjectDirectory)/../../apps/beatdash-web</WebClientRoot>
+        <WebWorkspaceRoot>$(MSBuildProjectDirectory)/../..</WebWorkspaceRoot>
     </PropertyGroup>
 
     <ItemGroup>
@@ -32,20 +33,29 @@
         <ProjectReference Include="..\BeatDash.DB\Shiron.BeatDash.DB.csproj"/>
     </ItemGroup>
 
-    <Target Name="BuildWebClient" BeforeTargets="AssignTargetPaths"
-            Condition="'$(DesignTimeBuild)' != 'true' and '$(SkipWebBuild)' != 'true'">
+    <Target Name="RestoreWebClient"
+            Condition="'$(DesignTimeBuild)' != 'true' and '$(SkipWebBuild)' != 'true' and '$(NoBuild)' != 'true'">
+        <Exec WorkingDirectory="$(WebWorkspaceRoot)" Command="pnpm install --frozen-lockfile" />
+    </Target>
+
+    <Target Name="BuildWebClient" DependsOnTargets="RestoreWebClient"
+            Condition="'$(DesignTimeBuild)' != 'true' and '$(SkipWebBuild)' != 'true' and '$(NoBuild)' != 'true'">
         <Exec WorkingDirectory="$(WebClientRoot)" Command="pnpm run build" />
     </Target>
 
     <Target Name="IncludeWebClient" BeforeTargets="AssignTargetPaths" DependsOnTargets="BuildWebClient"
             Condition="'$(DesignTimeBuild)' != 'true'">
+        <Error Condition="'$(SkipWebBuild)' != 'true' and !Exists('$(WebClientRoot)/dist/index.html')"
+               Text="The dashboard build is missing. Build the API without --no-build to compile and bundle the web app." />
         <ItemGroup>
             <_WebClientFile Include="$(WebClientRoot)/dist/**/*" />
-            <None Include="@(_WebClientFile)">
+            <Content Include="@(_WebClientFile)">
                 <Link>wwwroot/%(_WebClientFile.RecursiveDir)%(_WebClientFile.Filename)%(_WebClientFile.Extension)</Link>
+                <TargetPath>wwwroot/%(_WebClientFile.RecursiveDir)%(_WebClientFile.Filename)%(_WebClientFile.Extension)</TargetPath>
                 <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
                 <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-            </None>
+                <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+            </Content>
         </ItemGroup>
     </Target>
 

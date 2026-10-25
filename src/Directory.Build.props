@@ -1,0 +1,14 @@
+<Project>
+    <PropertyGroup>
+        <GitVersion_CommandLineArguments>/config &quot;$(MSBuildThisFileDirectory)../GitVersion.yml&quot;</GitVersion_CommandLineArguments>
+        <GitVersion_NoFetchEnabled>true</GitVersion_NoFetchEnabled>
+        <UseProjectNamespaceForGitVersionInformation>true</UseProjectNamespaceForGitVersionInformation>
+        <GenerateGitVersionInformation>true</GenerateGitVersionInformation>
+        <UpdateAssemblyInfo>true</UpdateAssemblyInfo>
+        <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+        <WriteVersionInfoToBuildLog>false</WriteVersionInfoToBuildLog>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="GitVersion.MsBuild" PrivateAssets="all" />
+    </ItemGroup>
+</Project>

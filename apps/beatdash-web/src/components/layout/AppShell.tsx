@@ -1,6 +1,7 @@
 import { Button } from "@shiron/ui/components/ui/button";
 import { cn } from "@shiron/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
+import { useGetApiHealth } from "@/api/health/health";
 import { PageTransition } from "@/components/common/PageTransition";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { ModeToggle } from "@/components/layout/ModeToggle";
@@ -30,6 +31,9 @@ export function AppShell({
 	const maxWidth = wide ? "max-w-6xl" : "max-w-5xl";
 	const { isAuthenticated, user } = useAuth();
 	const { track } = usePlayer();
+	const { data: status } = useGetApiHealth({
+		query: { staleTime: 60_000 },
+	});
 	const navItems = NAV_ITEMS.filter(
 		(item) => !("healthOnly" in item) || user?.healthTrackingEnabled,
 	);
@@ -89,6 +93,11 @@ export function AppShell({
 			>
 				<PageTransition>{children}</PageTransition>
 			</main>
+			{status?.status === 200 && status.data.version && (
+				<footer className="pb-6 text-center text-xs text-muted-foreground">
+					BeatDash v{status.data.version}
+				</footer>
+			)}
 		</div>
 	);
 }
