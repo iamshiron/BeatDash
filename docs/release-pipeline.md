@@ -166,6 +166,7 @@ log excerpt. Common causes:
 | `version` → `test "$VERSION" = "$EXPECTED"` | Tag isn't strict SemVer, isn't on the expected commit, or `GitVersion.yml` was changed without updating `tools/versioning/test_versions.py` |
 | `server` → Publish / Test | Build or test regression; reproduce locally with the commands above |
 | `server` → Package | `package.py` found a missing asset or local config (`appsettings.json`, `.env`) |
+| `server` → Package / `pnpm run build` → "no SPDX template" | A new dependency ships no license file. Add its SPDX text or exact upstream license to `tools/release/licenses` (see its README) |
 | `publish` → gh release | Repository Actions settings deny `contents: write` |
 
 ### Recovering from a failure
@@ -190,7 +191,7 @@ Confirm all of these:
   `<VERSION>` contains `-`
 - Assets `BeatDash-server-<VERSION>-linux-x64.zip`, `BeatDash-server-<VERSION>-win-x64.zip`
   and their `.sha256` files are attached
-- Each ZIP contains `LICENSE` and `NOTICE.md` at its root (`package.py` fails without them)
+- Each ZIP contains `LICENSE`, `NOTICE.md` and `THIRD-PARTY-NOTICES.txt` at its root (`package.py` fails without them)
 - The release isn't a draft
 
 Then give the user the release URL, each workflow's conclusion, and any failures.

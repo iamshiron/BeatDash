@@ -394,3 +394,8 @@ BeatDash is licensed under the [GNU Affero General Public License v3.0 or later]
 See [NOTICE.md](NOTICE.md) for the copyright notice and an additional permission that allows
 the mod to be combined with Beat Saber and the Unity runtime. Submodules and third-party
 dependencies keep their own licenses.
+
+Server releases include `THIRD-PARTY-NOTICES.txt`, generated during packaging from the NuGet
+packages that were actually published and the npm packages and fonts bundled into the dashboard.
+The dashboard also serves its part at `/third-party-notices.txt`. See
+[tools/release/licenses](tools/release/licenses/README.md) when a new dependency breaks this step.

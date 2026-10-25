@@ -109,7 +109,7 @@ jobs:
         run: |
           test -f "release-assets/BeatDash-server-${RELEASE_VERSION}-linux-x64.zip"
           test -f "release-assets/BeatDash-server-${RELEASE_VERSION}-win-x64.zip"
-          NOTES='Download the Windows or Linux server ZIP below (not the source-code archive). Each ZIP includes the server, web dashboard, admin CLI, commented appsettings.example.json, README, LICENSE and NOTICE.md. Install the .NET 10 ASP.NET Core Runtime; no SDK or Node is required. PostgreSQL 17 and RustFS must be provisioned separately. Extract, copy the sample to appsettings.json, replace credentials, and run the server. Public signup is disabled in the sample configuration. Automated mod releases are deferred; see the repository README for local mod build instructions.'
+          NOTES='Download the Windows or Linux server ZIP below (not the source-code archive). Each ZIP includes the server, web dashboard, admin CLI, commented appsettings.example.json, README, LICENSE, NOTICE.md and THIRD-PARTY-NOTICES.txt. Install the .NET 10 ASP.NET Core Runtime; no SDK or Node is required. PostgreSQL 17 and RustFS must be provisioned separately. Extract, copy the sample to appsettings.json, replace credentials, and run the server. Public signup is disabled in the sample configuration. Automated mod releases are deferred; see the repository README for local mod build instructions.'
           FLAGS=(--latest=false)
           if [[ "$RELEASE_VERSION" == *-* ]]; then FLAGS+=(--prerelease); fi
           if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then

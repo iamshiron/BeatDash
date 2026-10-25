@@ -63,3 +63,7 @@ configuration, stop the old instance, back up, then start the new one. Do not
 overwrite a live installation or expose the backup workspace through the web root.
 
 Report startup failures with the console log, but redact passwords and JWT keys.
+
+BeatDash is free software under the GNU AGPL v3.0 or later (`LICENSE`, `NOTICE.md`). If you
+modify it and let others use it over a network, you must offer them your modified source.
+Licenses of the bundled third-party components are in `THIRD-PARTY-NOTICES.txt`.

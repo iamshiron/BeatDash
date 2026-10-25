@@ -7,6 +7,8 @@ import tempfile
 import shutil
 import zipfile
 
+from notices import write_notices
+
 
 ROOT = Path(__file__).resolve().parents[2]
 TEMP_DIRECTORY = "/tmp/opencode" if Path("/tmp/opencode").is_dir() else None
@@ -42,6 +44,7 @@ def archive(source, output):
 def package_server(source, cli, output):
     for path in (source / "Shiron.BeatDash.API.dll", source / "wwwroot/index.html",
                  source / "Shiron.BeatDash.API.runtimeconfig.json", source / "Shiron.BeatDash.API.deps.json",
+                 source / "wwwroot/third-party-notices.txt",
                  cli / "beatdash.dll", cli / "beatdash.runtimeconfig.json", cli / "beatdash.deps.json"):
         require_file(path)
     with tempfile.TemporaryDirectory(prefix="beatdash-server-", dir=TEMP_DIRECTORY) as temporary:
@@ -52,6 +55,9 @@ def package_server(source, cli, output):
         shutil.copyfile(ROOT / "tools/release/SERVER-README.md", stage / "README.md")
         shutil.copyfile(ROOT / "docs/BACKUPS.md", stage / "BACKUPS.md")
         copy_legal_files(stage)
+        write_notices(stage / "THIRD-PARTY-NOTICES.txt",
+                      [source / "Shiron.BeatDash.API.deps.json", cli / "beatdash.deps.json"],
+                      source / "wwwroot/third-party-notices.txt")
         archive(stage, output)
 
 

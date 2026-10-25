@@ -3,10 +3,11 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { TanStackRouterVite } from '@tanstack/router-vite-plugin';
 import path from 'path';
+import { thirdPartyNotices } from './third-party-notices.ts';
 
 export default defineConfig({
     envDir: '../../',
-    plugins: [TanStackRouterVite({ autoCodeSplitting: true }), tailwindcss(), react()],
+    plugins: [TanStackRouterVite({ autoCodeSplitting: true }), tailwindcss(), react(), thirdPartyNotices()],
     resolve: {
         alias: {
             '@': path.resolve(import.meta.dirname, './src'),
