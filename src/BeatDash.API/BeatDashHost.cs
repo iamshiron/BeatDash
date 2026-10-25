@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Quartz;
@@ -30,11 +31,18 @@ namespace Shiron.BeatDash.API;
 /// <summary>Composes the BeatDash server, so it can run standalone or embedded in another process.</summary>
 public static class BeatDashHost {
     /// <summary>Creates a builder rooted at the application directory, serving the dashboard from its <c>wwwroot</c>.</summary>
-    public static WebApplicationBuilder CreateBuilder(string[] args) => WebApplication.CreateBuilder(new WebApplicationOptions {
-        Args = args,
-        ContentRootPath = AppContext.BaseDirectory,
-        WebRootPath = Path.Combine(AppContext.BaseDirectory, "wwwroot")
-    });
+    /// <param name="args">Command-line configuration.</param>
+    /// <param name="webRoot">Serves the dashboard from this provider instead, e.g. resources embedded in a single-file executable.</param>
+    public static WebApplicationBuilder CreateBuilder(string[] args, IFileProvider? webRoot = null) {
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions {
+            Args = args,
+            ContentRootPath = AppContext.BaseDirectory,
+            // ASP.NET Core creates an explicit web root that is missing; a provided dashboard needs none on disk.
+            WebRootPath = webRoot is null ? Path.Combine(AppContext.BaseDirectory, "wwwroot") : null
+        });
+        if (webRoot is not null) builder.Environment.WebRootFileProvider = webRoot;
+        return builder;
+    }
 
     /// <summary>Registers every service from the builder's configuration and maps the middleware and endpoints.</summary>
     public static WebApplication Build(WebApplicationBuilder builder) {
@@ -55,8 +63,9 @@ public static class BeatDashHost {
             throw new InvalidOperationException($"Desktop mode requires a session token of at least {DesktopOptions.MinimumSessionTokenLength} characters.");
         if (desktopOptions.Enabled && backupOptions.MaintenanceMode)
             throw new InvalidOperationException("Backup maintenance mode requires administrator logins, which desktop mode does not have.");
-        var webDirectory = Path.GetFullPath(builder.Environment.WebRootPath!);
+        var webDirectory = builder.Environment.WebRootPath is { } webRootPath ? Path.GetFullPath(webRootPath) : null;
         bool IsPublic(string directory) {
+            if (webDirectory is null) return false;
             var path = Path.GetFullPath(directory);
             return path == webDirectory || path.StartsWith(webDirectory + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
         }

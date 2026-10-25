@@ -1,0 +1,65 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <AssemblyName>BeatDash</AssemblyName>
+        <RootNamespace>Shiron.BeatDash.Desktop</RootNamespace>
+        <!-- The server is hosted in-process from the API assembly, which is a framework-dependent executable. -->
+        <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
+        <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
+        <WebClientDist>$(MSBuildProjectDirectory)/../../apps/beatdash-web/dist</WebClientDist>
+    </PropertyGroup>
+
+    <!-- `dotnet publish -r <rid>` produces one self-contained executable. -->
+    <PropertyGroup Condition="'$(RuntimeIdentifier)' != ''">
+        <SelfContained>true</SelfContained>
+        <PublishSingleFile>true</PublishSingleFile>
+        <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+        <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+        <DebugType>embedded</DebugType>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Avalonia"/>
+        <PackageReference Include="Avalonia.Controls.WebView"/>
+        <PackageReference Include="Avalonia.Desktop"/>
+        <PackageReference Include="Avalonia.Themes.Fluent"/>
+        <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\BeatDash.API\Shiron.BeatDash.API.csproj"/>
+    </ItemGroup>
+
+    <!-- The API project reference builds the dashboard; embed it so the executable needs no wwwroot beside it. -->
+    <Target Name="EmbedWebClient" AfterTargets="ResolveProjectReferences" BeforeTargets="PrepareResourceNames"
+            Condition="'$(DesignTimeBuild)' != 'true'">
+        <Error Condition="!Exists('$(WebClientDist)/index.html')"
+               Text="The dashboard build is missing. Build without SkipWebBuild=true to compile the web app."/>
+        <ItemGroup>
+            <_EmbeddedWebClientFile Include="$(WebClientDist)/**/*"/>
+            <EmbeddedResource Include="@(_EmbeddedWebClientFile)" WithCulture="false"
+                              TargetPath="wwwroot/%(_EmbeddedWebClientFile.RecursiveDir)%(_EmbeddedWebClientFile.Filename)%(_EmbeddedWebClientFile.Extension)"/>
+        </ItemGroup>
+    </Target>
+
+    <!--
+        Keep the publish output to the single executable: the API's loose wwwroot (replaced by the embedded
+        copy), the runtimeconfig of the referenced API executable, and the references' separate debug symbols.
+    -->
+    <Target Name="ExcludeLooseFiles" AfterTargets="ComputeResolvedFilesToPublishList">
+        <ItemGroup>
+            <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
+                                   Condition="$([System.String]::Copy('%(ResolvedFileToPublish.RelativePath)').Replace('\', '/').StartsWith('wwwroot/'))
+                                              or '%(Filename)%(Extension)' == 'Shiron.BeatDash.API.runtimeconfig.json'
+                                              or '%(Extension)' == '.pdb'"/>
+        </ItemGroup>
+    </Target>
+</Project>
