@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Minio;
 using Quartz;
 using Scalar.AspNetCore;
 using Shiron.BeatDash.API.Configuration;
@@ -37,16 +36,21 @@ var jwtSecret = builder.Configuration.GetSection("Jwt")["SecretKey"] ?? throw ne
 var jwtIssuer = builder.Configuration.GetSection("Jwt")["Issuer"] ?? throw new InvalidOperationException("JWT issuer not configured");
 var jwtAudience = builder.Configuration.GetSection("Jwt")["Audience"] ?? throw new InvalidOperationException("JWT audience not configured");
 var backupOptions = builder.Configuration.GetSection("Backup").Get<BackupOptions>() ?? new BackupOptions();
+var storageOptions = builder.Configuration.GetSection("Storage").Get<StorageOptions>() ?? new StorageOptions();
 var hspOptions = builder.Configuration.GetSection("Hsp").Get<HspOptions>() ?? new HspOptions();
 _ = hspOptions.GetPublicIngestUri();
 builder.Services.Configure<BackupOptions>(builder.Configuration.GetSection("Backup"));
 builder.Services.Configure<HspOptions>(builder.Configuration.GetSection("Hsp"));
 builder.Services.Configure<RegistrationOptions>(builder.Configuration.GetSection("Registration"));
-var backupDirectory = Path.GetFullPath(backupOptions.WorkDirectory);
 var webDirectory = Path.GetFullPath(builder.Environment.WebRootPath!);
-if (backupOptions.MaxArchiveBytes <= 0 || backupDirectory == webDirectory
-    || backupDirectory.StartsWith(webDirectory + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+bool IsPublic(string directory) {
+    var path = Path.GetFullPath(directory);
+    return path == webDirectory || path.StartsWith(webDirectory + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
+}
+if (backupOptions.MaxArchiveBytes <= 0 || IsPublic(backupOptions.WorkDirectory))
     throw new InvalidOperationException("Backup workspace must be private and the archive size limit must be positive.");
+if (storageOptions.Provider == StorageProvider.FileSystem && IsPublic(storageOptions.RootDirectory))
+    throw new InvalidOperationException("The file-system storage root must be private and outside wwwroot.");
 if (!backupOptions.MaintenanceMode && File.Exists(Path.Combine(backupOptions.WorkDirectory, "recovery.zip")))
     throw new InvalidOperationException("An interrupted restore requires backup maintenance mode and 'backup recover'.");
 
@@ -126,7 +130,6 @@ builder.Services.AddScoped<IAuthorizationHandler, BackupAdminHandler>();
 builder.Services.AddSingleton<BackupWorkspace>();
 builder.Services.AddScoped<BackupDatabase>();
 builder.Services.AddScoped<BackupService>();
-builder.Services.AddSingleton<IBackupStorage, MinioBackupStorage>();
 
 builder.Services.AddMemoryCache();
 
@@ -144,7 +147,7 @@ builder.Services.AddScoped<IWeaknessAggregationService, WeaknessAggregationServi
 if (!backupOptions.MaintenanceMode) builder.Services.AddHostedService<WeaknessBackfillService>();
 builder.Services.AddScoped<IPracticeRecommendationService, PracticeRecommendationService>();
 if (!backupOptions.MaintenanceMode) builder.Services.AddHostedService<MotionSummaryBackfillService>();
-builder.Services.AddSingleton<IStorageService, MinioStorageService>();
+builder.Services.AddStorage(storageOptions.Provider);
 builder.Services.AddScoped<IMapAudioService, MapAudioService>();
 builder.Services.AddSingleton<IPinService, PinService>();
 builder.Services.AddScoped<IBeatmapPersistenceService, BeatmapPersistenceService>();
@@ -201,16 +204,6 @@ builder.Services.AddQuartz(q => {
     }
 });
 if (!backupOptions.MaintenanceMode) builder.Services.AddQuartzHostedService(o => o.WaitForJobsToComplete = true);
-
-// RustFS uses the existing S3-compatible client, including backup streaming.
-builder.Services.AddSingleton<IMinioClient>(sp => {
-    var opts = sp.GetRequiredService<IOptions<StorageOptions>>().Value;
-    return new MinioClient()
-        .WithEndpoint(opts.Endpoint)
-        .WithCredentials(opts.AccessKey, opts.SecretKey)
-        .WithSSL(opts.UseSsl)
-        .Build();
-});
 
 // Socket dispatchers
 builder.Services.AddScoped<SocketMessageDispatcher>();
