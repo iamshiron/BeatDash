@@ -7,6 +7,8 @@
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <WebClientRoot>$(MSBuildProjectDirectory)/../../apps/beatdash-web</WebClientRoot>
         <WebWorkspaceRoot>$(MSBuildProjectDirectory)/../..</WebWorkspaceRoot>
+        <!-- The dashboard is copied into the output wwwroot and served by UseStaticFiles. -->
+        <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
     </PropertyGroup>
 
     <ItemGroup>
