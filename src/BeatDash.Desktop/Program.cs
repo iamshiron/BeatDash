@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using Avalonia;
 
 namespace Shiron.BeatDash.Desktop;
@@ -6,8 +7,9 @@ public static class Program {
     [STAThread]
     public static int Main(string[] args) {
         // WebKitGTK's DMA-BUF renderer leaves the view blank on common GPU drivers (notably NVIDIA).
+        // WebKit reads the native environment, which Environment.SetEnvironmentVariable does not change on Unix.
         if (OperatingSystem.IsLinux() && Environment.GetEnvironmentVariable("WEBKIT_DISABLE_DMABUF_RENDERER") is null)
-            Environment.SetEnvironmentVariable("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+            SetNativeEnvironmentVariable("WEBKIT_DISABLE_DMABUF_RENDERER", "1", 1);
 
         var paths = DesktopPaths.Resolve();
         paths.Create();
@@ -27,4 +29,7 @@ public static class Program {
             Task.Run(() => server.DisposeAsync().AsTask()).GetAwaiter().GetResult();
         }
     }
+
+    [DllImport("libc", EntryPoint = "setenv")]
+    private static extern int SetNativeEnvironmentVariable(string name, string value, int overwrite);
 }
